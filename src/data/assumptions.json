@@ -264,6 +264,54 @@
    "label": "IMPLEMENTATION_VARIES",
    "milestone": "M2",
    "area": "Wi-Fi"
+  },
+  {
+   "id": "A-28",
+   "source": "spec 7A.7",
+   "text": "The severity table in the spec has no row for Transmit against Transmit with no frequency overlap. It is filled in as HARD on a shared path and TOLERATED on separate paths. All cells are in conflictSeverity.json.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M3",
+   "area": "Conflicts"
+  },
+  {
+   "id": "A-29",
+   "source": "spec 7A.7, SR-20",
+   "text": "Bluetooth and Wi-Fi are forced to take turns (the \"shared\" column) when the antenna is shared, when the core mode is not CONCURRENT (a shared core), or, for Bluetooth receive against Wi-Fi transmit, when simultaneous Wi-Fi TX with Bluetooth RX is switched off. Otherwise isolation against the threshold picks the column.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M3",
+   "area": "Conflicts"
+  },
+  {
+   "id": "A-30",
+   "source": "spec 7A.6",
+   "text": "A Bluetooth channel overlaps Wi-Fi when its footprint intersects the Wi-Fi footprint widened by the guard (open intervals). For Wi-Fi channel 6 at 20 MHz and a 1 MHz guard this is 2426 to 2448 MHz, which is 23 Classic channels. The spec text says \"about 22\".",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M3",
+   "area": "Bluetooth"
+  },
+  {
+   "id": "A-31",
+   "source": "spec 7A.6",
+   "text": "The AFH map avoids the operating channels of selected 2.4 GHz Wi-Fi tasks (including the 2.4 GHz link of multi-link operation). Scans and roaming sweeps are ignored. If fewer than the minimum channels remain, removed channels furthest from the Wi-Fi centre are put back first.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M3",
+   "area": "Bluetooth"
+  },
+  {
+   "id": "A-32",
+   "source": "spec 7A.6",
+   "text": "Each hop is a seeded uniform draw that is stored on the block. When AFH narrows the channel set, the same draw is mapped onto the reduced set, so a run is repeatable and only blocks after the AFH delay change. BLE advertising channels are not changed by AFH.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M3",
+   "area": "Bluetooth"
+  },
+  {
+   "id": "A-33",
+   "source": "spec 7A.7",
+   "text": "Retransmission blocks that were never triggered (eSCO window, spare ISO subevents) are not on the air and cannot conflict. A retry is a new block that does.",
+   "label": "STANDARD",
+   "milestone": "M3",
+   "area": "Conflicts"
   }
  ]
 }
