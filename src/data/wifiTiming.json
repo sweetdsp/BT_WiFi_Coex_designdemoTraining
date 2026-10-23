@@ -1,0 +1,19 @@
+{
+  "_note": "Standard 802.11 figures, accepted as-is for release 1 (spec section 12). Durations are computed from these in code, never hard-coded.",
+  "sifsUs": 16,
+  "slotUs": 9,
+  "difsUs": 34,
+  "contentionWindowSlots": 15,
+  "maxAggregationUs": 5484,
+  "beaconIntervalUs": 102400,
+  "controlRateMbps": 24,
+  "ackBytes": 14,
+  "blockAckBytes": 32,
+  "rtsBytes": 20,
+  "ctsBytes": 14,
+  "beaconBytes": 120,
+  "probeRequestBytes": 70,
+  "mgmtFrameBytes": 60,
+  "eapolBytes": 120,
+  "rateStepFactors": [1, 0.75, 0.5, 0.25]
+}

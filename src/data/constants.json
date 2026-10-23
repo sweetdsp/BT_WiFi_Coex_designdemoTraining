@@ -1,0 +1,22 @@
+{
+  "_note": "Every number used by the engine lives in data files. Values follow spec section 7A and are defaults.",
+  "classicSlotUs": 625,
+  "classicHopChannels": 79,
+  "classicBaseMHz": 2402,
+  "classicChannelWidthMHz": 1,
+  "bleChannelWidthMHz": 2,
+  "bleAdvChannels": [
+    { "index": 37, "mhz": 2402 },
+    { "index": 38, "mhz": 2426 },
+    { "index": 39, "mhz": 2480 }
+  ],
+  "bleDataChannelCount": 37,
+  "bleDataBaseMHz": 2404,
+  "bleDataSkipMHz": 2426,
+  "bleInterFrameSpacingUs": 150,
+  "bleAdvDelayMaxUs": 10000,
+  "bleAdvInterChannelGapUs": 1000,
+  "bleSupervisionDefaultMs": 2000,
+  "bandEdgesMHz": { "low": 2400, "high": 2483.5 },
+  "afhGuardDefaultMHz": 1
+}

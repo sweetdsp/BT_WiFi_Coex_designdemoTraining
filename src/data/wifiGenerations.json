@@ -1,0 +1,233 @@
+{
+ "_note": "Per-generation rate, preamble and symbol tables (spec 6.2 and 7A.5). rates1ssMbps is the highest rate for one stream; the engine multiplies by stream count.",
+ "generations": {
+  "11b": {
+   "name": "802.11b",
+   "rank": 1,
+   "bands": [
+    "2.4"
+   ],
+   "bandwidths": {
+    "2.4": [
+     20
+    ]
+   },
+   "maxStreams": 1,
+   "features": [],
+   "preambleUs": 192,
+   "symbolUs": 1,
+   "basicRateMbps": 1,
+   "slotUs": 20,
+   "rates1ssMbps": {
+    "20": 11
+   },
+   "modulation": "CCK, 11 Mbps",
+   "effect": "Long frames, long preambles, very high airtime per bit"
+  },
+  "11g": {
+   "name": "802.11g",
+   "rank": 2,
+   "bands": [
+    "2.4"
+   ],
+   "bandwidths": {
+    "2.4": [
+     20
+    ]
+   },
+   "maxStreams": 1,
+   "features": [],
+   "preambleUs": 20,
+   "symbolUs": 4,
+   "basicRateMbps": 6,
+   "slotUs": 9,
+   "rates1ssMbps": {
+    "20": 54
+   },
+   "modulation": "OFDM, 54 Mbps",
+   "effect": "Protection frames needed when mixed with 11b"
+  },
+  "11a": {
+   "name": "802.11a",
+   "rank": 2,
+   "bands": [
+    "5"
+   ],
+   "bandwidths": {
+    "5": [
+     20
+    ]
+   },
+   "maxStreams": 1,
+   "features": [],
+   "preambleUs": 20,
+   "symbolUs": 4,
+   "basicRateMbps": 6,
+   "slotUs": 9,
+   "rates1ssMbps": {
+    "20": 54
+   },
+   "modulation": "OFDM, 54 Mbps",
+   "effect": "No overlap with Bluetooth"
+  },
+  "11n": {
+   "name": "802.11n (Wi-Fi 4)",
+   "rank": 3,
+   "bands": [
+    "2.4",
+    "5"
+   ],
+   "bandwidths": {
+    "2.4": [
+     20,
+     40
+    ],
+    "5": [
+     20,
+     40
+    ]
+   },
+   "maxStreams": 4,
+   "features": [
+    "AMPDU"
+   ],
+   "preambleUs": 36,
+   "symbolUs": 3.6,
+   "basicRateMbps": 6,
+   "slotUs": 9,
+   "rates1ssMbps": {
+    "20": 72.2,
+    "40": 150
+   },
+   "modulation": "64-QAM",
+   "effect": "Aggregation gives long bursts; 40 MHz on 2.4 GHz covers about half the Bluetooth band"
+  },
+  "11ac": {
+   "name": "802.11ac (Wi-Fi 5)",
+   "rank": 4,
+   "bands": [
+    "5"
+   ],
+   "bandwidths": {
+    "5": [
+     20,
+     40,
+     80,
+     160
+    ]
+   },
+   "maxStreams": 8,
+   "features": [
+    "AMPDU",
+    "MU_MIMO"
+   ],
+   "preambleUs": 40,
+   "symbolUs": 3.6,
+   "basicRateMbps": 6,
+   "slotUs": 9,
+   "rates1ssMbps": {
+    "20": 86.7,
+    "40": 200,
+    "80": 433.3,
+    "160": 866.7
+   },
+   "modulation": "256-QAM",
+   "effect": "Shorter bursts for the same data; no overlap with Bluetooth"
+  },
+  "11ax": {
+   "name": "802.11ax (Wi-Fi 6/6E)",
+   "rank": 5,
+   "bands": [
+    "2.4",
+    "5",
+    "6"
+   ],
+   "bandwidths": {
+    "2.4": [
+     20,
+     40
+    ],
+    "5": [
+     20,
+     40,
+     80,
+     160
+    ],
+    "6": [
+     20,
+     40,
+     80,
+     160
+    ]
+   },
+   "maxStreams": 8,
+   "features": [
+    "AMPDU",
+    "MU_MIMO",
+    "OFDMA",
+    "TWT"
+   ],
+   "preambleUs": 52,
+   "symbolUs": 13.6,
+   "basicRateMbps": 6,
+   "slotUs": 9,
+   "rates1ssMbps": {
+    "20": 143.4,
+    "40": 286.8,
+    "80": 600.5,
+    "160": 1201
+   },
+   "modulation": "1024-QAM",
+   "effect": "OFDMA and scheduled wake windows change the timing"
+  },
+  "11be": {
+   "name": "802.11be (Wi-Fi 7)",
+   "rank": 6,
+   "bands": [
+    "2.4",
+    "5",
+    "6"
+   ],
+   "bandwidths": {
+    "2.4": [
+     20,
+     40
+    ],
+    "5": [
+     20,
+     40,
+     80,
+     160
+    ],
+    "6": [
+     20,
+     40,
+     80,
+     160,
+     320
+    ]
+   },
+   "maxStreams": 16,
+   "features": [
+    "AMPDU",
+    "MU_MIMO",
+    "OFDMA",
+    "TWT",
+    "MLO"
+   ],
+   "preambleUs": 56,
+   "symbolUs": 13.6,
+   "basicRateMbps": 6,
+   "slotUs": 9,
+   "rates1ssMbps": {
+    "20": 154.9,
+    "40": 309.7,
+    "80": 648.5,
+    "160": 1297,
+    "320": 2594
+   },
+   "modulation": "4096-QAM",
+   "effect": "Multi-link operation can run bursts on several bands at once"
+  }
+ }
+}

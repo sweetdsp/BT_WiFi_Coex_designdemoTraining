@@ -1,0 +1,594 @@
+{
+ "_note": "Validation rules (spec 7C). Conditions are small registered functions in src/engine/validator/conditions.ts; messages, reasons, labels and fix texts live here.",
+ "rules": [
+  {
+   "id": "V-1",
+   "stage": 1,
+   "severity": "ERROR",
+   "title": "Value out of range",
+   "condition": "paramOutOfRange",
+   "message": "{task}: {param} is {value}, but it must be between {min} and {max} {unit}.",
+   "reason": "Each parameter has an allowed range from the specification or the tool's data.",
+   "label": "STANDARD",
+   "fixes": {
+    "clamp": "Set {param} to {nearest} {unit}",
+    "restoreDefault": "Restore {param} to {value}"
+   },
+   "helpTopic": "ranges",
+   "params": {
+    "platformRanges": {
+     "retryLimit": [
+      0,
+      64
+     ],
+     "guardMHz": [
+      0,
+      10
+     ],
+     "coreCount": [
+      1,
+      4
+     ],
+     "interactionThresholdDb": [
+      0,
+      100
+     ],
+     "afhDelayUs": [
+      0,
+      10000000
+     ],
+     "afhMinChannelsClassic": [
+      20,
+      79
+     ],
+     "afhMinChannelsBle": [
+      2,
+      37
+     ],
+     "timeShareBtPercent": [
+      0,
+      100
+     ],
+     "wifiChains": [
+      1,
+      8
+     ],
+     "maxBleConnections": [
+      1,
+      64
+     ],
+     "maxEscoLinks": [
+      0,
+      3
+     ],
+     "maxIsoStreams": [
+      0,
+      16
+     ]
+    }
+   }
+  },
+  {
+   "id": "V-2",
+   "stage": 1,
+   "severity": "ERROR",
+   "title": "Required value missing",
+   "condition": "missingOrNaN",
+   "message": "{task}: {param} {what}.",
+   "reason": "A simulation cannot run with an empty or non-numeric value.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "restoreDefault": "Restore {param} to {value}",
+    "remove": "Remove {task}"
+   },
+   "helpTopic": "required",
+   "params": {
+    "platformNumeric": [
+     "wifiChannel",
+     "wifiBandwidth",
+     "btMaxVersion",
+     "isolationDb",
+     "coreCount",
+     "wifiChains",
+     "timeShareBtPercent",
+     "timeShareSliceUs",
+     "afhMinChannelsClassic",
+     "afhMinChannelsBle",
+     "afhDelayUs",
+     "guardMHz",
+     "interactionThresholdDb",
+     "retryLimit",
+     "seed",
+     "windowUs",
+     "maxBleConnections",
+     "maxEscoLinks",
+     "maxIsoStreams"
+    ]
+   }
+  },
+  {
+   "id": "V-3",
+   "stage": 1,
+   "severity": "ERROR",
+   "title": "Scan window longer than scan interval",
+   "condition": "scanWindowExceedsInterval",
+   "message": "{task}: the scan window ({window} ms) is longer than the scan interval ({interval} ms). A device cannot listen for longer than the time between windows.",
+   "reason": "The window starts once per interval, so it cannot be longer.",
+   "label": "STANDARD",
+   "fixes": {
+    "equal": "Set the window equal to the interval ({interval} ms)",
+    "half": "Reduce the window to {half} ms"
+   },
+   "helpTopic": "scanning"
+  },
+  {
+   "id": "V-4",
+   "stage": 1,
+   "severity": "ERROR",
+   "title": "Packet does not fit",
+   "condition": "packetTypeFit",
+   "message": "{task}: {packet} {what}.",
+   "reason": "Packet types have fixed slot counts and maximum payloads.",
+   "label": "STANDARD",
+   "fixes": {
+    "raiseSlotLimit": "Allow {slots}-slot packets",
+    "shorterPacket": "Use packet type {packet}",
+    "clampPayload": "Reduce the payload to {max} bytes"
+   },
+   "helpTopic": "packets"
+  },
+  {
+   "id": "V-5",
+   "stage": 1,
+   "severity": "ERROR",
+   "title": "Simulation window out of range",
+   "condition": "windowBounds",
+   "message": "The simulation window is {window} us, but it must be between {min} and {max} us.",
+   "reason": "The engine needs a positive window below the tool's limit.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "clamp": "Set the window to {nearest} us"
+   },
+   "helpTopic": "window"
+  },
+  {
+   "id": "T-1",
+   "stage": 2,
+   "severity": "ERROR",
+   "title": "Not supported by the device version",
+   "condition": "versionUnsupported",
+   "message": "{task} needs {need}, but the simulated device supports up to {have}.",
+   "reason": "A feature cannot be used on a device that predates the version that introduced it.",
+   "label": "STANDARD",
+   "fixes": {
+    "raiseBt": "Raise the device limit to Core {version}",
+    "raiseWifi": "Use {generation}",
+    "remove": "Remove {task}",
+    "restoreDefault": "Restore {param} to {value}"
+   },
+   "helpTopic": "versions"
+  },
+  {
+   "id": "T-2",
+   "stage": 2,
+   "severity": "ERROR",
+   "title": "Band or bandwidth not allowed",
+   "condition": "bandwidthBandNotAllowed",
+   "message": "{what} is not allowed for {generation}. Allowed: {allowed}.",
+   "reason": "Each Wi-Fi generation defines the bands and channel widths it can use.",
+   "label": "STANDARD",
+   "fixes": {
+    "setBand": "Switch to the {band} GHz band",
+    "setBandwidth": "Use {bandwidth} MHz"
+   },
+   "helpTopic": "wifi-generations"
+  },
+  {
+   "id": "T-3",
+   "stage": 2,
+   "severity": "ERROR",
+   "title": "PHY or LE Audio not supported",
+   "condition": "phyOrIsoUnsupported",
+   "message": "{task} uses {what}, which needs {need}. The device supports up to {have}.",
+   "reason": "Coded and 2M PHYs arrived in Core 5.0 and isochronous streams in Core 5.2.",
+   "label": "STANDARD",
+   "fixes": {
+    "raiseBt": "Raise the device limit to Core {version}",
+    "usePhy1M": "Use the 1M PHY",
+    "remove": "Remove {task}"
+   },
+   "helpTopic": "phy"
+  },
+  {
+   "id": "T-4",
+   "stage": 2,
+   "severity": "ERROR",
+   "title": "Wi-Fi feature missing",
+   "condition": "featureMissing",
+   "message": "{task} needs {feature}, which {generation} does not have.",
+   "reason": "Target Wake Time arrived with Wi-Fi 6 and multi-link operation with Wi-Fi 7.",
+   "label": "STANDARD",
+   "fixes": {
+    "raiseWifi": "Use {generation}",
+    "remove": "Remove {task}"
+   },
+   "helpTopic": "wifi-features"
+  },
+  {
+   "id": "T-5",
+   "stage": 2,
+   "severity": "WARNING",
+   "title": "No frequency overlap with Bluetooth",
+   "condition": "highBandNoOverlap",
+   "message": "{count} Wi-Fi task(s) run on {band} GHz, which does not overlap Bluetooth in frequency. Only shared antenna, shared core and isolation will cause interaction.",
+   "reason": "5 and 6 GHz do not overlap the 2.4 GHz Bluetooth band; interaction is through the platform only.",
+   "label": "STANDARD",
+   "fixes": {
+    "use24": "Move Wi-Fi to the 2.4 GHz band"
+   },
+   "helpTopic": "frequency-overlap"
+  },
+  {
+   "id": "T-6",
+   "stage": 2,
+   "severity": "ERROR",
+   "title": "Access point and station on one device",
+   "condition": "roleConflict",
+   "message": "Access-point tasks ({ap}) and station tasks ({sta}) are both selected, but the device is set to a single Wi-Fi role.",
+   "reason": "A device needs multi-role support to be an access point and a station together.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "enableMultiRole": "Allow Wi-Fi multi-role on this device",
+    "removeAp": "Remove {task}"
+   },
+   "helpTopic": "wifi-roles",
+   "params": {
+    "apRoles": [
+     "AP"
+    ],
+    "staRoles": [
+     "STA"
+    ]
+   }
+  },
+  {
+   "id": "P-1",
+   "stage": 3,
+   "severity": "ERROR",
+   "title": "Two voice links clash",
+   "condition": "slotCollision",
+   "message": "{a} and {b} both reserve slots {slots} of every {interval}. Classic Bluetooth cannot send two links in the same reserved slots.",
+   "reason": "Reserved slots are exclusive to one link.",
+   "label": "STANDARD",
+   "fixes": {
+    "moveOffset": "Move {task} to offset {offset}",
+    "remove": "Remove {task}"
+   },
+   "helpTopic": "reserved-slots",
+   "params": {
+    "periodCapSlots": 8192
+   }
+  },
+  {
+   "id": "P-2",
+   "stage": 3,
+   "severity": "ERROR",
+   "title": "Tasks that exclude each other",
+   "condition": "exclusivePairs",
+   "message": "{a} and {b} cannot be selected together. {why}",
+   "reason": "This pair is marked exclusive in the rule table.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "remove": "Remove {task}"
+   },
+   "helpTopic": "exclusive-tasks"
+  },
+  {
+   "id": "P-3",
+   "stage": 3,
+   "severity": "ERROR",
+   "title": "Too many at once",
+   "condition": "groupLimits",
+   "message": "{count} {what} are selected, but the device supports {limit}. {why}",
+   "reason": "Controllers limit how many of these can run at once. The limit is editable.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "raiseLimit": "Allow {count} {what}",
+    "remove": "Remove {task}"
+   },
+   "helpTopic": "device-limits"
+  },
+  {
+   "id": "P-4",
+   "stage": 3,
+   "severity": "INFO",
+   "title": "Audio and a voice call together",
+   "condition": "a2dpWithVoice",
+   "message": "{audio} and {voice} are selected together. This is common: the call normally takes priority, and the audio stream is reduced or paused.",
+   "reason": "How the audio behaves during a call is a product choice.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "pauseAudio": "Pause {task} during the call",
+    "reduceAudio": "Keep {task} running at a lower bitrate"
+   },
+   "helpTopic": "a2dp-hfp"
+  },
+  {
+   "id": "P-5",
+   "stage": 3,
+   "severity": "WARNING",
+   "title": "Possible duplicate",
+   "condition": "duplicates",
+   "message": "{task} is selected twice with identical settings. This is probably a mistake.",
+   "reason": "Identical tasks add airtime without teaching anything new.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "removeDuplicate": "Remove the duplicate"
+   },
+   "helpTopic": "duplicates"
+  },
+  {
+   "id": "P-6",
+   "stage": 3,
+   "severity": "WARNING",
+   "title": "Too many tasks to read",
+   "condition": "tooManyTasks",
+   "message": "{bt} Bluetooth and {wifi} Wi-Fi tasks are selected. With this many the view becomes hard to read.",
+   "reason": "A busy view hides the point of a demo.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "removeLast": "Remove {task}"
+   },
+   "helpTopic": "readability"
+  },
+  {
+   "id": "P-7",
+   "stage": 3,
+   "severity": "ERROR",
+   "title": "Channels cannot coexist on one radio",
+   "condition": "channelMismatchSingleRadio",
+   "message": "{a} is on channel {chA} at {bwA} MHz but {b} is on channel {chB} at {bwB} MHz. A single radio without concurrent operation cannot be on both.",
+   "reason": "A single Wi-Fi radio is tuned to one channel and width at a time.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "alignChannel": "Put {task} on channel {channel}",
+    "enableConcurrent": "Enable concurrent operation",
+    "moreCores": "Use two cores"
+   },
+   "helpTopic": "single-radio"
+  },
+  {
+   "id": "R-1",
+   "stage": 4,
+   "severity": "ERROR",
+   "title": "Classic slot budget over-subscribed",
+   "condition": "slotBudget",
+   "message": "The reserved slots of {links} need {pct}% of the available slots, which is more than 100%.",
+   "reason": "Slots are shared by all links; reservations cannot exceed what exists.",
+   "label": "STANDARD",
+   "fixes": {
+    "lengthenInterval": "Lengthen the interval of {task} to {interval} slots",
+    "remove": "Remove {task}"
+   },
+   "helpTopic": "slot-budget",
+   "params": {
+    "above": "slotBudgetErrorPct"
+   }
+  },
+  {
+   "id": "R-2",
+   "stage": 4,
+   "severity": "WARNING",
+   "title": "Little room left for data",
+   "condition": "slotBudget",
+   "message": "The reserved slots of {links} use {pct}% of the available slots, leaving little room for data traffic.",
+   "reason": "Above about 80% reserved, data links are starved.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "lengthenInterval": "Lengthen the interval of {task} to {interval} slots",
+    "remove": "Remove {task}"
+   },
+   "helpTopic": "slot-budget",
+   "params": {
+    "above": "slotBudgetWarnPct",
+    "upTo": "slotBudgetErrorPct"
+   }
+  },
+  {
+   "id": "R-3",
+   "stage": 4,
+   "severity": "ERROR",
+   "title": "More airtime requested than exists",
+   "condition": "airtimeLoad",
+   "message": "{tech} tasks request about {pct}% of the window. {heavy} asks for the most.",
+   "reason": "A single radio cannot transmit more than 100% of the time.",
+   "label": "STANDARD",
+   "fixes": {
+    "lowerBitrate": "Lower the load of {task} to {value} {unit}",
+    "widenChannel": "Widen the channel to {bandwidth} MHz",
+    "remove": "Remove {task}"
+   },
+   "helpTopic": "airtime",
+   "params": {
+    "above": "airtimeErrorPct"
+   }
+  },
+  {
+   "id": "R-4",
+   "stage": 4,
+   "severity": "WARNING",
+   "title": "Window will be saturated",
+   "condition": "airtimeLoad",
+   "message": "{tech} tasks request about {pct}% of the window, so most of the view will be saturated.",
+   "reason": "High load hides individual conflicts.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "lowerBitrate": "Lower the load of {task} to {value} {unit}",
+    "widenChannel": "Widen the channel to {bandwidth} MHz",
+    "remove": "Remove {task}"
+   },
+   "helpTopic": "airtime",
+   "params": {
+    "above": "airtimeWarnPct",
+    "upTo": "airtimeErrorPct"
+   }
+  },
+  {
+   "id": "R-5",
+   "stage": 4,
+   "severity": "ERROR",
+   "title": "Cores cannot serve the selection",
+   "condition": "coresCannotServe",
+   "message": "One core in time-division mode cannot send Wi-Fi and receive Bluetooth at the same moment, but simultaneous Wi-Fi TX with Bluetooth RX is switched on.",
+   "reason": "A single time-division core serves one radio at a time.",
+   "label": "STANDARD",
+   "fixes": {
+    "moreCores": "Use two cores",
+    "enableConcurrent": "Enable concurrent operation",
+    "turnOffSimultaneous": "Turn off simultaneous Wi-Fi TX with Bluetooth RX"
+   },
+   "helpTopic": "cores"
+  },
+  {
+   "id": "F-1",
+   "stage": 5,
+   "severity": "ERROR",
+   "title": "Platform settings contradict each other",
+   "condition": "platformContradiction",
+   "message": "The platform is inconsistent: {what}.",
+   "reason": "Settings that describe the same hardware must agree.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "matchAntenna": "Set the antenna mode to {mode}",
+    "matchFem": "Change the front-end to match the antenna mode",
+    "setStreams": "Use {streams} streams",
+    "setChains": "Give the device {chains} Wi-Fi chains"
+   },
+   "helpTopic": "platform"
+  },
+  {
+   "id": "F-2",
+   "stage": 5,
+   "severity": "ERROR",
+   "title": "Isolation out of range",
+   "condition": "isolationRange",
+   "message": "Isolation is {value} dB, but it must be between {min} and {max} dB.",
+   "reason": "The tool models isolation as a simple number from 0 to 100 dB.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "clamp": "Set isolation to {nearest} dB"
+   },
+   "helpTopic": "isolation"
+  },
+  {
+   "id": "F-3",
+   "stage": 5,
+   "severity": "WARNING",
+   "title": "Concurrency with low isolation",
+   "condition": "concurrentLowIsolation",
+   "message": "Concurrent operation is on, but isolation ({isolation} dB) is below the interaction threshold ({threshold} dB). Expect degraded conflicts. This may be the point of the demo.",
+   "reason": "Below the threshold, a transmitter desensitises a nearby receiver.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "raiseIsolation": "Raise isolation to {threshold} dB"
+   },
+   "helpTopic": "desense"
+  },
+  {
+   "id": "F-4",
+   "stage": 5,
+   "severity": "WARNING",
+   "title": "Adaptive hopping has nothing to avoid",
+   "condition": "afhNoWifi",
+   "message": "Adaptive frequency hopping is on, but no Wi-Fi task is selected, so it has no effect.",
+   "reason": "AFH avoids Wi-Fi channels; without Wi-Fi it changes nothing.",
+   "label": "STANDARD",
+   "fixes": {
+    "turnOffAfh": "Turn adaptive hopping off"
+   },
+   "helpTopic": "afh"
+  },
+  {
+   "id": "F-5",
+   "stage": 5,
+   "severity": "ERROR",
+   "title": "Hopping minimum too high",
+   "condition": "afhMinTooHigh",
+   "message": "The adaptive hopping minimum ({min} channels) is more than the {outside} channels outside the Wi-Fi footprint plus the allowed minimum ({allowedMin}), a limit of {limit}.",
+   "reason": "The map cannot keep more channels than exist outside the Wi-Fi channel without keeping some inside it.",
+   "label": "STANDARD",
+   "fixes": {
+    "lowerMin": "Lower the minimum to {outside}"
+   },
+   "helpTopic": "afh",
+   "params": {
+    "protocolMinClassic": 20
+   }
+  },
+  {
+   "id": "F-6",
+   "stage": 5,
+   "severity": "ERROR",
+   "title": "Time-share settings invalid",
+   "condition": "timeShareInvalid",
+   "message": "Time share needs a Bluetooth share above 0 and below 100 percent and a slice length between 1 us and the window. Current: {ratio}% and {slice} us.",
+   "reason": "A time slice must be positive and fit in the window.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "resetTimeShare": "Reset to {ratio}% and {slice} us"
+   },
+   "helpTopic": "time-share"
+  },
+  {
+   "id": "W-1",
+   "stage": 6,
+   "severity": "WARNING",
+   "title": "Window too short for a task",
+   "condition": "windowShort",
+   "message": "{task} repeats every {interval} us, so the {window} us window shows fewer than two events.",
+   "reason": "Seeing one event does not show the repeating pattern.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "lengthenWindow": "Lengthen the window to {window} us"
+   },
+   "helpTopic": "window"
+  },
+  {
+   "id": "W-2",
+   "stage": 6,
+   "severity": "ERROR",
+   "title": "Too many blocks",
+   "condition": "blockCount",
+   "message": "About {blocks} blocks would be generated, which is above the limit of {limit}. {heavy} produces the most.",
+   "reason": "Very large runs would freeze the browser.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "shortenWindow": "Shorten the window to {window} us",
+    "remove": "Remove {task}"
+   },
+   "helpTopic": "performance",
+   "params": {
+    "above": "blockLimitError"
+   }
+  },
+  {
+   "id": "W-3",
+   "stage": 6,
+   "severity": "WARNING",
+   "title": "Dense view",
+   "condition": "blockCount",
+   "message": "About {blocks} blocks will be generated. The view will use density mode when zoomed out.",
+   "reason": "Above {limit} blocks the time view merges blocks into density bars.",
+   "label": "IMPLEMENTATION_VARIES",
+   "fixes": {
+    "shortenWindow": "Shorten the window to {window} us",
+    "remove": "Remove {task}"
+   },
+   "helpTopic": "performance",
+   "params": {
+    "above": "blockWarnDensity",
+    "upTo": "blockLimitError"
+   }
+  }
+ ]
+}
