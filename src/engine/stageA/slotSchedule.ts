@@ -31,16 +31,16 @@ export function slotSchedule(g: GenContext): void {
     ? (classicPacket(g.data, resolveText(pat.payloadPacketType, g)).maxPayloadBytes * 8 * 1000) / resolveRef(pat.bitrateKbps, g)
     : 0;
 
-  const emitPair = (m: number, optional: boolean, eventId: string, arrival?: number): number => {
+  const emitPair = (m: number, optional: boolean, eventId: string, eventKey: string, arrival?: number): number => {
     const mDur = resolveDurationUs(master.dur, g);
     const rDur = resolveDurationUs(reply.dur, g);
     const mCount = master.count === undefined ? 1 : Math.round(num(g, master.count));
     const mGap = master.gapUs === undefined ? 0 : num(g, master.gapUs);
     for (let i = 0; i < mCount; i++) {
-      pushBlock(g, { dir: resolveDir(master.dir, g.params), start: m * slotUs + i * (mDur + mGap), duration: mDur, kind: master.kind, chanMode: 'CLASSIC_HOP', eventId: `${eventId}.m${i}`, optional, arrivalUs: arrival });
+      pushBlock(g, { dir: resolveDir(master.dir, g.params), start: m * slotUs + i * (mDur + mGap), duration: mDur, kind: master.kind, chanMode: 'CLASSIC_HOP', eventId: `${eventId}.m${i}`, groupId: eventId, eventKey, optional, arrivalUs: arrival });
     }
     const r = m + ms;
-    pushBlock(g, { dir: resolveDir(reply.dir, g.params), start: r * slotUs, duration: rDur, kind: reply.kind, chanMode: 'CLASSIC_HOP', eventId: `${eventId}.r`, optional });
+    pushBlock(g, { dir: resolveDir(reply.dir, g.params), start: r * slotUs, duration: rDur, kind: reply.kind, chanMode: 'CLASSIC_HOP', eventId: `${eventId}.r`, groupId: eventId, eventKey, optional });
     return evenUp(r + rs);
   };
 
@@ -49,12 +49,12 @@ export function slotSchedule(g: GenContext): void {
     if (base * slotUs >= g.windowUs) break;
     const arrival = bitrate ? Math.round(k * arrivalStep) : undefined;
     let m = base;
-    for (let p = 0; p < pairs; p++) m = emitPair(m, false, `${g.instanceId}.e${k}.p${p}`, arrival);
+    for (let p = 0; p < pairs; p++) m = emitPair(m, false, `${g.instanceId}.e${k}.p${p}`, `${g.instanceId}.e${k}`, arrival);
     // Retransmission window after the reserved pairs: blocks exist only if a retry is triggered (SR-6).
     if (retxSlots > 0) {
       let w = m;
       const end = m + retxSlots;
-      for (let i = 0; w + ms + rs <= end; i++) w = emitPair(w, true, `${g.instanceId}.e${k}.w${i}`);
+      for (let i = 0; w + ms + rs <= end; i++) w = emitPair(w, true, `${g.instanceId}.e${k}.w${i}`, `${g.instanceId}.e${k}`);
     }
   }
 }

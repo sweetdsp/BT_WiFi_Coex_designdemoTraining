@@ -10,7 +10,8 @@ An interactive, browser-only tool that teaches test engineers how Bluetooth and 
 | M1 | Data model, JSON data files, validator | done |
 | M2 | Seeded RNG, seven pattern generators, timing formulas | done |
 | M3 | Frequency footprints, adaptive hopping, conflict detection and severity table | done |
-| M4-M6 | Arbitration, retries, metrics, worked examples | next |
+| M4 | Arbitration policies, dynamic priority, anchors, delays, retries | done |
+| M5-M6 | Metrics, worked examples as tests | next |
 | M7-M9 | Views, controls, lessons, accessibility, Pages deploy | planned |
 
 ## Layout

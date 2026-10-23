@@ -43,35 +43,47 @@ function* overlappingPairs(bt: AirBlock[], wifi: AirBlock[]): Generator<[AirBloc
   }
 }
 
+/** Classify one Bluetooth/Wi-Fi pair that overlaps in time. Returns undefined when the pair does not interact. */
+export function classifyPair(b: AirBlock, w: AirBlock, p: PlatformConfig, data: DataBundle): Omit<Conflict, 'id'> | undefined {
+  const oStart = Math.max(b.start, w.start);
+  const oEnd = Math.min(b.start + b.duration, w.start + w.duration);
+  if (oEnd <= oStart) return undefined;
+  const labels = data.conflictSeverity.testLabels;
+  const freq = footprintsOverlap(footprint(b), footprint(w), p.guardMHz);
+  const pc = platformCase(p, b, w);
+  const tests: InteractionTest[] = ['TIME'];
+  if (freq) tests.push('FREQUENCY');
+  tests.push(...pc.shared);
+  if (pc.lowIsolation) tests.push('ISOLATION');
+  // The pair interacts if frequency overlaps, the path is shared, or isolation is below the threshold.
+  if (tests.length === 1) return undefined;
+  const dirClass = dirClassOf(b, w);
+  const row = data.conflictSeverity.rows.find((r) => r.dirClass === dirClass && r.freqOverlap === freq);
+  if (!row) throw new Error(`No severity row for ${dirClass} freq=${freq}`);
+  const cell = row[pc.column];
+  const why = pc.shared.length ? pc.shared.map((t) => labels[t]).join(' and ') : freq ? labels.FREQUENCY : labels.ISOLATION;
+  return {
+    btBlockId: b.id, wifiBlockId: w.id, btTaskId: b.taskId, wifiTaskId: w.taskId,
+    overlapStart: oStart, overlapEnd: oEnd, overlapUs: oEnd - oStart, freqOverlap: freq, dirClass, tests, column: pc.column,
+    severity: cell.severity, reason: `${cell.text} (Triggered by: ${why}.)`, label: cell.label,
+  };
+}
+
+/** True when blocks on the shared path must take turns. */
+export function isHard(b: AirBlock, w: AirBlock, p: PlatformConfig, data: DataBundle): boolean {
+  return classifyPair(b, w, p, data)?.severity === 'HARD';
+}
+
 export function detectConflicts(blocks: AirBlock[], config: ScenarioConfig, data: DataBundle): Conflict[] {
   const p = config.platform;
   // Optional blocks are retransmission opportunities that were never triggered; a retry is a new, non-optional block.
   const set = blocks.filter((b) => !b.optional);
   const bt = set.filter((b) => b.tech === 'BT');
   const wifi = set.filter((b) => b.tech === 'WIFI');
-  const labels = data.conflictSeverity.testLabels;
   const found: Conflict[] = [];
   for (const [b, w] of overlappingPairs(bt, wifi)) {
-    const oStart = Math.max(b.start, w.start);
-    const oEnd = Math.min(b.start + b.duration, w.start + w.duration);
-    const freq = footprintsOverlap(footprint(b), footprint(w), p.guardMHz);
-    const pc = platformCase(p, b, w);
-    const tests: InteractionTest[] = ['TIME'];
-    if (freq) tests.push('FREQUENCY');
-    tests.push(...pc.shared);
-    if (pc.lowIsolation) tests.push('ISOLATION');
-    // The pair interacts if frequency overlaps, the path is shared, or isolation is below the threshold.
-    if (tests.length === 1) continue;
-    const dirClass = dirClassOf(b, w);
-    const row = data.conflictSeverity.rows.find((r) => r.dirClass === dirClass && r.freqOverlap === freq);
-    if (!row) throw new Error(`No severity row for ${dirClass} freq=${freq}`);
-    const cell = row[pc.column];
-    const why = pc.shared.length ? pc.shared.map((t) => labels[t]).join(' and ') : freq ? labels.FREQUENCY : labels.ISOLATION;
-    found.push({
-      id: '', btBlockId: b.id, wifiBlockId: w.id, btTaskId: b.taskId, wifiTaskId: w.taskId,
-      overlapStart: oStart, overlapEnd: oEnd, overlapUs: oEnd - oStart, freqOverlap: freq, dirClass, tests, column: pc.column,
-      severity: cell.severity, reason: `${cell.text} (Triggered by: ${why}.)`, label: cell.label,
-    });
+    const c = classifyPair(b, w, p, data);
+    if (c) found.push({ id: '', ...c });
   }
   found.sort((a, b) => a.overlapStart - b.overlapStart || (a.btBlockId < b.btBlockId ? -1 : a.btBlockId > b.btBlockId ? 1 : a.wifiBlockId < b.wifiBlockId ? -1 : 1));
   found.forEach((c, i) => { c.id = `C${String(i + 1).padStart(4, '0')}`; });

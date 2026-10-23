@@ -6,9 +6,18 @@
   "classicChannelWidthMHz": 1,
   "bleChannelWidthMHz": 2,
   "bleAdvChannels": [
-    { "index": 37, "mhz": 2402 },
-    { "index": 38, "mhz": 2426 },
-    { "index": 39, "mhz": 2480 }
+    {
+      "index": 37,
+      "mhz": 2402
+    },
+    {
+      "index": 38,
+      "mhz": 2426
+    },
+    {
+      "index": 39,
+      "mhz": 2480
+    }
   ],
   "bleDataChannelCount": 37,
   "bleDataBaseMHz": 2404,
@@ -17,6 +26,10 @@
   "bleAdvDelayMaxUs": 10000,
   "bleAdvInterChannelGapUs": 1000,
   "bleSupervisionDefaultMs": 2000,
-  "bandEdgesMHz": { "low": 2400, "high": 2483.5 },
-  "afhGuardDefaultMHz": 1
+  "bandEdgesMHz": {
+    "low": 2400,
+    "high": 2483.5
+  },
+  "afhGuardDefaultMHz": 1,
+  "timeShareSequenceStep": 0.6180339887
 }

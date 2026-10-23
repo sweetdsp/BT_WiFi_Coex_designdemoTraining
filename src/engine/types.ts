@@ -51,6 +51,27 @@ export interface AirBlock {
   arrivalUs?: number;
   /** Seeded uniform draw in [0, 1) that picks this hop from the allowed channel set; reused when AFH narrows the set. */
   hopU?: number;
+  /** Blocks that must move together (a master packet and its reply, a Wi-Fi burst and its acknowledgement). */
+  groupId: string;
+  /** Pool of blocks one event owns, used to find its retransmission opportunities. */
+  eventKey: string;
+  /** 1 for the first attempt, 2 and up for retries. */
+  attempt: number;
+  /** Id of the arbitration decision that settled this block. */
+  decisionId?: string;
+  /** Involved in at least one conflict of any severity. */
+  contested?: boolean;
+  /** Probably corrupted by interference: airtime is drawn but payload does not count (7A.8). */
+  corrupted?: boolean;
+  /** Involved in a WARNING conflict (out-of-band risk). */
+  warning?: boolean;
+  /** Retransmission of an anchor task: a fallback that is not protected (7A.8). */
+  retx?: boolean;
+  /** How many times arbitration has moved this block later. */
+  delayCount?: number;
+  /** Frequency before arbitration re-tuned the block, so the planned overlap can be shown. */
+  plannedFreqCenter?: number;
+  plannedChannelIndex?: number;
 }
 
 export type ConflictSeverity = 'HARD' | 'DEGRADED' | 'WARNING' | 'TOLERATED';
@@ -76,6 +97,27 @@ export interface Conflict {
   column: PlatformColumn;
   severity: ConflictSeverity;
   reason: string;
+  label: SpecLabel;
+  /** PLANNED: found at the planned times. ACTUAL: appeared only after a block moved. */
+  geometry?: 'PLANNED' | 'ACTUAL';
+  /** The arbitration decision that settled this pair, when it was a HARD conflict. */
+  decisionId?: string;
+  winnerBlockId?: string;
+  btStatus?: BlockStatus;
+  wifiStatus?: BlockStatus;
+}
+
+/** One arbitration decision (7A.8): who competed, the priorities, who won and why. */
+export interface Decision {
+  id: string;
+  time: number;
+  policy: ArbitrationPolicy;
+  /** Machine-readable rule that decided, for example ANCHOR_FIRST_ATTEMPT or PRIORITY_DYNAMIC. */
+  rule: string;
+  winnerId: string;
+  loserIds: string[];
+  priorities: Record<string, { value: number; base: number; critical: boolean; anchor: boolean; waiting?: number }>;
+  text: string;
   label: SpecLabel;
 }
 

@@ -312,6 +312,102 @@
    "label": "STANDARD",
    "milestone": "M3",
    "area": "Conflicts"
+  },
+  {
+   "id": "A-34",
+   "source": "spec 7A.7",
+   "text": "Only a Bluetooth block against a Wi-Fi block is arbitrated. Blocks of the same technology are not arbitrated against each other, but a block that arbitration moves or retries is never placed on top of another block of its own radio.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M4",
+   "area": "Arbitration"
+  },
+  {
+   "id": "A-35",
+   "source": "spec 7A.8",
+   "text": "Blocks that belong together (a master packet and its reply, a Wi-Fi burst and its acknowledgement) move together when the first block is delayed. A later block cannot be delayed on its own: if it loses, it is denied and the whole group is retried. If the first block is denied, the rest of the group is not sent.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M4",
+   "area": "Arbitration"
+  },
+  {
+   "id": "A-36",
+   "source": "spec 7A.8",
+   "text": "Once the first block of a pair has won, the rest of the pair keeps the priority it won with. Without this the buffer level, which drops as soon as the first packet is granted, would let Wi-Fi take the reply slot of a pair that had just won.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M4",
+   "area": "Arbitration"
+  },
+  {
+   "id": "A-37",
+   "source": "spec 7A.8",
+   "text": "A DELAYED block moves to the earliest time after the winner's whole group has ended that is free of already granted blocks, of blocks on its own radio, and of waiting blocks that would beat it. Classic blocks are placed on an even slot, Wi-Fi blocks add DIFS. A block can be moved at most 16 times (limits.json), then it is denied.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M4",
+   "area": "Arbitration"
+  },
+  {
+   "id": "A-38",
+   "source": "spec 7A.8",
+   "text": "A block moved past the end of the window keeps the status DELAYED and starts after the window. It still occupies its radio, so later moves queue behind it.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M4",
+   "area": "Arbitration"
+  },
+  {
+   "id": "A-39",
+   "source": "spec 7A.8",
+   "text": "Packets waiting in a buffered stream are counted as packets planned so far minus packets delivered. Packets are interchangeable, so the oldest waiting packet is not forced to go first, and the delay shown for one block can be larger than the packet's real wait.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M4",
+   "area": "Arbitration"
+  },
+  {
+   "id": "A-40",
+   "source": "spec 7A.8",
+   "text": "A retransmission of an anchor task is a fallback and is not protected: it competes as an ordinary block at priority 5 (priorityTable.json), below every class, so Wi-Fi wins it. Anchors with medium miss cost (LE Audio) are treated like high-cost anchors and are never given up.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M4",
+   "area": "Arbitration"
+  },
+  {
+   "id": "A-41",
+   "source": "spec 7A.9",
+   "text": "Retry placement: Classic ACL at the next even slot after the pair; eSCO and LE Audio in an existing retransmission slot or spare subevent of the same event; other LE traffic after the next event of the same task; Wi-Fi after DIFS plus a new seeded backoff, with the data frame stretched by the next rate step. Retries stop at the retry limit (default 7) and the block is lost.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M4",
+   "area": "Arbitration"
+  },
+  {
+   "id": "A-42",
+   "source": "spec 7A.8",
+   "text": "TIME_SHARE gives each slice to one technology. Ownership follows a low-discrepancy sequence (golden-ratio steps from a seeded phase), so the long-run split equals the configured ratio and periodic traffic does not line up with one owner for ever. A plain alternating pattern would deny either none or all of a 30 ms BLE link in Example 5, because 30 ms is a multiple of 10 ms. The rule applies whenever the path is shared; a block outside its slice is denied (anchors) or delayed to its next slice, and an overlap inside a slice goes to the block that started first.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M4",
+   "area": "Arbitration"
+  },
+  {
+   "id": "A-43",
+   "source": "spec 7A.8",
+   "text": "In a DEGRADED conflict both blocks are marked DEGRADED and corrupted (interference is mutual in this simple model), and their airtime is still drawn. They are not delayed or denied.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M4",
+   "area": "Conflicts"
+  },
+  {
+   "id": "A-44",
+   "source": "spec 7A.8",
+   "text": "A block with no overlap is GRANTED. A block whose only overlaps are TOLERATED is TOLERATED. A block in a WARNING conflict carries a warning flag. A block that was moved stays DELAYED even after it is granted.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M4",
+   "area": "Conflicts"
+  },
+  {
+   "id": "A-45",
+   "source": "spec 7A.7",
+   "text": "The conflict list shows each overlap at its planned time, so a delayed block's original conflict stays listed, plus any overlap that appears only after a block moved. HARD conflicts are linked to the decision that settled them.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M4",
+   "area": "Conflicts"
   }
  ]
 }

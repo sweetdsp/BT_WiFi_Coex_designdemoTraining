@@ -37,6 +37,8 @@ export interface EmitOptions {
   wifi?: { band: string; channel: number; width: number };
   /** Gap in microseconds between advertising channels. */
   advGapUs?: number;
+  groupId?: string;
+  eventKey?: string;
 }
 
 export function priorityBase(g: GenContext): number {
@@ -70,6 +72,9 @@ function pushBlock(g: GenContext, partial: Pick<AirBlock, 'dir' | 'start' | 'dur
     plannedStart: Math.round(plannedStart ?? start),
     eventId,
     chanMode,
+    groupId: eventId,
+    eventKey: eventId,
+    attempt: 1,
     ...(isWifi ? { wifiBand: w.band, wifiChannel: w.channel, wifiWidth: w.bandwidth } : {}),
   };
   for (const [k, v] of Object.entries(extra)) if (v !== undefined) (b as unknown as Record<string, unknown>)[k] = v;
@@ -103,7 +108,7 @@ export function emitSequence(g: GenContext, packets: PacketSpec[], t0: number, o
         const advGap = o.advGapUs ?? 0;
         let t = cursor + gap;
         for (const ch of g.data.constants.bleAdvChannels as { index: number; mhz: number }[]) {
-          pushBlock(g, { dir, start: t, duration: dur, kind: p.kind, chanMode: 'BLE_ADV', fixedChannel: ch.index, eventId: o.eventId, optional: p.optional || o.optional, arrivalUs: o.arrivalUs });
+          pushBlock(g, { dir, start: t, duration: dur, kind: p.kind, chanMode: 'BLE_ADV', fixedChannel: ch.index, eventId: o.eventId, optional: p.optional || o.optional, arrivalUs: o.arrivalUs, groupId: o.groupId ?? o.eventId, eventKey: o.eventKey ?? o.eventId });
           cursor = t + dur;
           t = cursor + advGap;
         }
@@ -111,7 +116,7 @@ export function emitSequence(g: GenContext, packets: PacketSpec[], t0: number, o
         const start = cursor + gap;
         const evId = mode === 'BLE_DATA' && perPacket ? `${o.eventId}.${g.blocks.length}` : o.eventId;
         pushBlock(g, {
-          dir, start, duration: dur, kind: p.kind, chanMode: mode, eventId: evId, optional: p.optional || o.optional, arrivalUs: o.arrivalUs,
+          dir, start, duration: dur, kind: p.kind, chanMode: mode, eventId: evId, optional: p.optional || o.optional, arrivalUs: o.arrivalUs, groupId: o.groupId ?? o.eventId, eventKey: o.eventKey ?? o.eventId,
           ...(o.wifi ? { wifiBand: o.wifi.band, wifiChannel: o.wifi.channel, wifiWidth: o.wifi.width, freqWidth: o.wifi.width } : {}),
         });
         cursor = start + dur;

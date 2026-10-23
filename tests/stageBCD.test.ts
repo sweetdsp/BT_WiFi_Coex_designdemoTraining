@@ -147,7 +147,7 @@ describe('stage C: adaptive frequency hopping (7A.6, SR-13)', () => {
 let n = 0;
 const blk = (o: Partial<AirBlock> & Pick<AirBlock, 'tech' | 'dir'>): AirBlock => ({
   id: `b${++n}`, taskId: o.tech === 'BT' ? 'bt' : 'wf', start: 0, duration: 1000, freqCenter: 2437, freqWidth: 20, channelIndex: 6, priority: 1, kind: 'DATA', retryOf: '',
-  status: 'PLANNED', reason: '', seq: n, plannedStart: o.start ?? 0, eventId: `e${n}`, chanMode: 'WIFI', ...o,
+  status: 'PLANNED', reason: '', seq: n, plannedStart: o.start ?? 0, eventId: `e${n}`, groupId: `g${n}`, eventKey: `k${n}`, attempt: 1, chanMode: 'WIFI', ...o,
 });
 const btAt = (dir: 'TX' | 'RX', freq: number, over: Partial<AirBlock> = {}) => blk({ tech: 'BT', dir, freqCenter: freq, freqWidth: 1, ...over });
 const wf = (dir: 'TX' | 'RX', over: Partial<AirBlock> = {}) => blk({ tech: 'WIFI', dir, freqCenter: 2437, freqWidth: 20, ...over });

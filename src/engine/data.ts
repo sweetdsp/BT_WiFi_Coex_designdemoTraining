@@ -41,31 +41,38 @@ export interface DataBundle {
   wifiTiming: Record<string, any>;
   limits: Record<string, any>;
   groupRules: { exclusivePairs: ExclusivePair[]; groupLimits: GroupLimitRule[] };
-  priorityTable: { classes: Record<string, PriorityClassDef>; anchorTierBase: number; escalation: EscalationRule[]; priorityLevelStep: number };
+  priorityTable: {
+    classes: Record<string, PriorityClassDef>; anchorTierBase: number; escalation: EscalationRule[]; priorityLevelStep: number;
+    anchorRetxPriority: number; bufferPacketKinds: string[]; anchorTiebreakClasses: string[]; missCostRank: Record<string, number>;
+    anchorGiveUp: { allowedMissCosts: string[]; maxElapsedFractionOfSupervision: number; text: string };
+  };
   platformDefaults: { defaults: PlatformConfig; presets: { id: string; name: string; description: string; label: SpecLabel; overrides: Partial<PlatformConfig> }[] };
   tasks: TaskDef[];
   taskIndex: Map<string, TaskDef>;
   rules: RuleDef[];
 }
 
+/** Each bundle gets its own copy of the JSON, so editing one bundle (a test, or a user editing the priority table) never leaks into another. */
+const copy = <T>(x: T): T => JSON.parse(JSON.stringify(x)) as T;
+
 export function buildDataBundle(): DataBundle {
-  const taskList = (tasks as unknown as { tasks: TaskDef[] }).tasks;
+  const taskList = copy((tasks as unknown as { tasks: TaskDef[] }).tasks);
   return {
-    constants: constants as Record<string, any>,
-    btPackets: (btPackets as unknown as { packets: Record<string, BtPacketDef> }).packets,
-    blePhy: blePhy as unknown as DataBundle['blePhy'],
-    wifiGenerations: (wifiGenerations as unknown as { generations: Record<string, WifiGenDef> }).generations,
-    wifiBands: (wifiChannels as unknown as { bands: Record<string, WifiBandDef> }).bands,
-    mloDefaultChannels: (wifiChannels as unknown as { mloDefaultChannels: Record<string, number> }).mloDefaultChannels,
-    wifiTiming: wifiTiming as Record<string, any>,
-    limits: limits as Record<string, any>,
-    groupRules: groupRules as unknown as DataBundle['groupRules'],
-    priorityTable: priorityTable as unknown as DataBundle['priorityTable'],
-    platformDefaults: platformDefaults as unknown as DataBundle['platformDefaults'],
-    conflictSeverity: conflictSeverity as unknown as DataBundle['conflictSeverity'],
+    constants: copy(constants) as Record<string, any>,
+    btPackets: copy((btPackets as unknown as { packets: Record<string, BtPacketDef> }).packets),
+    blePhy: copy(blePhy) as unknown as DataBundle['blePhy'],
+    wifiGenerations: copy((wifiGenerations as unknown as { generations: Record<string, WifiGenDef> }).generations),
+    wifiBands: copy((wifiChannels as unknown as { bands: Record<string, WifiBandDef> }).bands),
+    mloDefaultChannels: copy((wifiChannels as unknown as { mloDefaultChannels: Record<string, number> }).mloDefaultChannels),
+    wifiTiming: copy(wifiTiming) as Record<string, any>,
+    limits: copy(limits) as Record<string, any>,
+    groupRules: copy(groupRules) as unknown as DataBundle['groupRules'],
+    priorityTable: copy(priorityTable) as unknown as DataBundle['priorityTable'],
+    platformDefaults: copy(platformDefaults) as unknown as DataBundle['platformDefaults'],
+    conflictSeverity: copy(conflictSeverity) as unknown as DataBundle['conflictSeverity'],
     tasks: taskList,
     taskIndex: new Map(taskList.map((t) => [t.id, t])),
-    rules: (validationRules as unknown as { rules: RuleDef[] }).rules,
+    rules: copy((validationRules as unknown as { rules: RuleDef[] }).rules),
   };
 }
 
