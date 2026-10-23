@@ -1,0 +1,165 @@
+{
+ "_note": "Conflict severity table (spec 7A.7). Rows are the direction class (Bluetooth first, Wi-Fi second) and whether the frequency footprints overlap; columns are the platform case. Defaults are generic and configurable.",
+ "testLabels": {
+  "TIME": "time overlap",
+  "FREQUENCY": "frequency overlap",
+  "ANTENNA": "shared antenna",
+  "CORE": "shared core",
+  "SIMULTANEOUS": "no simultaneous Wi-Fi TX with Bluetooth RX",
+  "ISOLATION": "low isolation"
+ },
+ "rows": [
+  {
+   "dirClass": "TX_TX",
+   "freqOverlap": true,
+   "SHARED": {
+    "severity": "HARD",
+    "text": "Both want to transmit through the same path, and only one can transmit at a time.",
+    "label": "STANDARD"
+   },
+   "SEP_LOW": {
+    "severity": "DEGRADED",
+    "text": "Both transmit on overlapping frequencies. Without a local block, each interferes at the far end of the other link.",
+    "label": "IMPLEMENTATION_VARIES"
+   },
+   "SEP_HIGH": {
+    "severity": "TOLERATED",
+    "text": "With enough isolation both radios work at once, so the overlap is harmless.",
+    "label": "IMPLEMENTATION_VARIES"
+   }
+  },
+  {
+   "dirClass": "TX_TX",
+   "freqOverlap": false,
+   "SHARED": {
+    "severity": "HARD",
+    "text": "Both want to transmit through the same path, and only one can transmit at a time.",
+    "label": "STANDARD"
+   },
+   "SEP_LOW": {
+    "severity": "TOLERATED",
+    "text": "The frequencies do not overlap and the paths are separate, so both transmit.",
+    "label": "IMPLEMENTATION_VARIES"
+   },
+   "SEP_HIGH": {
+    "severity": "TOLERATED",
+    "text": "With enough isolation both radios work at once, so the overlap is harmless.",
+    "label": "IMPLEMENTATION_VARIES"
+   }
+  },
+  {
+   "dirClass": "TX_RX",
+   "freqOverlap": true,
+   "SHARED": {
+    "severity": "HARD",
+    "text": "Bluetooth is transmitting while Wi-Fi is receiving, and the transmit blocks the receive on the shared path.",
+    "label": "STANDARD"
+   },
+   "SEP_LOW": {
+    "severity": "DEGRADED",
+    "text": "Bluetooth is transmitting while Wi-Fi is receiving on overlapping frequencies. The receiver is desensitised, so the receive is likely corrupted.",
+    "label": "IMPLEMENTATION_VARIES"
+   },
+   "SEP_HIGH": {
+    "severity": "TOLERATED",
+    "text": "With enough isolation both radios work at once, so the overlap is harmless.",
+    "label": "IMPLEMENTATION_VARIES"
+   }
+  },
+  {
+   "dirClass": "TX_RX",
+   "freqOverlap": false,
+   "SHARED": {
+    "severity": "HARD",
+    "text": "Bluetooth is transmitting while Wi-Fi is receiving, and the shared path is busy even though the frequencies differ.",
+    "label": "STANDARD"
+   },
+   "SEP_LOW": {
+    "severity": "WARNING",
+    "text": "Bluetooth is transmitting while Wi-Fi is receiving on different frequencies. Out-of-band desensitisation is possible, so this is flagged as a warning.",
+    "label": "IMPLEMENTATION_VARIES"
+   },
+   "SEP_HIGH": {
+    "severity": "TOLERATED",
+    "text": "With enough isolation both radios work at once, so the overlap is harmless.",
+    "label": "IMPLEMENTATION_VARIES"
+   }
+  },
+  {
+   "dirClass": "RX_TX",
+   "freqOverlap": true,
+   "SHARED": {
+    "severity": "HARD",
+    "text": "Wi-Fi is transmitting while Bluetooth is receiving, and the transmit blocks the receive on the shared path.",
+    "label": "STANDARD"
+   },
+   "SEP_LOW": {
+    "severity": "DEGRADED",
+    "text": "Wi-Fi is transmitting while Bluetooth is receiving on overlapping frequencies. The receiver is desensitised, so the receive is likely corrupted.",
+    "label": "IMPLEMENTATION_VARIES"
+   },
+   "SEP_HIGH": {
+    "severity": "TOLERATED",
+    "text": "With enough isolation both radios work at once, so the overlap is harmless.",
+    "label": "IMPLEMENTATION_VARIES"
+   }
+  },
+  {
+   "dirClass": "RX_TX",
+   "freqOverlap": false,
+   "SHARED": {
+    "severity": "HARD",
+    "text": "Wi-Fi is transmitting while Bluetooth is receiving, and the shared path is busy even though the frequencies differ.",
+    "label": "STANDARD"
+   },
+   "SEP_LOW": {
+    "severity": "WARNING",
+    "text": "Wi-Fi is transmitting while Bluetooth is receiving on different frequencies. Out-of-band desensitisation is possible, so this is flagged as a warning.",
+    "label": "IMPLEMENTATION_VARIES"
+   },
+   "SEP_HIGH": {
+    "severity": "TOLERATED",
+    "text": "With enough isolation both radios work at once, so the overlap is harmless.",
+    "label": "IMPLEMENTATION_VARIES"
+   }
+  },
+  {
+   "dirClass": "RX_RX",
+   "freqOverlap": true,
+   "SHARED": {
+    "severity": "TOLERATED",
+    "text": "Both are receiving, so they do not disturb each other.",
+    "label": "STANDARD"
+   },
+   "SEP_LOW": {
+    "severity": "TOLERATED",
+    "text": "Both are receiving, so they do not disturb each other.",
+    "label": "STANDARD"
+   },
+   "SEP_HIGH": {
+    "severity": "TOLERATED",
+    "text": "Both are receiving, so they do not disturb each other.",
+    "label": "STANDARD"
+   }
+  },
+  {
+   "dirClass": "RX_RX",
+   "freqOverlap": false,
+   "SHARED": {
+    "severity": "TOLERATED",
+    "text": "Both are receiving, so they do not disturb each other.",
+    "label": "STANDARD"
+   },
+   "SEP_LOW": {
+    "severity": "TOLERATED",
+    "text": "Both are receiving, so they do not disturb each other.",
+    "label": "STANDARD"
+   },
+   "SEP_HIGH": {
+    "severity": "TOLERATED",
+    "text": "Both are receiving, so they do not disturb each other.",
+    "label": "STANDARD"
+   }
+  }
+ ]
+}

@@ -10,6 +10,7 @@ import groupRules from '../data/groupRules.json';
 import priorityTable from '../data/priorityTable.json';
 import platformDefaults from '../data/platformDefaults.json';
 import tasks from '../data/tasks.json';
+import conflictSeverity from '../data/conflictSeverity.json';
 import validationRules from '../data/validationRules.json';
 import type { PlatformConfig, RuleDef, SpecLabel, TaskDef } from './types';
 
@@ -26,7 +27,11 @@ export interface ExclusivePair { a: string; b: string; reason: string; label: Sp
 export interface PriorityClassDef { name: string; base: number; label: SpecLabel }
 export interface EscalationRule { id: string; type: string; classes?: string[]; criticalThreshold?: number; criticalPriority?: number; criticalPriorityByClass?: Record<string, number>; [k: string]: unknown }
 
+export interface SeverityCell { severity: 'HARD' | 'DEGRADED' | 'WARNING' | 'TOLERATED'; text: string; label: SpecLabel }
+export interface SeverityRow { dirClass: string; freqOverlap: boolean; SHARED: SeverityCell; SEP_LOW: SeverityCell; SEP_HIGH: SeverityCell }
+
 export interface DataBundle {
+  conflictSeverity: { testLabels: Record<string, string>; rows: SeverityRow[] };
   constants: Record<string, any>;
   btPackets: Record<string, BtPacketDef>;
   blePhy: { phys: Record<string, BlePhyDef>; isoMinCore: number };
@@ -57,6 +62,7 @@ export function buildDataBundle(): DataBundle {
     groupRules: groupRules as unknown as DataBundle['groupRules'],
     priorityTable: priorityTable as unknown as DataBundle['priorityTable'],
     platformDefaults: platformDefaults as unknown as DataBundle['platformDefaults'],
+    conflictSeverity: conflictSeverity as unknown as DataBundle['conflictSeverity'],
     tasks: taskList,
     taskIndex: new Map(taskList.map((t) => [t.id, t])),
     rules: (validationRules as unknown as { rules: RuleDef[] }).rules,

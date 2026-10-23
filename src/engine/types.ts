@@ -7,7 +7,7 @@ export type SpecLabel = 'STANDARD' | 'IMPLEMENTATION_VARIES';
 export type ParamValue = number | string | boolean;
 export type ParamMap = Record<string, ParamValue>;
 
-export type BlockStatus = 'PLANNED' | 'GRANTED' | 'DENIED' | 'DELAYED' | 'TOLERATED' | 'LOST' | 'RETRIED';
+export type BlockStatus = 'PLANNED' | 'GRANTED' | 'DENIED' | 'DELAYED' | 'TOLERATED' | 'LOST' | 'RETRIED' | 'DEGRADED';
 export type BlockKind =
   | 'DATA' | 'ACK' | 'MGMT' | 'POLL' | 'SCAN' | 'ADV' | 'VOICE' | 'ISO' | 'TONE' | 'ID' | 'CTRL' | 'BEACON';
 
@@ -49,6 +49,34 @@ export interface AirBlock {
   optional?: boolean;
   /** For buffered streams: when the payload became available to send. */
   arrivalUs?: number;
+  /** Seeded uniform draw in [0, 1) that picks this hop from the allowed channel set; reused when AFH narrows the set. */
+  hopU?: number;
+}
+
+export type ConflictSeverity = 'HARD' | 'DEGRADED' | 'WARNING' | 'TOLERATED';
+/** Direction class from the Bluetooth block's point of view first, then the Wi-Fi block's. */
+export type DirClass = 'TX_TX' | 'TX_RX' | 'RX_TX' | 'RX_RX';
+export type InteractionTest = 'TIME' | 'FREQUENCY' | 'ANTENNA' | 'CORE' | 'SIMULTANEOUS' | 'ISOLATION';
+export type PlatformColumn = 'SHARED' | 'SEP_LOW' | 'SEP_HIGH';
+
+/** One Bluetooth block overlapping one Wi-Fi block in time, classified by stage D (7A.7). */
+export interface Conflict {
+  id: string;
+  btBlockId: string;
+  wifiBlockId: string;
+  btTaskId: string;
+  wifiTaskId: string;
+  overlapStart: number;
+  overlapEnd: number;
+  overlapUs: number;
+  freqOverlap: boolean;
+  dirClass: DirClass;
+  /** Which tests made the pair interact. TIME is always present. */
+  tests: InteractionTest[];
+  column: PlatformColumn;
+  severity: ConflictSeverity;
+  reason: string;
+  label: SpecLabel;
 }
 
 // ---------------------------------------------------------------------------
