@@ -8,7 +8,8 @@ An interactive, browser-only tool that teaches test engineers how Bluetooth and 
 |-----------|-------|-------|
 | M0 | Project scaffold, CI | done |
 | M1 | Data model, JSON data files, validator | done |
-| M2-M6 | Pattern generators, footprints and AFH, conflicts, arbitration, retries, metrics, worked examples | next |
+| M2 | Seeded RNG, seven pattern generators, timing formulas | done |
+| M3-M6 | Footprints and AFH, conflicts, arbitration, retries, metrics, worked examples | next |
 | M7-M9 | Views, controls, lessons, accessibility, Pages deploy | planned |
 
 ## Layout

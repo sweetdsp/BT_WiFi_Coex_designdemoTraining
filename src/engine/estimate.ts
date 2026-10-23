@@ -78,7 +78,9 @@ export function estimateLoad(def: TaskDef, params: ParamMap, data: DataBundle, p
   switch (def.generator) {
     case 'PERIODIC_EVENT': {
       const interval = num(pat.intervalUs);
-      const repeat = pat.repeat === undefined ? 1 : num(pat.repeat);
+      const repeatAll = pat.repeat === undefined ? 1 : num(pat.repeat);
+      // Subevents after "optionalAfter" are retransmission opportunities and are not requested airtime.
+      const repeat = pat.optionalAfter === undefined ? repeatAll : Math.min(repeatAll, num(pat.optionalAfter));
       const t = sequenceTotals(pat.sequence, ctx);
       const n = events(interval);
       return { blocks: n * t.blocks * repeat, airtimeUs: n * t.us * repeat, eventIntervalUs: interval };

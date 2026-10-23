@@ -32,6 +32,7 @@ export interface DataBundle {
   blePhy: { phys: Record<string, BlePhyDef>; isoMinCore: number };
   wifiGenerations: Record<string, WifiGenDef>;
   wifiBands: Record<string, WifiBandDef>;
+  mloDefaultChannels: Record<string, number>;
   wifiTiming: Record<string, any>;
   limits: Record<string, any>;
   groupRules: { exclusivePairs: ExclusivePair[]; groupLimits: GroupLimitRule[] };
@@ -50,6 +51,7 @@ export function buildDataBundle(): DataBundle {
     blePhy: blePhy as unknown as DataBundle['blePhy'],
     wifiGenerations: (wifiGenerations as unknown as { generations: Record<string, WifiGenDef> }).generations,
     wifiBands: (wifiChannels as unknown as { bands: Record<string, WifiBandDef> }).bands,
+    mloDefaultChannels: (wifiChannels as unknown as { mloDefaultChannels: Record<string, number> }).mloDefaultChannels,
     wifiTiming: wifiTiming as Record<string, any>,
     limits: limits as Record<string, any>,
     groupRules: groupRules as unknown as DataBundle['groupRules'],

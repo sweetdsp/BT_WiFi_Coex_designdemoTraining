@@ -65,21 +65,22 @@ export function wifiFrameDurationUs(
     mbps = kind === 'BASIC' || g.rank === 1 ? g.basicRateMbps : t.controlRateMbps;
   }
   let payloadBytes = bytes;
-  if (kind === 'DATA' && frame === 'AMPDU') {
-    const maxPayloadBits = Math.max(0, (t.maxAggregationUs - preamble) * mbps);
-    const cap = canAggregate(ctx.data, ctx.genId) ? Math.floor(maxPayloadBits / 8) : 1500;
-    payloadBytes = Math.min(bytes, cap);
-  }
+  if (kind === 'DATA' && frame === 'AMPDU') payloadBytes = Math.min(bytes, aggregationCapBytes(ctx.data, ctx.genId, preamble, symbol, mbps));
   return Math.ceil(preamble + symbolsDuration(payloadBytes * 8, mbps, symbol));
+}
+
+/** Most payload bytes one burst can hold: whole symbols that fit in the maximum aggregation time (spec 7A.5). */
+export function aggregationCapBytes(data: DataBundle, genId: string, preambleUs: number, symbolUs: number, mbps: number): number {
+  if (!canAggregate(data, genId)) return 1500;
+  const symbols = Math.floor((data.wifiTiming.maxAggregationUs - preambleUs) / symbolUs);
+  return Math.max(1, Math.floor((symbols * symbolUs * mbps) / 8));
 }
 
 /** Bytes that fit in one burst of the requested size after the aggregation time cap. */
 export function carriedBytes(ctx: WifiTimingCtx, requestedBytes: number): number {
   const g = wifiGen(ctx.data, ctx.genId);
-  const t = ctx.data.wifiTiming;
   const mbps = wifiRateMbps(ctx.data, ctx.genId, ctx.bandwidthMHz, ctx.streams) * (ctx.rateFactor ?? 1);
-  const cap = canAggregate(ctx.data, ctx.genId) ? Math.floor(((t.maxAggregationUs - g.preambleUs) * mbps) / 8) : 1500;
-  return Math.max(1, Math.min(requestedBytes, cap));
+  return Math.max(1, Math.min(requestedBytes, aggregationCapBytes(ctx.data, ctx.genId, g.preambleUs, g.symbolUs, mbps)));
 }
 
 /** Medium access overhead before a burst on average: DIFS plus half the contention window (used for estimates). */

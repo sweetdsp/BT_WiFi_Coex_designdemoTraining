@@ -11,7 +11,12 @@ export type BlockStatus = 'PLANNED' | 'GRANTED' | 'DENIED' | 'DELAYED' | 'TOLERA
 export type BlockKind =
   | 'DATA' | 'ACK' | 'MGMT' | 'POLL' | 'SCAN' | 'ADV' | 'VOICE' | 'ISO' | 'TONE' | 'ID' | 'CTRL' | 'BEACON';
 
-/** Air-time block (7A.2). */
+export type ChanMode = 'CLASSIC_HOP' | 'BLE_ADV' | 'BLE_DATA' | 'WIFI';
+
+/**
+ * Air-time block (7A.2). The fields after `reason` are engine bookkeeping that stages B to G need
+ * (channel mode, planned start, grouping) and do not change the meaning of the spec fields.
+ */
 export interface AirBlock {
   id: string;
   taskId: string;
@@ -27,6 +32,23 @@ export interface AirBlock {
   retryOf: string;
   status: BlockStatus;
   reason: string;
+  /** Order of creation within the task, used for stable sorting and tie breaks. */
+  seq: number;
+  /** Start time before any arbitration delay. */
+  plannedStart: number;
+  /** Blocks of one event share an id; BLE data events use one channel per event. */
+  eventId: string;
+  chanMode: ChanMode;
+  /** Fixed Bluetooth channel index (BLE advertising 37, 38, 39). */
+  fixedChannel?: number;
+  /** Wi-Fi band, channel and width for this block (scans and MLO links override the platform). */
+  wifiBand?: string;
+  wifiChannel?: number;
+  wifiWidth?: number;
+  /** Exists only when a retry is triggered (eSCO retransmission window, spare ISO subevents). */
+  optional?: boolean;
+  /** For buffered streams: when the payload became available to send. */
+  arrivalUs?: number;
 }
 
 // ---------------------------------------------------------------------------

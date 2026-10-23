@@ -208,6 +208,62 @@
    "label": "IMPLEMENTATION_VARIES",
    "milestone": "M1",
    "area": "Validation"
+  },
+  {
+   "id": "A-21",
+   "source": "spec SR-1",
+   "text": "The simulation window is a hard cutoff. A block that would start at or after the end of the window is not created. A block that starts inside the window keeps its full duration even if it ends after the window.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M2",
+   "area": "Timing"
+  },
+  {
+   "id": "A-22",
+   "source": "spec 7A.4",
+   "text": "Random advertising delay (0 to 10 ms) is drawn once per event and accumulates: the next event is the previous one plus the interval plus that event's delay. Each task draws from its own random stream, derived from the seed and the task instance id, so adding a task never changes another task's random numbers.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M2",
+   "area": "Timing"
+  },
+  {
+   "id": "A-23",
+   "source": "spec 7A.4",
+   "text": "In Classic slot schedules the master packet starts in an even slot and the slave reply starts in the slot straight after the master packet ends; the next pair starts at the next even slot after the reply. Every Classic block is its own hop (each slot hops).",
+   "label": "STANDARD",
+   "milestone": "M2",
+   "area": "Bluetooth"
+  },
+  {
+   "id": "A-24",
+   "source": "spec 7A.5",
+   "text": "Wi-Fi medium access before each burst is DIFS plus a random backoff of 0 to 15 slots (the first packet of an event that transmits). Receive-only events such as beacon reception have no backoff. A burst that would overrun the next one pushes it back, so bursts of one task never overlap.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M2",
+   "area": "Wi-Fi"
+  },
+  {
+   "id": "A-25",
+   "source": "spec 7A.3",
+   "text": "Reactive follow-ups of a scan window (SCAN_REQ and SCAN_RSP, CONNECT_IND) are placed straight after the window that triggered them, one set per window, or only after the first window for initiating.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M2",
+   "area": "Bluetooth"
+  },
+  {
+   "id": "A-26",
+   "source": "spec 7A.3",
+   "text": "Irregular bursts use exponentially distributed gaps (a Poisson process) with the requested average rate. A short window can therefore hold fewer bursts than the average suggests.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M2",
+   "area": "Wi-Fi"
+  },
+  {
+   "id": "A-27",
+   "source": "spec 6.2",
+   "text": "Wi-Fi multi-link operation sends bursts alternately on the selected links. The 2.4 GHz link uses the platform channel (width capped at 40 MHz); 5 GHz uses channel 36 and 6 GHz channel 5 unless changed in the data file.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M2",
+   "area": "Wi-Fi"
   }
  ]
 }
