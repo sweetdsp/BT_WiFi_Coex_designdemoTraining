@@ -148,7 +148,7 @@ await page.getByLabel('Reduce motion').uncheck();
 await page.getByRole('button', { name: 'Dark theme' }).click();
 
 // ---- other examples render ----
-for (const [id, name] of [['example-3', 'Example 3'], ['example-4', 'Example 4'], ['example-5', 'Example 5']]) {
+for (const [id, name] of [['example-3', 'Example 3'], ['example-4', 'Example 4'], ['example-5', 'Example 5'], ['example-6', 'Example 6']]) {
   await page.getByTestId('ltab-examples').click();
   await page.locator(`[data-preset=\"${id}\"]`).click();
   await settled();
@@ -386,6 +386,7 @@ await page.screenshot({ path: `${SHOTS}/dense.png`, fullPage: true });
   await page.goto(`${URL}?e2e`);
   for (const l of lessons) {
     await page.getByTestId('learn-btn').click();
+    await page.waitForSelector('[data-testid="lesson-menu"]');
     check(`Learn menu lists ${l.id}`, await page.locator(`[data-lesson="${l.id}"]`).isVisible());
     await page.locator(`[data-lesson="${l.id}"]`).click();
     await page.waitForSelector('[data-testid="lesson-card"]');
@@ -418,7 +419,7 @@ await page.screenshot({ path: `${SHOTS}/dense.png`, fullPage: true });
     await page.getByTestId('lesson-finish').click();
   }
   await page.getByTestId('learn-btn').click();
-  check('completed lessons show a done mark', (await page.locator('.lessons .badge').count()) === 5);
+  check('completed lessons show a done mark', (await page.locator('.lessons .badge').count()) === 6);
   await page.keyboard.press('Escape');
 
   // Lesson actions: lesson 3 switches the frequency view to the histogram.
@@ -434,6 +435,7 @@ await page.screenshot({ path: `${SHOTS}/dense.png`, fullPage: true });
   await page.getByRole('button', { name: 'About A2DP streaming' }).first().click().catch(() => undefined);
   await page.getByTestId('help-menu').click();
   await page.getByTestId('open-glossary').click();
+  await page.waitForSelector('[data-testid="glossary"]');
   const entries = await page.locator('[data-term-entry]').count();
   check('glossary lists its terms', entries >= 25, `${entries}`);
   for (const t of ['TX', 'RX', 'Slot', 'Hop', 'Footprint', 'Isolation', 'Desense', 'Arbitration', 'AFH', 'eSCO']) check(`glossary defines ${t}`, (await page.locator('[data-term-entry] dt', { hasText: t }).count()) > 0);
@@ -467,6 +469,7 @@ await page.screenshot({ path: `${SHOTS}/dense.png`, fullPage: true });
   // AC-9: the assumptions panel lists everything in 7A.13 and labels it.
   await page.getByTestId('help-menu').click();
   await page.getByTestId('open-assumptions').click();
+  await page.waitForSelector('[data-testid="assumptions-panel"]');
   for (const id of ['S-1', 'S-2', 'S-3', 'S-4', 'S-5', 'S-6']) check(`AC-9: assumptions panel lists ${id}`, (await page.locator(`[data-assumption="${id}"]`).count()) === 1);
   const spec = await page.getByTestId('assumptions-panel').innerText();
   check('AC-9: each assumption is labelled Standard says or Implementations vary', (await page.locator('[data-assumption] .spec-label').count()) === (await page.locator('[data-assumption]').count()) && /Standard says|Implementations vary/.test(spec));

@@ -161,7 +161,7 @@ describe('anchor metrics (7A.8)', () => {
 describe('metric help text (7B.5)', () => {
   it('every metric in the summary has a plain-language help text and a label', () => {
     const help = JSON.parse(readFileSync('src/data/metricsHelp.json', 'utf8')).metrics as { key: string; help: string; label_spec: string }[];
-    const keys = ['airtime', 'overlap', 'conflicts', 'blocksLost', 'blocksDelayed', 'blocksRetried', 'blocksTolerated', 'throughputImpact', 'queuedAtEnd', 'latency', 'anchorsHit', 'longestMissRun', 'supervisionMargin'];
+    const keys = ['airtime', 'overlap', 'conflicts', 'blocksLost', 'blocksDelayed', 'blocksRetried', 'blocksTolerated', 'throughputImpact', 'undelivered', 'queuedAtEnd', 'latency', 'anchorsHit', 'longestMissRun', 'supervisionMargin'];
     expect(help.map((h) => h.key).sort()).toEqual([...keys].sort());
     for (const h of help) { expect(h.help.length).toBeGreaterThan(40); expect(['STANDARD', 'IMPLEMENTATION_VARIES']).toContain(h.label_spec); }
   });
@@ -178,5 +178,24 @@ describe('determinism of the whole engine (AC-7)', () => {
     const a = run(['bt_inquiry', video(100), 'wifi_web'], { seed: 1, windowUs: 200_000, ...sepLow });
     const b = run(['bt_inquiry', video(100), 'wifi_web'], { seed: 2, windowUs: 200_000, ...sepLow });
     expect(JSON.stringify(a.blocks)).not.toBe(JSON.stringify(b.blocks));
+  });
+});
+
+import { presetConfig } from '../src/engine/presets';
+import { summaryItems } from '../src/lib/summary';
+describe('A-47 resolved: both throughput figures are reported', () => {
+  it('the strict figure is never below the impact, and Example 1 shows 0% impact next to a non-zero strict figure for A2DP', () => {
+    for (let i = 1; i <= 5; i++) {
+      const m = runEngine(presetConfig(`example-${i}`)).metrics;
+      for (const t of Object.values(m.perTask)) { expect(t.undeliveredPct).toBeGreaterThanOrEqual(t.throughputImpactPct - 1e-9); expect(t.undeliveredPct).toBeLessThanOrEqual(100); }
+    }
+    const a2dp = Object.values(runEngine(presetConfig('example-1')).metrics.perTask).find((t) => t.name.includes('A2DP'))!;
+    expect(a2dp.throughputImpactPct).toBe(0);
+    expect(a2dp.undeliveredPct).toBeGreaterThan(0);
+    expect(a2dp.undeliveredPct).toBeCloseTo(((a2dp.requestedBytes - a2dp.deliveredBytes) / a2dp.requestedBytes) * 100, 6);
+  });
+  it('the summary strip lists both', () => {
+    const keys = summaryItems(runEngine(presetConfig('example-1')).metrics).map((i) => i.key);
+    expect(keys).toContain('throughputImpact'); expect(keys).toContain('undelivered');
   });
 });

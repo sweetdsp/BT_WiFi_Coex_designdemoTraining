@@ -298,6 +298,74 @@
         "label": "IMPLEMENTATION_VARIES"
       },
       "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "le-audio-spare-slots",
+      "title": "How spare slots absorb denied LE Audio events",
+      "example": 6,
+      "preset": "example-6",
+      "level": 6,
+      "goal": "LE Audio earbuds reserve spare subevents in every event for retransmissions. Here the arbitration policy favours Wi-Fi, so some audio events lose the air. You will see the spare slots recover the audio, at the cost of a little delay.",
+      "steps": [
+        {
+          "area": "time-view",
+          "caption": "The audio stream sends an event every 10 ms. Each event has three subevents, but only one carries new audio. The other two are spare and are drawn only when they are needed."
+        },
+        {
+          "area": "time-view",
+          "caption": "Select the first conflict. The policy favours Wi-Fi, so the video burst wins and the audio event is denied.",
+          "action": {
+            "type": "openFirstConflict"
+          }
+        },
+        {
+          "area": "explain",
+          "caption": "The explanation names the policy as the reason. Priority is not used here: with this policy Wi-Fi wins every time, whatever the audio needs."
+        },
+        {
+          "area": "time-view",
+          "caption": "After a denied event, the audio is sent again in the spare slots that follow. The retried blocks are the ones marked as retries."
+        },
+        {
+          "area": "summary",
+          "caption": "No audio is lost and the throughput impact is zero, but 10 of the 100 events were missed first time and the audio arrived up to 10 ms late. A link with less spare capacity, or a longer Wi-Fi burst, would lose audio."
+        }
+      ],
+      "verify": [
+        {
+          "path": "metrics.conflicts.hardWonByBluetooth",
+          "op": "==",
+          "value": 0
+        },
+        {
+          "path": "metrics.conflicts.hardWonByWifi",
+          "op": ">",
+          "value": 0
+        },
+        {
+          "path": "metrics.totals.blocksRetried",
+          "op": ">",
+          "value": 0
+        },
+        {
+          "path": "metrics.totals.blocksLost",
+          "op": "==",
+          "value": 0
+        }
+      ],
+      "check": {
+        "question": "Ten audio events were denied, yet no audio was lost. Why?",
+        "options": [
+          "Wi-Fi gave the air back immediately.",
+          "The stream reserves spare subevents, so the denied audio could be sent again a little later.",
+          "Denied events are never counted.",
+          "The arbitration policy favoured Bluetooth."
+        ],
+        "answer": 1,
+        "explanation": "LE Audio streams reserve retransmission opportunities for exactly this. When an event is denied, the audio goes out in a later spare subevent. The cost is delay, up to one interval here, not loss. If the spare slots were also taken, audio would be lost.",
+        "label": "STANDARD"
+      },
+      "label": "IMPLEMENTATION_VARIES"
     }
   ]
 }

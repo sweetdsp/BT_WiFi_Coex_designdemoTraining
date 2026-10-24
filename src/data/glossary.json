@@ -299,6 +299,21 @@
       "match": [
         "backoff"
       ]
+    },
+    {
+      "id": "iso",
+      "term": "Isochronous stream (CIS)",
+      "definition": "A Bluetooth LE Audio stream sent at fixed intervals. Each event has spare subevents that carry retransmissions.",
+      "label": "STANDARD",
+      "match": [
+        "isochronous",
+        "LE Audio",
+        "CIS",
+        "spare slots",
+        "spare subevents",
+        "subevent",
+        "subevents"
+      ]
     }
   ]
 }

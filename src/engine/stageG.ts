@@ -27,6 +27,8 @@ export interface TaskMetrics {
   corruptedBytes: number;
   /** Payload counted against the task, in percent of the requested payload. */
   throughputImpactPct: number;
+  /** Payload not delivered by the end of the window, including packets still queued (strict reading of 7A.10), in percent of the requested payload. Always at least the impact. */
+  undeliveredPct: number;
   /** Packets delayed and not yet sent when the window ended. */
   queuedAtEnd: number;
   /** Extra wait from planned start to the start of the delivering block. */
@@ -194,6 +196,7 @@ export function computeMetrics(
       instanceId: id, name: rt.name, tech: rt.def.tech, counts, airtimeUs: air,
       requestedBytes: req, deliveredBytes: del, queuedAtEndBytes: queuedBytes, lostBytes: lost, corruptedBytes: corrupt,
       throughputImpactPct: req > 0 ? ((lost + corrupt + counted) / req) * 100 : 0,
+      undeliveredPct: req > 0 ? ((req - del) / req) * 100 : 0,
       queuedAtEnd: late.length,
       latency: { delayedPackets: delayedLat.length, meanUs: delayedLat.length ? Math.round(delayedLat.reduce((a, x) => a + x, 0) / delayedLat.length) : 0, maxUs: lat.length ? Math.max(0, ...lat) : 0, totalUs: total },
     };

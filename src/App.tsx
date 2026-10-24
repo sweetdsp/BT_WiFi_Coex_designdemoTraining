@@ -1,6 +1,6 @@
 // Application shell (spec 7B.2): a top bar, a left panel, the views in the centre, the explanation on the right and the
 // summary strip at the bottom. Milestone M7 loads the five worked examples; M8 adds task selection and platform controls.
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { defaultData, defaultPlatform } from './engine/data';
 import { runEngine, ValidationError, type EngineResult } from './engine';
 import { presetConfig } from './engine/presets';
@@ -10,7 +10,7 @@ import { addTask, applyPlatformPreset, applyUseCase, clearTasks, gateOf, removeT
 import { amend, canRedo, canUndo, createHistory, pushState, redo, undo, type History } from './lib/history';
 import { parseScenario, serializeScenario } from './lib/scenarioFile';
 import { decodeShare, shareFromHash, shareHash } from './lib/shareLink';
-import { blocksCsv, download, fileSafe, makePdf, resultJson, svgFrom, svgToPngBlob, timeViewLabels } from './lib/exporters';
+import { download, fileSafe } from './lib/download';
 import { summaryItems } from './lib/summary';
 import { explainConflict } from './lib/explanation';
 import { makeCtx } from './lib/context';
@@ -21,10 +21,9 @@ import { clampViewport, pan, presetViewport, span, zoomAt, type PresetName, type
 import { ExplanationPanel } from './ui/ExplanationPanel';
 import { FrequencyView, type FreqMode } from './ui/FrequencyView';
 import { HelpPanel } from './ui/HelpPanel';
-import { CompareView } from './ui/CompareView';
 import { ShortcutsDialog, WarningsDialog } from './ui/Dialogs';
 import { GlossContext } from './ui/Gloss';
-import { AssumptionsPanel, GlossaryPanel, LessonCard, LessonMenu, TourCard } from './ui/Learn';
+import { LessonCard, TourCard } from './ui/Learn';
 import { lessonOf, lessons, tourSteps, type LessonState, startLesson } from './lib/learn';
 import { IssuesPanel } from './ui/IssuesPanel';
 import { Legend } from './ui/Legend';
@@ -37,6 +36,10 @@ import { TimeView } from './ui/TimeView';
 import { TooltipProvider } from './ui/Tooltip';
 
 const data = defaultData;
+const CompareView = lazy(() => import('./ui/CompareView').then((m) => ({ default: m.CompareView })));
+const LessonMenu = lazy(() => import('./ui/Panels').then((m) => ({ default: m.LessonMenu })));
+const GlossaryPanel = lazy(() => import('./ui/Panels').then((m) => ({ default: m.GlossaryPanel })));
+const AssumptionsPanel = lazy(() => import('./ui/Panels').then((m) => ({ default: m.AssumptionsPanel })));
 
 function stored(key: string, fallback: string): string {
   try { return window.localStorage.getItem(key) ?? fallback; } catch { return fallback; }
@@ -198,32 +201,34 @@ export default function App() {
     try { await navigator.clipboard.writeText(url); say('The share link was copied. It holds the scenario itself, so it works without a server.'); } catch { say(`Copy this link: ${url}`); }
   };
   const mainSection = () => (document.querySelector('[data-compare="b"] [data-testid="time-view"]') ?? document.querySelector('[data-testid="time-view"]')) as HTMLElement | null;
-  const diagram = (kind: 'time' | 'freq') => {
+  const diagram = (kind: 'time' | 'freq', ex: typeof import('./lib/exporters')) => {
     const name = result?.config.name ?? 'scenario';
     if (kind === 'time') {
       const sec = mainSection(); const svg = sec?.querySelector('.tv-plot svg') as SVGSVGElement | null;
       if (!sec || !svg) return null;
-      return { out: svgFrom(svg, { title: `${name}: time view, ${Math.round(viewport.start)} to ${Math.round(viewport.end)} µs`, labels: timeViewLabels(sec), bg: colorOf(theme, 'bg'), fg: colorOf(theme, 'text') }), name: `${fileSafe(name)}-time` };
+      return { out: ex.svgFrom(svg, { title: `${name}: time view, ${Math.round(viewport.start)} to ${Math.round(viewport.end)} µs`, labels: ex.timeViewLabels(sec), bg: colorOf(theme, 'bg'), fg: colorOf(theme, 'text') }), name: `${fileSafe(name)}-time` };
     }
     const svg = document.querySelector('.freqview svg') as SVGSVGElement | null;
     if (!svg) return null;
-    return { out: svgFrom(svg, { title: `${name}: frequency view`, bg: colorOf(theme, 'bg'), fg: colorOf(theme, 'text') }), name: `${fileSafe(name)}-frequency` };
+    return { out: ex.svgFrom(svg, { title: `${name}: frequency view`, bg: colorOf(theme, 'bg'), fg: colorOf(theme, 'text') }), name: `${fileSafe(name)}-frequency` };
   };
   const doExport = async (what: 'time-svg' | 'time-png' | 'freq-svg' | 'freq-png' | 'csv' | 'json' | 'pdf') => {
     setExportOpen(false);
     if (!result || !ctx) return;
     try {
+      const ex = await import('./lib/exporters');
+      const { blocksCsv, makePdf, resultJson, svgToPngBlob } = ex;
       const base = fileSafe(result.config.name);
       if (what === 'csv') download(`${base}-blocks.csv`, blocksCsv(result), 'text/csv');
       else if (what === 'json') download(`${base}-result.json`, resultJson(result), 'application/json');
       else if (what === 'pdf') {
-        const d = diagram('time');
+        const d = diagram('time', ex);
         const png = d ? { blob: await svgToPngBlob(d.out.text, d.out.width, d.out.height), width: d.out.width, height: d.out.height } : undefined;
         const lines = summaryItems(result.metrics).map((i) => `${i.label}: ${i.value}`);
         const conflictLines = conflictList(ctx, 'severity', false).slice(0, 5).map(({ conflict, number }) => { const e = explainConflict(conflict, ctx); return `${number}. [${e.severity}] ${e.what.text} ${e.why.text} ${e.who?.text ?? ''} ${e.means.text}`; });
         download(`${base}.pdf`, await makePdf({ result, png, lines, conflictLines, footer: `Coex Learning Tool. Seed ${result.config.platform.seed}. Standard says / Implementations vary labels are in the app.` }), 'application/pdf');
       } else {
-        const d = diagram(what.startsWith('time') ? 'time' : 'freq');
+        const d = diagram(what.startsWith('time') ? 'time' : 'freq', ex);
         if (!d) { say('There is no diagram to export yet.'); return; }
         if (what.endsWith('svg')) download(`${d.name}.svg`, d.out.text, 'image/svg+xml');
         else download(`${d.name}.png`, await svgToPngBlob(d.out.text, d.out.width, d.out.height), 'image/png');
@@ -519,7 +524,7 @@ export default function App() {
             ) : (<>
               {note && <p className="note" role="status" data-testid="note">{note}</p>}
               {comparing && snapshot ? (
-                <CompareView a={snapshot} b={result} data={data} theme={theme} viewport={viewport} onViewport={setViewport} cursor={cursor} onCursor={setCursor} collapsed={collapsed} onToggleGroup={(t) => setCollapsed((c) => ({ ...c, [t]: !c[t] }))} onHelp={setHelp} onClose={() => setCompareOn(false)} />
+                <Suspense fallback={<p className="muted">Loading the compare view…</p>}><CompareView a={snapshot} b={result} data={data} theme={theme} viewport={viewport} onViewport={setViewport} cursor={cursor} onCursor={setCursor} collapsed={collapsed} onToggleGroup={(t) => setCollapsed((c) => ({ ...c, [t]: !c[t] }))} onHelp={setHelp} onClose={() => setCompareOn(false)} /></Suspense>
               ) : (<>
                 <section className="guide" data-testid="guide">
                   <strong>Start here.</strong> The blue lane is Bluetooth and the orange lane is Wi-Fi. Each numbered red band marks a moment when they wanted the air together.
@@ -557,9 +562,11 @@ export default function App() {
         <HelpPanel topic={help} data={data} onClose={() => setHelp(null)} />
         {confirmWarn && <WarningsDialog warnings={gate.warnings} onCancel={() => { setConfirmWarn(false); setTab('issues'); }} onConfirm={(remember) => { setConfirmWarn(false); if (remember) setSkipWarn(true); generateNow(draft, !!result); }} />}
         {shortcuts && <ShortcutsDialog onClose={() => setShortcuts(false)} />}
+        <Suspense fallback={null}>
         {learnMenu && <LessonMenu done={lessonDone} onStart={beginLesson} onClose={() => setLearnMenu(false)} />}
         {glossaryOpen && <GlossaryPanel focus={glossaryOpen.focus} onClose={() => setGlossaryOpen(null)} />}
         {assumptionsOpen && <AssumptionsPanel onClose={() => setAssumptionsOpen(false)} />}
+        </Suspense>
         {tour !== null && <TourCard step={tour} onStep={(n) => setTour(Math.max(0, Math.min(tourSteps.length - 1, n)))} onClose={closeTour} />}
       </div>
      </GlossContext.Provider>

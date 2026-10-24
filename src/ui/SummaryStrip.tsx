@@ -25,8 +25,8 @@ export function SummaryStrip({ metrics, before }: { metrics: Metrics; before?: M
       <ul className="metrics">{items.map((it) => (<Item key={it.key} it={it} />))}</ul>
       <table className="tasks">
         <caption className="sr-only">Results per task</caption>
-        <thead><tr><th scope="col">Task</th><th scope="col">Technology</th><th scope="col">Blocks</th><th scope="col">Throughput impact</th><th scope="col">Queued at end</th><th scope="col">Added latency</th><th scope="col">Anchors</th></tr></thead>
-        <tbody>{rows.map((r) => (<tr key={r.id}><th scope="row">{r.name}</th><td>{r.tech}</td><td>{r.counts}</td><td className="mono">{r.impact}</td><td className="mono">{r.queued}</td><td>{r.latency}</td><td>{r.anchor}</td></tr>))}</tbody>
+        <thead><tr><th scope="col">Task</th><th scope="col">Technology</th><th scope="col">Blocks</th><th scope="col">Throughput impact</th><th scope="col">Not delivered by end</th><th scope="col">Queued at end</th><th scope="col">Added latency</th><th scope="col">Anchors</th></tr></thead>
+        <tbody>{rows.map((r) => (<tr key={r.id}><th scope="row">{r.name}</th><td>{r.tech}</td><td>{r.counts}</td><td className="mono">{r.impact}</td><td className="mono">{r.undelivered}</td><td className="mono">{r.queued}</td><td>{r.latency}</td><td>{r.anchor}</td></tr>))}</tbody>
       </table>
     </section>
   );

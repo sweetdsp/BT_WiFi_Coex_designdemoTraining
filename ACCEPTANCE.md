@@ -9,7 +9,7 @@ Every acceptance criterion from the requirements (section 11, 7B.14 and 7C.8) an
 | AC-3 | Antenna, isolation, core mode, arbitration, adaptive hopping change the result as 7A says | `tests/ac3.test.ts` |
 | AC-4 | Time view, frequency view, platform diagram, explanation, summary, conflicts styled by outcome | e2e UX-1, UX-5 checks; `tests/components.test.tsx` |
 | AC-5 | A selected conflict shows its test, the arbitration rule and each block's outcome | `tests/viewmodels.test.ts` (explanation), e2e "story" checks |
-| AC-6 | Five worked examples as exact tests and as presets | `tests/examples.test.ts`; e2e loads each preset |
+| AC-6 | Five worked examples as exact tests and as presets (a sixth, LE Audio, was added) | `tests/examples.test.ts`; e2e loads each preset |
 | AC-7 | Same configuration and seed give identical results | `tests/examples.test.ts` (determinism), `tests/m8lib.test.ts` (share-link round trip gives equal metrics) |
 | AC-8 | Save, reload, share link, export PNG, SVG, CSV, JSON, PDF | `tests/m8lib.test.ts`; e2e "VAL-6", "share link", "UX-8" checks |
 | AC-9 | Assumptions panel lists 7A.13; content labelled | e2e "AC-9" checks; `tests/assumptions.test.ts` |
@@ -27,7 +27,7 @@ Every acceptance criterion from the requirements (section 11, 7B.14 and 7C.8) an
 | UX-4 colour-blind simulation and 4.5:1 text contrast | `tests/tokens.test.ts`; axe contrast scans in e2e |
 | UX-5 time view, frequency view and platform diagram stay in sync | e2e UX-5 checks |
 | UX-6 applying a suggestion updates the view; compare shows the difference | e2e "UX-6" checks (suggestion, compare) |
-| UX-7 all five lessons run start to finish with checks, data-driven | `tests/learn.test.ts` (structure, facts checked against the engine, state machine); e2e runs every lesson in the page |
+| UX-7 all lessons (six, including the LE Audio one added at the owner's request) run start to finish with checks, data-driven | `tests/learn.test.ts` (structure, facts checked against the engine, state machine); e2e runs every lesson in the page |
 | UX-8 exports open and match the screen | e2e "UX-8" checks (SVG block count equals screen, PNG signature, CSV rows, JSON, PDF signature) |
 
 ## Validation tests

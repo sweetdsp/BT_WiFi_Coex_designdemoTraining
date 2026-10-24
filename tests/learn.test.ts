@@ -8,9 +8,9 @@ import { checkVerify, choose, glossary, helpTopics, isCheck, isCorrect, lessons,
 const AREAS = new Set(['topbar', 'left', 'time-view', 'freq-view', 'platform', 'explain', 'summary', 'playback']);
 
 describe('lessons are data and match the engine (UX-7)', () => {
-  it('there are five lessons, ordered easiest first, one per worked example', () => {
-    expect(lessons.map((l) => l.example)).toEqual([1, 2, 3, 4, 5]);
-    expect(lessons.map((l) => l.level)).toEqual([1, 2, 3, 4, 5]);
+  it('there are six lessons, ordered easiest first, one per worked example', () => {
+    expect(lessons.map((l) => l.example)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(lessons.map((l) => l.level)).toEqual([1, 2, 3, 4, 5, 6]);
   });
   it.each(lessons.map((l) => [l.id, l] as const))('%s has the structure the spec asks for', (_id, l) => {
     expect(l.goal.split('\n').length).toBe(1);

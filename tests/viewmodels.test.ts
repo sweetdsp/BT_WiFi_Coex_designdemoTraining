@@ -361,7 +361,7 @@ describe('cursor readout and playback (7B.4, 7B.9)', () => {
 describe('summary strip (7A.11)', () => {
   it('lists the metrics with values, bars where useful, and a help text for every one', () => {
     const items = summaryItems(ex(5).metrics);
-    expect(items.map((i) => i.key)).toEqual(['airtime', 'overlap', 'conflicts', 'blocksDelayed', 'blocksRetried', 'blocksLost', 'blocksTolerated', 'throughputImpact', 'latency', 'anchorsHit', 'longestMissRun', 'supervisionMargin']);
+    expect(items.map((i) => i.key)).toEqual(['airtime', 'overlap', 'conflicts', 'blocksDelayed', 'blocksRetried', 'blocksLost', 'blocksTolerated', 'throughputImpact', 'undelivered', 'latency', 'anchorsHit', 'longestMissRun', 'supervisionMargin']);
     const helpKeys = new Set(metricsHelp.metrics.map((m) => m.key));
     for (const i of items) expect(helpKeys.has(i.key), i.key).toBe(true);
     expect(items.find((i) => i.key === 'anchorsHit')!.value).toBe('18 / 16');

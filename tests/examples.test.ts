@@ -19,7 +19,7 @@ const overlapsWifi = (r: EngineResult, b: AirBlock) => wifi(r).some((w) => w.sta
 const decisionWaiting = (r: EngineResult, id: string, taskPrefix: string) => Object.entries(r.decisions.find((d) => d.id === id)!.priorities).find(([k]) => k.startsWith(taskPrefix))?.[1];
 
 describe('VAL-9: every worked example passes validation with no ERROR', () => {
-  for (const n of [1, 2, 3, 4, 5]) {
+  for (const n of [1, 2, 3, 4, 5, 6]) {
     it(`Example ${n}`, () => {
       const issues = validate(presetConfig(`example-${n}`, data), data);
       expect(hasErrors(issues), issues.filter((i) => i.severity === 'ERROR').map((i) => i.id).join(',')).toBe(false);
@@ -32,8 +32,8 @@ describe('VAL-9: every worked example passes validation with no ERROR', () => {
     expect(ids(1)).not.toContain('F-3');
     expect(ids(2)).toEqual([]);
   });
-  it('the presets are data: five records, in order, each naming known tasks', () => {
-    expect(data.presets.map((p) => p.example)).toEqual([1, 2, 3, 4, 5]);
+  it('the presets are data: six records (the five of 7A.12 and the LE Audio example added later), in order, each naming known tasks', () => {
+    expect(data.presets.map((p) => p.example)).toEqual([1, 2, 3, 4, 5, 6]);
     for (const p of data.presets) for (const t of p.tasks) expect(data.taskIndex.has(t.taskId)).toBe(true);
   });
 });
@@ -223,10 +223,10 @@ describe('Example 5: BLE connection plus Wi-Fi 6 on 2.4 GHz, shared antenna, TIM
 });
 
 describe('all examples: determinism, speed and the gate (AC-7, AC-10, NFR-2)', () => {
-  it.each([1, 2, 3, 4, 5])('Example %i gives identical output for the same configuration and seed', (n) => {
+  it.each([1, 2, 3, 4, 5, 6])('Example %i gives identical output for the same configuration and seed', (n) => {
     expect(runEngine(presetConfig(`example-${n}`, data), data)).toEqual(ex(n));
   });
-  it.each([1, 2, 3, 4, 5])('Example %i runs in under 2 seconds', (n) => {
+  it.each([1, 2, 3, 4, 5, 6])('Example %i runs in under 2 seconds', (n) => {
     const t0 = performance.now();
     runEngine(presetConfig(`example-${n}`, data), data);
     expect(performance.now() - t0).toBeLessThan(2000);
@@ -236,5 +236,36 @@ describe('all examples: determinism, speed and the gate (AC-7, AC-10, NFR-2)', (
     const a = runEngine({ ...c, platform: { ...c.platform, seed: 7 } }, data);
     expect(a.blocks.length).toBe(ex(3).blocks.length);
     expect(JSON.stringify(a.blocks)).not.toBe(JSON.stringify(ex(3).blocks));
+  });
+});
+
+describe('Example 6: LE Audio and Wi-Fi video, shared antenna, policy favours Wi-Fi (added at the owner\'s request)', () => {
+  const r = ex(6);
+  const audio = r.blocks.filter((b) => b.taskId === 't1');
+  const first = audio.filter((b) => b.attempt === 1 && b.dir === 'TX' && !b.optional);
+  const denied = first.filter((b) => b.status === 'RETRIED');
+  it('passes validation and the setup is as described', () => {
+    expect(r.config.tasks.map((t) => t.taskId)).toEqual(['le_cis', 'wifi_video_stream']);
+    expect(r.config.platform).toMatchObject({ arbitrationPolicy: 'WIFI_FAVOURED', antennaMode: 'SHARED', windowUs: 1_000_000 });
+    expect(first).toHaveLength(100);
+  });
+  it('some events are denied to Wi-Fi, and the reason says the policy favours Wi-Fi', () => {
+    expect(denied).toHaveLength(10);
+    expect(denied.every((b) => /policy favours Wi-Fi/.test(b.reason))).toBe(true);
+  });
+  it('the spare slots recover the audio: retries are used and nothing is lost', () => {
+    expect(audio.filter((b) => b.attempt > 1).length).toBeGreaterThan(10);
+    const m = r.metrics.perTask.t1;
+    expect(m.counts.lost).toBe(0);
+    expect(m.throughputImpactPct).toBe(0);
+    expect(m.latency.maxUs).toBe(10_000);
+  });
+  it('the anchor view shows ten missed events and no run longer than one', () => {
+    const a = r.metrics.perTask.t1.anchor!;
+    expect(a.misses).toBe(10); expect(a.hits).toBe(90); expect(a.longestRun).toBe(1);
+  });
+  it('Wi-Fi is never held back and wins every hard conflict', () => {
+    expect(r.metrics.conflicts.hardWonByBluetooth).toBe(0);
+    expect(r.metrics.perTask.t2.counts.delayed).toBe(0);
   });
 });

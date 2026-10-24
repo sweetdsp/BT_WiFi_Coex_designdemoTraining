@@ -17,7 +17,7 @@ An interactive, browser-only tool that teaches test engineers how Bluetooth and 
 | M6 | The five worked examples as automated tests and presets | done |
 | M7 | Time and frequency views, platform diagram, explanation panel, summary strip, tooltips, playback, tokens and themes | done |
 | M8 | Task selection, platform controls, live validation, undo, save/load/share, compare, export | done |
-| M9 | Five lessons, first-visit tour, glossary, assumptions panel, help texts, accessibility pass, Pages deploy, acceptance check | done |
+| M9 | Six lessons, first-visit tour, glossary, assumptions panel, help texts, accessibility pass, Pages deploy, acceptance check | done |
 
 ## Layout
 
@@ -39,7 +39,7 @@ npm run build       # static build for GitHub Pages
 
 ## Using the tool
 
-- **Learn** opens five guided lessons (the five worked examples, easiest first). Each loads its scenario, highlights the part of the page it talks about, and ends with one question.
+- **Learn** opens six guided lessons (the six worked examples, easiest first). Each loads its scenario, highlights the part of the page it talks about, and ends with one question.
 - **Help** replays the six-step tour, opens the glossary and the assumptions, and lists the keyboard shortcuts (`?`).
 - Build your own scenario in the **Tasks** and **Platform** tabs. The badge at the top says whether it can be generated; **Issues** lists every problem with a fix button.
 - Everything you see is labelled **Standard says** (fixed by a public specification) or **Implementations vary** (a choice real products make differently).

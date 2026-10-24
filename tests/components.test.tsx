@@ -223,7 +223,7 @@ describe('explanation panel (7B.8)', () => {
 describe('summary strip (7A.11, 7B.13)', () => {
   it('lists every metric with a tooltip hook, a per-task table with header scopes, and a screen-reader summary', () => {
     const html = wrap(<SummaryStrip metrics={ex(5).metrics} />);
-    expect((html.match(/data-metric="/g) ?? []).length).toBe(12);
+    expect((html.match(/data-metric="/g) ?? []).length).toBe(13);
     expect(html).toContain('data-testid="sr-summary"');
     expect(html).toContain('aria-live="polite"');
     expect(html).toMatch(/class="sr-only"[^>]*>\d+ conflicts?:/);
