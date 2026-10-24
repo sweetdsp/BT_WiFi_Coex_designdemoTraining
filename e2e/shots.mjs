@@ -1,0 +1,20 @@
+// Exploratory run: loads the built app in Chromium, opens Example 1 and saves screenshots.
+import { chromium } from 'playwright-core';
+import { mkdirSync } from 'node:fs';
+const out = process.argv[2] ?? 'shots';
+mkdirSync(out, { recursive: true });
+const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome', args: ['--no-sandbox'] });
+const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+const errors = [];
+page.on('pageerror', (e) => errors.push(String(e)));
+page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+await page.goto(process.env.URL ?? 'http://localhost:4173/');
+await page.screenshot({ path: `${out}/0-empty.png` });
+await page.getByTestId('load-first-example').click();
+await page.waitForSelector('[data-testid="time-view"]');
+await page.screenshot({ path: `${out}/1-loaded.png`, fullPage: true });
+await page.getByTestId('open-first-conflict').click();
+await page.waitForTimeout(400);
+await page.screenshot({ path: `${out}/2-conflict.png`, fullPage: true });
+console.log('errors:', JSON.stringify(errors));
+await browser.close();

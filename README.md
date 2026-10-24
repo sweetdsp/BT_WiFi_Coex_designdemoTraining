@@ -13,7 +13,8 @@ An interactive, browser-only tool that teaches test engineers how Bluetooth and 
 | M4 | Arbitration policies, dynamic priority, anchors, delays, retries | done |
 | M5 | Metrics (airtime, overlap, conflicts, per-task impact, latency, anchors) | done |
 | M6 | The five worked examples as automated tests and presets | done |
-| M7-M9 | Views, controls, lessons, accessibility, Pages deploy | next |
+| M7 | Time and frequency views, platform diagram, explanation panel, summary strip, tooltips, playback, tokens and themes | done |
+| M8-M9 | Task selection, platform controls, save/export, lessons, accessibility, Pages deploy | next |
 
 ## Layout
 
@@ -36,3 +37,7 @@ npm run build       # static build for GitHub Pages
 ## Adding a task
 
 Add one record to `src/data/tasks.json` that names one of the seven pattern generators (`PERIODIC_EVENT`, `SLOT_SCHEDULE`, `BURST_TRAIN`, `WINDOWED_LISTEN`, `SCAN_SWEEP`, `IRREGULAR_BURSTS`, `ONE_SHOT_EXCHANGE`). The data-integrity tests check that every reference in the record resolves.
+
+## Browser checks
+
+`npm run e2e` builds the app, serves it and runs `e2e/check.mjs` in headless Chromium (UX-1, UX-2, UX-5, UX-6, playback, zoom, theme, reduced motion, and panning speed with more than 20,000 blocks). Screenshots go to `e2e/shots/`.

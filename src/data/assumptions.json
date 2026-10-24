@@ -480,6 +480,78 @@
    "label": "IMPLEMENTATION_VARIES",
    "milestone": "M6",
    "area": "Examples"
+  },
+  {
+   "id": "A-55",
+   "source": "spec 7B.13, 9",
+   "text": "Dense areas use level of detail: when blocks are too small or too many, the time view draws density bars (one bar per 4 pixels per lane), and individual blocks only when zoomed in. This bounds the number of drawn elements, so SVG is used throughout and no canvas layer was needed. With more than 20,000 blocks, panning measured at the display refresh rate (60 frames per second) in headless Chromium at every zoom level tried. Revisit canvas if a slower machine shows otherwise.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M7",
+   "area": "Views"
+  },
+  {
+   "id": "A-56",
+   "source": "spec 7B.3",
+   "text": "Both light-theme lane backgrounds are white, because the spec orange (#E8710A) only just reaches 3 to 1 on white. The spec grey for removed channels (#9AA0A6) is 2.6 to 1 on white, so removed channels also carry a darker dotted mark (#5F6368). Amber against red and against orange is close for red-green colour blindness; those pairs are told apart by pattern (hatch against strike, hatch over a solid block), as the spec asks for a pattern with every colour.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M7",
+   "area": "Views"
+  },
+  {
+   "id": "A-57",
+   "source": "spec 7B.9",
+   "text": "At 1x speed the whole simulation window plays in 10 seconds. The speeds 0.1x, 0.5x, 1x and 5x scale that. Step to next event stops at every block start and every conflict start.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M7",
+   "area": "Views"
+  },
+  {
+   "id": "A-58",
+   "source": "spec 7B.8",
+   "text": "The suggestions in the explanation panel are chosen from the conflict: separate antennas for a shared-antenna conflict, adaptive hopping for a frequency overlap on 2.4 GHz, more isolation for a low-isolation conflict, and Bluetooth-favoured arbitration for a hard conflict under the priority policy. At most three are shown. Applying one re-runs the scenario and reports the before and after counts.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M7",
+   "area": "Views"
+  },
+  {
+   "id": "A-59",
+   "source": "spec 7B.8",
+   "text": "The sentence \"What it means for the user\" is built from the task tags and the final status of each block: audio, voice, anchor links and Wi-Fi throughput each have their own wording, with a generic fallback.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M7",
+   "area": "Views"
+  },
+  {
+   "id": "A-60",
+   "source": "spec 7B.6",
+   "text": "The waterfall draws hops of blocks that went out (granted, delayed, tolerated or degraded). Blocks that were denied are not drawn there, and the planned position of a delayed block is shown in the time view only.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M7",
+   "area": "Views"
+  },
+  {
+   "id": "A-61",
+   "source": "spec 7B.4",
+   "text": "A delayed block that was moved past the end of the window is shown by its dashed ghost at the planned time with an arrow running to the edge of the view.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M7",
+   "area": "Views"
+  },
+  {
+   "id": "A-62",
+   "source": "spec 7B.13",
+   "text": "At most 300 blocks in view are reachable with the Tab key, to keep keyboard navigation usable; every block still has an accessible description, and the conflict markers and the conflict list reach every conflict.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M7",
+   "area": "Views"
+  },
+  {
+   "id": "A-63",
+   "source": "spec 7B.13",
+   "text": "The browser checks in e2e/ open the page with ?e2e, which exposes a small hook to load a generated scenario. The hook is not used by the application itself.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M7",
+   "area": "Views"
   }
  ]
 }
