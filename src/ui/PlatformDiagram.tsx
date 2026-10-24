@@ -18,7 +18,7 @@ export function PlatformDiagram({ result, theme, cursor, selectedConflictId }: P
   const byId = new Map(model.nodes.map((n) => [n.id, n]));
   const stressed = act.sharedElement;
   return (
-    <section className="platform" aria-label="Platform diagram" data-testid="platform-diagram">
+    <section className="platform" aria-label="Platform diagram" data-testid="platform-diagram" data-area="platform">
       <h2>Platform</h2>
       <svg viewBox="0 0 560 220" width="560" height="220" role="group" aria-label="Wi-Fi and Bluetooth cores, front end and antennas">
         {model.edges.map((e, i) => {

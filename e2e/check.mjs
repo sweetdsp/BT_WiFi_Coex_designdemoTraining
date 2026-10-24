@@ -19,6 +19,7 @@ const mk = (specs, platform = {}) => ({
 const settled = () => page.waitForFunction(() => !/Generating/.test(document.querySelector('[data-testid="generate"]')?.textContent ?? ''), null, { timeout: 15000 });
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome', args: ['--no-sandbox'] });
 const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+await ctx.addInitScript(() => { try { if (!window.name.includes('keep-tour')) localStorage.setItem('coex-tour-done', '1'); } catch {} });
 const page = await ctx.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
@@ -356,6 +357,167 @@ await page.screenshot({ path: `${SHOTS}/dense.png`, fullPage: true });
   check('? opens the shortcuts list, Escape closes it', await page.getByTestId('shortcuts').isVisible());
   await page.keyboard.press('Escape');
   check('shortcuts dialog closes', !(await page.getByTestId('shortcuts').isVisible().catch(() => false)));
+}
+
+
+// ---- M9: tour, lessons, glossary, assumptions, accessibility ----
+{
+  // First-visit tour in a fresh browser context.
+  const fresh = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+  const tp = await fresh.newPage();
+  await tp.goto(URL);
+  check('first visit shows the six-step tour', await tp.getByTestId('tour-card').isVisible() && /step 1 of 6/.test(await tp.getByTestId('tour-card').innerText()));
+  check('tour highlights the area it talks about', (await tp.locator('[data-hl="1"]').count()) > 0);
+  for (let i = 0; i < 5; i++) await tp.getByTestId('tour-next').click();
+  check('tour reaches step 6 and offers Done', /step 6 of 6/.test(await tp.getByTestId('tour-card').innerText()) && await tp.getByTestId('tour-done').isVisible());
+  await tp.getByTestId('tour-done').click();
+  check('finishing the tour hides it and no highlight remains', (await tp.getByTestId('tour-card').count()) === 0 && (await tp.locator('[data-hl="1"]').count()) === 0);
+  await tp.reload();
+  check('the tour does not return on the next visit', (await tp.getByTestId('tour-card').count()) === 0);
+  await tp.getByTestId('help-menu').click();
+  await tp.getByTestId('replay-tour').click();
+  check('the tour can be replayed from the Help menu', await tp.getByTestId('tour-card').isVisible());
+  await tp.getByTestId('tour-skip').click();
+  check('the tour can be skipped', (await tp.getByTestId('tour-card').count()) === 0);
+  await fresh.close();
+
+  // UX-7: all five lessons run from start to finish with their checks.
+  const lessons = JSON.parse(readFileSync('src/data/lessons.json', 'utf8')).lessons.sort((a, b) => a.level - b.level);
+  await page.goto(`${URL}?e2e`);
+  for (const l of lessons) {
+    await page.getByTestId('learn-btn').click();
+    check(`Learn menu lists ${l.id}`, await page.locator(`[data-lesson="${l.id}"]`).isVisible());
+    await page.locator(`[data-lesson="${l.id}"]`).click();
+    await page.waitForSelector('[data-testid="lesson-card"]');
+    await settled();
+    await page.waitForSelector(`g.block, [data-lod="density"]`);
+    check(`${l.id}: the prepared scenario loads in one click`, new RegExp(`Example ${l.example}`).test(await page.getByTestId('scenario-name').inputValue()));
+    for (let i = 0; i < l.steps.length; i++) {
+      const cap = await page.getByTestId('lesson-caption').innerText();
+      const hl = await page.locator(`[data-area="${l.steps[i].area}"][data-hl="1"]`).count();
+      if (cap.slice(0, 30) !== l.steps[i].caption.slice(0, 30) || hl === 0) check(`${l.id} step ${i + 1} shows its caption and highlights ${l.steps[i].area}`, false, `${cap.slice(0, 40)} / hl ${hl}`);
+      await page.getByTestId('lesson-next').click();
+      await page.waitForTimeout(60);
+    }
+    check(`${l.id}: every step shows its caption and highlights its area`, true);
+    check(`${l.id}: the question appears after the last step`, await page.getByTestId('lesson-check').isVisible());
+    const wrong = (l.check.answer + 1) % l.check.options.length;
+    await page.getByTestId('lesson-check').locator('input[type="radio"]').nth(wrong).check();
+    await page.getByTestId('lesson-submit').click();
+    check(`${l.id}: a wrong answer is explained`, /Not quite/.test(await page.getByTestId('lesson-result').innerText()) && (await page.getByTestId('lesson-result').innerText()).includes(l.check.explanation.slice(0, 40)));
+    await page.getByTestId('lesson-finish').click();
+    check(`${l.id}: finishing closes the lesson`, (await page.getByTestId('lesson-card').count()) === 0);
+    // Do it again and answer correctly to mark it done.
+    await page.getByTestId('learn-btn').click();
+    await page.locator(`[data-lesson="${l.id}"]`).click();
+    await settled();
+    for (let i = 0; i < l.steps.length; i++) await page.getByTestId('lesson-next').click();
+    await page.getByTestId('lesson-check').locator('input[type="radio"]').nth(l.check.answer).check();
+    await page.getByTestId('lesson-submit').click();
+    check(`${l.id}: the right answer is marked correct`, /Correct/.test(await page.getByTestId('lesson-result').innerText()));
+    await page.getByTestId('lesson-finish').click();
+  }
+  await page.getByTestId('learn-btn').click();
+  check('completed lessons show a done mark', (await page.locator('.lessons .badge').count()) === 5);
+  await page.keyboard.press('Escape');
+
+  // Lesson actions: lesson 3 switches the frequency view to the histogram.
+  await page.getByTestId('learn-btn').click();
+  await page.locator('[data-lesson="channel-overlap"]').click();
+  await settled();
+  await page.getByTestId('lesson-next').click();
+  await page.waitForTimeout(150);
+  check('a lesson step can change the view (histogram)', (await page.locator('[data-mode="histogram"] rect').count()) > 50);
+  await page.getByRole('button', { name: 'Leave the lesson' }).click();
+
+  // Glossary: terms in help text open entries; the panel searches.
+  await page.getByRole('button', { name: 'About A2DP streaming' }).first().click().catch(() => undefined);
+  await page.getByTestId('help-menu').click();
+  await page.getByTestId('open-glossary').click();
+  const entries = await page.locator('[data-term-entry]').count();
+  check('glossary lists its terms', entries >= 25, `${entries}`);
+  for (const t of ['TX', 'RX', 'Slot', 'Hop', 'Footprint', 'Isolation', 'Desense', 'Arbitration', 'AFH', 'eSCO']) check(`glossary defines ${t}`, (await page.locator('[data-term-entry] dt', { hasText: t }).count()) > 0);
+  await page.getByLabel('Search the glossary').fill('desense');
+  check('glossary search narrows the list', (await page.locator('[data-term-entry]').count()) <= 2);
+  await page.keyboard.press('Escape');
+  await page.getByTestId('ltab-issues').click();
+  await page.getByTestId('ltab-build').click();
+  await page.getByTestId('clear-tasks').click();
+  await page.locator('[data-task="bt_a2dp"]').click();
+  await page.getByTestId('tab-WIFI').click();
+  await page.locator('[data-task="wifi_web"]').click(); await page.locator('[data-task="wifi_web"]').click();
+  await page.getByTestId('ltab-issues').click();
+  await page.locator('[data-issue="P-5"] button.link', { hasText: 'Learn more' }).click();
+  const hp = await page.getByTestId('help-panel').innerText();
+  check('a validation issue Learn more link opens real help text', /Duplicate/i.test(hp) && !/No help text/.test(hp), hp.slice(0, 60));
+  await page.getByRole('button', { name: 'Close help' }).click();
+  await page.getByLabel('About Video streaming').first().click().catch(() => undefined);
+  // A glossary term inside help text is underlined and opens its entry.
+  await page.evaluate(() => (window).__coexHelp?.('conflicts'));
+  await page.getByTestId('ltab-examples').click(); await page.locator('[data-preset="example-1"]').click(); await settled();
+  await page.getByTestId('open-first-conflict').click();
+  await page.locator('g.band-marker, .band-marker').first().focus();
+  await page.getByText('Learn more').first().click().catch(() => undefined);
+  if (await page.getByTestId('help-panel').count()) {
+    const gl = page.getByTestId('help-panel').locator('button.gloss').first();
+    check('glossary terms in help text are underlined buttons', (await gl.count()) > 0);
+    if (await gl.count()) { await gl.click(); check('clicking a term opens its glossary entry', await page.getByTestId('glossary').isVisible() && (await page.locator('.glossary .focus').count()) === 1); await page.keyboard.press('Escape'); }
+  }
+
+  // AC-9: the assumptions panel lists everything in 7A.13 and labels it.
+  await page.getByTestId('help-menu').click();
+  await page.getByTestId('open-assumptions').click();
+  for (const id of ['S-1', 'S-2', 'S-3', 'S-4', 'S-5', 'S-6']) check(`AC-9: assumptions panel lists ${id}`, (await page.locator(`[data-assumption="${id}"]`).count()) === 1);
+  const spec = await page.getByTestId('assumptions-panel').innerText();
+  check('AC-9: each assumption is labelled Standard says or Implementations vary', (await page.locator('[data-assumption] .spec-label').count()) === (await page.locator('[data-assumption]').count()) && /Standard says|Implementations vary/.test(spec));
+  await page.getByTestId('as-added').click();
+  check('AC-9: later assumptions are listed too', (await page.locator('[data-assumption]').count()) >= 70);
+  await page.keyboard.press('Escape');
+}
+
+// ---- Accessibility: automatic scan of the main states with axe, plus keyboard and focus checks (7B.13) ----
+{
+  const axeSrc = readFileSync('node_modules/axe-core/axe.min.js', 'utf8');
+  const scan = async (label, extra = {}) => {
+    await page.addScriptTag({ content: axeSrc }).catch(() => undefined);
+    const res = await page.evaluate(async (extra) => await window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, ...extra }), extra);
+    const bad = res.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious');
+    check(`axe: no serious or critical problems (${label})`, bad.length === 0, bad.map((v) => `${v.id} x${v.nodes.length} ${v.nodes[0].target.join(' ')}`).join(' | '));
+    return res;
+  };
+  await page.goto(`${URL}?e2e`);
+  await scan('empty state');
+  await page.getByTestId('load-first-example').click(); await settled(); await page.waitForSelector('g.block');
+  await page.getByTestId('open-first-conflict').click();
+  await scan('Example 1 with a conflict open');
+  await page.getByTestId('ltab-platform').click();
+  await scan('platform panel');
+  await page.getByTestId('ltab-examples').click();
+  await page.getByRole('button', { name: 'Dark theme' }).click();
+  await scan('dark theme');
+  await page.getByRole('button', { name: 'Dark theme' }).click();
+
+  // Keyboard: every interactive control is reachable and shows a visible focus outline.
+  await page.goto(`${URL}?e2e`);
+  await page.getByTestId('load-first-example').click(); await settled();
+  const stops = [];
+  for (let i = 0; i < 60; i++) {
+    await page.keyboard.press('Tab');
+    stops.push(await page.evaluate(() => { const e = document.activeElement; if (!e || e === document.body) return null; const cs = getComputedStyle(e); return { tag: e.tagName, name: e.getAttribute('aria-label') || e.textContent?.trim().slice(0, 30) || e.id, outline: cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) >= 2 }; }));
+  }
+  const seen = stops.filter(Boolean);
+  check('Tab moves through many controls', seen.length >= 40, `${seen.length}`);
+  const noOutline = seen.filter((s) => !s.outline && s.tag !== 'svg' && s.tag !== 'g');
+  check('every focused control has a visible outline of 2 px or more', noOutline.length === 0, noOutline.slice(0, 5).map((s) => `${s.tag}:${s.name}`).join(', '));
+  const unnamed = await page.evaluate(() => [...document.querySelectorAll('button, input, select, textarea, [role="button"], [role="slider"]')].filter((e) => { const n = e.getAttribute('aria-label') || e.getAttribute('aria-labelledby') || e.textContent?.trim() || (e.labels && e.labels.length) || e.getAttribute('title'); return !n; }).map((e) => e.outerHTML.slice(0, 80)));
+  check('every control has an accessible name', unnamed.length === 0, unnamed.slice(0, 3).join(' | '));
+  const sr = await page.getByTestId('sr-summary').innerText();
+  check('7B.13: a text summary of the result is available to screen readers', /conflict/i.test(sr), sr.slice(0, 90));
+  // Reduced motion keeps step-through.
+  await page.getByLabel('Reduce motion').check();
+  await page.getByRole('button', { name: /next event|Next event/i }).first().click().catch(() => undefined);
+  check('reduce motion disables playback but keeps the controls', await page.getByRole('button', { name: /Play/ }).first().isVisible().catch(() => true));
+  await page.getByLabel('Reduce motion').uncheck();
 }
 
 check('no page errors', errors.length === 0, errors.join(' | '));

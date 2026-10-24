@@ -84,7 +84,7 @@ select { background: var(--c-panel); border: 1px solid var(--c-border); border-r
 .crow { display: grid; grid-template-columns: 28px 100px 74px 1fr; gap: 6px; width: 100%; text-align: left; border: none; border-bottom: 1px solid var(--c-border); border-radius: 0; background: var(--c-bg); font-size: 13px; }
 .crow.selected { background: var(--c-panel); outline: 2px solid var(--c-selected); outline-offset: -2px; }
 .crow .num { font-weight: 700; } .crow .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sev-hard { color: var(--c-denied); font-weight: 600; } .sev-degraded { color: var(--c-degraded); font-weight: 600; } .sev-warning { font-weight: 600; } .sev-tolerated { color: var(--c-granted); }
+.sev-hard, .sev-degraded, .sev-warning { font-weight: 600; } /* the coloured chip carries the colour; the words stay in the text colour so contrast holds on every row background */
 .story section { margin-bottom: 4px; } .story p { margin: 4px 0; }
 .involved { padding-left: 16px; margin: 0; } .involved li { margin-bottom: 4px; }
 .chip { display: inline-block; width: 14px; height: 10px; border: 2px solid; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
@@ -147,3 +147,19 @@ kbd { font-family: var(--font-mono); border: 1px solid var(--c-border); border-r
 table.diff { width: 100%; border-collapse: collapse; font-size: 13px; } table.diff caption { text-align: left; font-size: 12px; color: var(--c-text-muted); padding: 4px 0; } table.diff th, table.diff td { text-align: left; padding: 3px 8px; border-bottom: 1px solid var(--c-border); }
 .diff-better td:last-child { color: var(--c-granted); font-weight: 600; } .diff-worse td:last-child { color: var(--c-denied); font-weight: 600; }
 .gen-wrap { display: inline-block; }
+
+/* M9: learn mode. A highlighted area gets a thick outline and a corner tag, so it is not marked by colour alone. */
+[data-hl="1"] { outline: 4px solid var(--c-focus); outline-offset: 2px; }
+[data-hl="1"]:not(.left):not(.right) { position: relative; }
+[data-hl="1"]::after { content: "Look here"; position: absolute; top: 0; right: 8px; background: var(--c-focus); color: var(--c-bg); font-size: 12px; font-weight: 700; padding: 0 8px; border-radius: 0 0 6px 6px; pointer-events: none; z-index: 5; }
+.lesson-card, .tour-card { background: var(--c-bg); border: 2px solid var(--c-focus); border-radius: 6px; padding: 8px 12px; margin-bottom: 8px; }
+.lesson-card header { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; } .lesson-card h2 { font-size: 15px; }
+.lesson-progress { margin: 0; font-size: 12px; color: var(--c-text-muted); } .lesson-caption { margin: 4px 0 8px; font-size: 14px; } .lesson-goal { margin: 4px 0; }
+.lesson-check { border: 1px solid var(--c-border); border-radius: 6px; padding: 4px 8px; } .check.block { display: flex; margin: 4px 0; }
+.tour-card { position: fixed; right: 16px; bottom: 16px; width: 360px; z-index: 150; box-shadow: 0 4px 16px rgba(0,0,0,0.3); } .tour-card h2 { margin: 2px 0 4px; }
+.gloss { font: inherit; color: inherit; background: none; border: none; border-bottom: 2px dotted var(--c-focus); border-radius: 0; padding: 0; cursor: help; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+.modal.wide { max-width: 760px; }
+.lessons { padding-left: 20px; } .lessons li { margin-bottom: 8px; } .lessons button { text-align: left; } .lessons p { margin: 2px 0; }
+.glossary { margin: 8px 0; } .glossary > div { padding: 4px 8px; border-bottom: 1px solid var(--c-border); } .glossary dt { font-weight: 700; } .glossary dd { margin: 2px 0 0; } .glossary .focus { outline: 3px solid var(--c-focus); border-radius: 6px; }
+.assumptions { list-style: none; padding: 0; margin: 8px 0; } .assumptions li { border-bottom: 1px solid var(--c-border); padding: 4px 0; } .assumptions p { margin: 2px 0; } .assumptions .id { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--c-border); padding: 0 4px; border-radius: 4px; }
+.sev-hard > span[aria-hidden] { color: var(--c-denied); } .sev-degraded > span[aria-hidden] { color: var(--c-degraded); } .sev-tolerated > span[aria-hidden] { color: var(--c-granted); } .sev-warning > span[aria-hidden] { color: var(--c-warning); }

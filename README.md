@@ -2,7 +2,9 @@
 
 An interactive, browser-only tool that teaches test engineers how Bluetooth and Wi-Fi packets share the 2.4 GHz medium: time, frequency, arbitration, and what the platform changes. It is a learning aid, not an RF simulator. It is vendor-neutral and uses only public-standard concepts.
 
-**Status:** under construction, built in milestones. Engine and validator first, user interface after the five worked examples pass.
+**Status:** complete. See `ACCEPTANCE.md` for every acceptance criterion and the test that proves it, and `ASSUMPTIONS.md` for every assumption.
+
+**Live demo:** published by GitHub Pages from `main` (see `.github/workflows/pages.yml`). Enable Pages with source "GitHub Actions" in the repository settings.
 
 | Milestone | Scope | State |
 |-----------|-------|-------|
@@ -15,7 +17,7 @@ An interactive, browser-only tool that teaches test engineers how Bluetooth and 
 | M6 | The five worked examples as automated tests and presets | done |
 | M7 | Time and frequency views, platform diagram, explanation panel, summary strip, tooltips, playback, tokens and themes | done |
 | M8 | Task selection, platform controls, live validation, undo, save/load/share, compare, export | done |
-| M9 | Lessons, tour, glossary, assumptions panel, accessibility pass, Pages deploy, final acceptance check | next |
+| M9 | Five lessons, first-visit tour, glossary, assumptions panel, help texts, accessibility pass, Pages deploy, acceptance check | done |
 
 ## Layout
 
@@ -35,10 +37,27 @@ npm run dev         # development server
 npm run build       # static build for GitHub Pages
 ```
 
+## Using the tool
+
+- **Learn** opens five guided lessons (the five worked examples, easiest first). Each loads its scenario, highlights the part of the page it talks about, and ends with one question.
+- **Help** replays the six-step tour, opens the glossary and the assumptions, and lists the keyboard shortcuts (`?`).
+- Build your own scenario in the **Tasks** and **Platform** tabs. The badge at the top says whether it can be generated; **Issues** lists every problem with a fix button.
+- Everything you see is labelled **Standard says** (fixed by a public specification) or **Implementations vary** (a choice real products make differently).
+
+## Adding content without changing code
+
+| To add | Edit |
+|---|---|
+| a task | `src/data/tasks.json` (below) |
+| a lesson | `src/data/lessons.json`; list facts in `verify` and the tests check them against the engine |
+| a glossary term | `src/data/glossary.json`; it is underlined wherever its words appear |
+| help for a rule | `src/data/helpTopics.json` |
+| a use case or platform preset | `src/data/useCases.json`, `src/data/platformDefaults.json` |
+
 ## Adding a task
 
 Add one record to `src/data/tasks.json` that names one of the seven pattern generators (`PERIODIC_EVENT`, `SLOT_SCHEDULE`, `BURST_TRAIN`, `WINDOWED_LISTEN`, `SCAN_SWEEP`, `IRREGULAR_BURSTS`, `ONE_SHOT_EXCHANGE`). The data-integrity tests check that every reference in the record resolves.
 
 ## Browser checks
 
-`npm run e2e` builds the app, serves it and runs `e2e/check.mjs` in headless Chromium (UX-1, UX-2, UX-5, UX-6, playback, zoom, theme, reduced motion, and panning speed with more than 20,000 blocks). Screenshots go to `e2e/shots/`.
+`npm run e2e` builds the app, serves it and runs `e2e/check.mjs` in headless Chromium (UX-1, UX-2, UX-5 to UX-8, the builder and validation gate, undo, files, share links, compare, exports, tour, lessons, glossary, assumptions, an axe accessibility scan, keyboard focus, playback, zoom, theme, reduced motion, and panning speed with more than 20,000 blocks). Screenshots go to `e2e/shots/`.

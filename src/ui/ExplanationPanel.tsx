@@ -67,7 +67,7 @@ export function ExplanationPanel({ ctx, theme, selectedId, onSelect, onApply, ha
   const [open, setOpen] = useState(true);
   void open; void setOpen;
   return (
-    <aside className="explain" aria-label="Explanation" data-testid="explanation-panel">
+    <aside className="explain" aria-label="Explanation" data-testid="explanation-panel" data-area="explain">
       <header className="ex-head">
         <h2>Conflicts <span className="muted">({list.length})</span></h2>
         <div className="ex-controls">

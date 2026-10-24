@@ -632,6 +632,62 @@
       "label": "IMPLEMENTATION_VARIES",
       "milestone": "M8",
       "area": "Tasks"
+    },
+    {
+      "id": "A-74",
+      "source": "spec 7B.11",
+      "text": "Each lesson lists facts (in a 'verify' list) that a test checks against the engine, so lesson text cannot drift away from the results. Lesson order follows the worked examples, easiest first. Lessons are data in lessons.json.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Learn"
+    },
+    {
+      "id": "A-75",
+      "source": "spec 7B.11",
+      "text": "The lesson card sits at the top of the right-hand column. The area a step talks about gets a thick outline and a 'Look here' tag, so the highlight is not colour alone. The question at the end is multiple choice with one correct answer, and the explanation shows after any answer.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Learn"
+    },
+    {
+      "id": "A-76",
+      "source": "spec 7B.11",
+      "text": "Lessons you answered correctly, and whether the tour has been seen, are remembered in the browser's local storage only. If storage is blocked the page works the same but the tour shows every visit.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Learn"
+    },
+    {
+      "id": "A-77",
+      "source": "spec 7B.11",
+      "text": "A glossary term is underlined at its first use in each piece of help, lesson or tour text, not at every use, to keep the text readable. Acronyms such as TX and AFH match only in capitals.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Learn"
+    },
+    {
+      "id": "A-78",
+      "source": "spec 7C.5",
+      "text": "Every validation rule topic has plain-language help in helpTopics.json (a test checks that none is missing). The Learn more link in an issue opens it.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Validation"
+    },
+    {
+      "id": "A-79",
+      "source": "spec 7B.13",
+      "text": "The automated accessibility scan (axe, WCAG 2 A and AA rules) must report no serious or critical problems on the empty state, a conflict open, the platform panel and the dark theme. Other checks by script: every control has a name, and every focused control shows an outline of at least 2 pixels.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Accessibility"
+    },
+    {
+      "id": "A-80",
+      "source": "spec 11 AC-9",
+      "text": "The Assumptions panel shows the six assumptions stated in 7A.13 (S-1 to S-6) on one tab, and every assumption added during the build on the other, each with its source, area and label.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Learn"
     }
   ]
 }

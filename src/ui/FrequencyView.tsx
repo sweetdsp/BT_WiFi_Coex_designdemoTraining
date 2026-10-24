@@ -60,7 +60,7 @@ export function FrequencyView(p: Props) {
 
   const axis = [2400, 2420, 2440, 2460, 2480];
   return (
-    <section className="freqview" aria-label="Frequency view" data-testid="freq-view" ref={box}>
+    <section className="freqview" aria-label="Frequency view" data-testid="freq-view" data-area="freq-view" ref={box}>
       <header className="fv-head">
         <h2>Frequency</h2>
         <div role="group" aria-label="Frequency view mode" className="seg">
@@ -110,7 +110,7 @@ export function FrequencyView(p: Props) {
           </g>
         )}
         {/* adaptive hopping map as a strip under the axis: removed channels in grey with dotted fill */}
-        <g data-testid="afh-strip" aria-label={model.afh.enabled ? `Adaptive hopping map: ${model.afh.classicRemoved.length} channels removed` : 'Adaptive hopping is off: every channel is used'}>
+        <g data-testid="afh-strip" role="img" aria-label={model.afh.enabled ? `Adaptive hopping map: ${model.afh.classicRemoved.length} channels removed` : 'Adaptive hopping is off: every channel is used'}>
           {full.afhStrip.map((a) => (<rect key={a.channelIndex} x={fx(a.freq) - plotW / 79 / 2} y={(p.mode === 'WATERFALL' ? H : histH + 90) - 34} width={plotW / 79 - 0.4} height="9" fill={a.removed ? 'url(#fv-dots)' : c('bt')} opacity={a.removed ? 1 : 0.45} stroke={a.removed ? c('afhRemoved') : 'none'} strokeWidth="0.6" data-removed={a.removed} />))}
         </g>
       </svg>

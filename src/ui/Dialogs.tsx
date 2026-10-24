@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ValidationIssue } from '../engine/types';
 
-function Modal({ title, onClose, children, label }: { title: string; onClose(): void; children: React.ReactNode; label: string }) {
+export function Modal({ title, onClose, children, label, testid, wide }: { title: string; onClose(): void; children: React.ReactNode; label: string; testid?: string; wide?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
@@ -10,7 +10,7 @@ function Modal({ title, onClose, children, label }: { title: string; onClose(): 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
       if (e.key === 'Tab' && ref.current) {
-        const f = [...ref.current.querySelectorAll<HTMLElement>('button, input, a[href]')].filter((x) => !x.hasAttribute('disabled'));
+        const f = [...ref.current.querySelectorAll<HTMLElement>('button, input, a[href], select')].filter((x) => !x.hasAttribute('disabled'));
         if (!f.length) return;
         const first = f[0], last = f[f.length - 1];
         if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
@@ -21,7 +21,7 @@ function Modal({ title, onClose, children, label }: { title: string; onClose(): 
   }, [onClose]);
   return (
     <div className="modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div ref={ref} className="modal" role="dialog" aria-modal="true" aria-label={label} data-testid={label === 'Warnings' ? 'warn-dialog' : 'shortcuts'}>
+      <div ref={ref} className={`modal${wide ? ' wide' : ''}`} role="dialog" aria-modal="true" aria-label={label} data-testid={testid ?? (label === 'Warnings' ? 'warn-dialog' : 'shortcuts')}>
         <h2>{title}</h2>{children}
       </div>
     </div>

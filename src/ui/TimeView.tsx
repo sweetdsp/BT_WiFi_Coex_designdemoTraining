@@ -205,7 +205,7 @@ export function TimeView(p: TimeViewProps) {
   const mm = minimapTicks(result.conflicts, windowUs, W);
 
   return (
-    <section className="timeview" aria-label="Time view" data-testid="time-view" ref={wrap}>
+    <section className="timeview" aria-label="Time view" data-testid="time-view" data-area="time-view" ref={wrap}>
       <Minimap ticks={mm} windowUs={windowUs} viewport={v} width={W} theme={theme} onViewport={p.onViewport} />
       <div className="tv-body">
         <div className="tv-labels" style={{ width: 180 }}>

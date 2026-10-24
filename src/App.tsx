@@ -23,6 +23,9 @@ import { FrequencyView, type FreqMode } from './ui/FrequencyView';
 import { HelpPanel } from './ui/HelpPanel';
 import { CompareView } from './ui/CompareView';
 import { ShortcutsDialog, WarningsDialog } from './ui/Dialogs';
+import { GlossContext } from './ui/Gloss';
+import { AssumptionsPanel, GlossaryPanel, LessonCard, LessonMenu, TourCard } from './ui/Learn';
+import { lessonOf, lessons, tourSteps, type LessonState, startLesson } from './lib/learn';
 import { IssuesPanel } from './ui/IssuesPanel';
 import { Legend } from './ui/Legend';
 import { PlatformPanel } from './ui/PlatformPanel';
@@ -56,6 +59,13 @@ export default function App() {
   const [snapshot, setSnapshot] = useState<EngineResult | null>(null);
   const [compareOn, setCompareOn] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [learnMenu, setLearnMenu] = useState(false);
+  const [lesson, setLesson] = useState<LessonState | null>(null);
+  const [lessonDone, setLessonDone] = useState<Record<string, boolean>>(() => { try { return JSON.parse(stored('coex-lessons', '{}')); } catch { return {}; } });
+  const [glossaryOpen, setGlossaryOpen] = useState<{ focus?: string } | null>(null);
+  const [assumptionsOpen, setAssumptionsOpen] = useState(false);
+  const [tour, setTour] = useState<number | null>(() => (stored('coex-tour-done', '') === '1' ? null : 0));
+  const [helpMenu, setHelpMenu] = useState(false);
   const [reveal, setReveal] = useState<{ id: string; n: number } | undefined>();
   const lastEdit = useRef<{ key: string; t: number }>({ key: '', t: 0 });
   const fileInput = useRef<HTMLInputElement>(null);
@@ -352,6 +362,44 @@ export default function App() {
 
   const vars = cssVariables(theme);
 
+  // ---- Learn mode: highlight the area a step talks about, run the step's action once the lesson's scenario is on screen ----
+  const area = lesson ? (lessonOf(lesson)?.steps[lesson.step]?.area ?? null) : tour !== null ? tourSteps[tour].area : null;
+  useEffect(() => {
+    document.querySelectorAll('[data-hl]').forEach((e) => e.removeAttribute('data-hl'));
+    if (!area) return;
+    const els = document.querySelectorAll(`[data-area="${area}"]`);
+    els.forEach((e) => e.setAttribute('data-hl', '1'));
+    (els[0] as HTMLElement | undefined)?.scrollIntoView?.({ block: 'nearest' });
+  }, [area, result, tab, compareOn]);
+  const firedAction = useRef('');
+  useEffect(() => {
+    if (!lesson || !result || !ctx) return;
+    const l = lessonOf(lesson);
+    const step = l?.steps[lesson.step];
+    if (!l || !step?.action || result.config.name !== data.presets.find((p) => p.id === l.preset)?.name) return;
+    const key = `${l.id}:${lesson.step}:${result.blocks.length}`;
+    if (firedAction.current === key) return;
+    firedAction.current = key;
+    const a = step.action;
+    if (a.type === 'openFirstConflict') { const first = conflictList(ctx, 'time', false)[0]; if (first) focusConflict(first.conflict.id); }
+    else if (a.type === 'freqMode') setFreqMode(a.value);
+    else if (a.type === 'zoom') setViewport(presetViewport(a.value as PresetName, windowUs, cursor ?? (viewport.start + viewport.end) / 2));
+    else if (a.type === 'tab') setTab(a.value as typeof tab);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson, result, ctx]);
+  const beginLesson = (id: string) => {
+    const l = lessons.find((x) => x.id === id);
+    if (!l) return;
+    firedAction.current = '';
+    setLearnMenu(false); setTour(null); setLesson(startLesson(id)); loadPreset(l.preset);
+  };
+  const finishLesson = (correct: boolean) => {
+    if (lesson && correct) { const d = { ...lessonDone, [lesson.lessonId]: true }; setLessonDone(d); store('coex-lessons', JSON.stringify(d)); }
+    setLesson(null);
+  };
+  const closeTour = () => { setTour(null); store('coex-tour-done', '1'); };
+  const openGlossary = useCallback((id?: string) => { setHelp(null); setGlossaryOpen({ focus: id }); }, []);
+
   const nErr = gate.errors.length, nWarn = gate.warnings.length;
   const badgeText = gate.badge === 'EMPTY' ? 'Add a task to begin' : gate.badge === 'ERRORS' ? `${nErr} error${nErr === 1 ? '' : 's'}` : gate.badge === 'WARNINGS' ? `${nWarn} warning${nWarn === 1 ? '' : 's'}` : 'Ready';
   const badgeIcon = gate.badge === 'ERRORS' ? '✖' : gate.badge === 'WARNINGS' ? '▲' : gate.badge === 'OK' ? '✔' : '•';
@@ -360,8 +408,9 @@ export default function App() {
 
   return (
     <TooltipProvider onLearnMore={setHelp}>
+     <GlossContext.Provider value={openGlossary}>
       <div className="app" data-theme={theme} data-reduced-motion={reduced} style={vars as React.CSSProperties}>
-        <header className="topbar">
+        <header className="topbar" data-area="topbar">
           <h1>Coex Learning Tool</h1>
           <div className="spacer" />
           <span className={`badge badge-${gate.badge.toLowerCase()}`} role="status" data-testid="validation-badge" data-state={gate.badge}><span aria-hidden="true">{badgeIcon}</span> {badgeText}</span>
@@ -370,6 +419,19 @@ export default function App() {
             <span id="gen-why" className="sr-only">{genWhy}</span>
           </span>
           {stale && !busy && <span className="muted" data-testid="stale">Settings changed since the last view.</span>}
+          <button type="button" onClick={() => setLearnMenu(true)} data-testid="learn-btn">Learn</button>
+          <span className="menu">
+            <button type="button" aria-expanded={helpMenu} aria-haspopup="true" onClick={() => setHelpMenu((x) => !x)} data-testid="help-menu">Help ▾</button>
+            {helpMenu && (
+              <ul className="menu-list" role="menu" data-testid="help-menu-list">
+                <li role="none"><button type="button" role="menuitem" onClick={() => { setHelpMenu(false); setLesson(null); setTour(0); }} data-testid="replay-tour">Replay the tour</button></li>
+                <li role="none"><button type="button" role="menuitem" onClick={() => { setHelpMenu(false); openGlossary(); }} data-testid="open-glossary">Glossary</button></li>
+                <li role="none"><button type="button" role="menuitem" onClick={() => { setHelpMenu(false); setAssumptionsOpen(true); }} data-testid="open-assumptions">Assumptions</button></li>
+                <li role="none"><button type="button" role="menuitem" onClick={() => { setHelpMenu(false); setShortcuts(true); }}>Keyboard shortcuts</button></li>
+                <li role="none"><button type="button" role="menuitem" onClick={() => { setHelpMenu(false); setLegend(true); }}>Legend of colours and shapes</button></li>
+              </ul>
+            )}
+          </span>
           <button type="button" onClick={() => setLegend((x) => !x)} aria-pressed={legend}>Legend</button>
           <button type="button" onClick={() => setShortcuts(true)} aria-label="Keyboard shortcuts">?</button>
           <button type="button" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} aria-pressed={theme === 'dark'}>Dark theme</button>
@@ -411,7 +473,7 @@ export default function App() {
         )}
 
         <div className={`workspace${leftOpen ? '' : ' left-closed'}`}>
-          <nav className="left" aria-label="Scenario builder">
+          <nav className="left" aria-label="Scenario builder" data-area="left">
             <button type="button" className="collapse" onClick={() => setLeftOpen(!leftOpen)} aria-expanded={leftOpen} aria-label={leftOpen ? 'Collapse the scenario panel' : 'Expand the scenario panel'}>{leftOpen ? '‹' : '›'}</button>
             {leftOpen && (<>
               <div role="tablist" aria-label="Builder sections" className="tabs main-tabs">
@@ -482,19 +544,25 @@ export default function App() {
           </main>
 
           <div className="right">
+            {lesson && <LessonCard state={lesson} onChange={setLesson} onExit={() => setLesson(null)} onFinish={finishLesson} />}
             {result && ctx ? (
               <ExplanationPanel ctx={ctx} theme={theme} selectedId={selectedConflict} onSelect={focusConflict} onApply={applySuggestion} hardOnly={hardOnly} onHardOnly={setHardOnly} sort={sort} onSort={setSort} />
-            ) : (<aside className="explain"><h2>Explanation</h2><p className="muted">Load an example, or build a scenario and generate it, to see conflicts and read why they happened.</p></aside>)}
+            ) : (<aside className="explain" data-area="explain"><h2>Explanation</h2><p className="muted">Load an example, or build a scenario and generate it, to see conflicts and read why they happened.</p></aside>)}
           </div>
         </div>
 
-        <footer className="bottom">
+        <footer className="bottom" data-area="summary">
           {result ? <SummaryStrip metrics={result.metrics} /> : <p className="muted">The summary of the results appears here.</p>}
         </footer>
         <HelpPanel topic={help} data={data} onClose={() => setHelp(null)} />
         {confirmWarn && <WarningsDialog warnings={gate.warnings} onCancel={() => { setConfirmWarn(false); setTab('issues'); }} onConfirm={(remember) => { setConfirmWarn(false); if (remember) setSkipWarn(true); generateNow(draft, !!result); }} />}
         {shortcuts && <ShortcutsDialog onClose={() => setShortcuts(false)} />}
+        {learnMenu && <LessonMenu done={lessonDone} onStart={beginLesson} onClose={() => setLearnMenu(false)} />}
+        {glossaryOpen && <GlossaryPanel focus={glossaryOpen.focus} onClose={() => setGlossaryOpen(null)} />}
+        {assumptionsOpen && <AssumptionsPanel onClose={() => setAssumptionsOpen(false)} />}
+        {tour !== null && <TourCard step={tour} onStep={(n) => setTour(Math.max(0, Math.min(tourSteps.length - 1, n)))} onClose={closeTour} />}
       </div>
+     </GlossContext.Provider>
     </TooltipProvider>
   );
 }

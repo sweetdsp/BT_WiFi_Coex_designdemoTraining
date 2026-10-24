@@ -25,7 +25,7 @@ interface Props {
 export function PlaybackBar(p: Props) {
   const step = p.replay && p.replayStep ? p.replay[p.replayStep - 1] : null;
   return (
-    <div className="playback" role="toolbar" aria-label="Playback and zoom" data-testid="playback-bar">
+    <div className="playback" role="toolbar" aria-label="Playback and zoom" data-testid="playback-bar" data-area="playback">
       <div className="group">
         <button type="button" onClick={p.onPrev} aria-label="Step to the previous event">⏮</button>
         {p.playing ? <button type="button" onClick={p.onPause} aria-label="Pause">⏸</button> : <button type="button" onClick={p.onPlay} aria-label="Play">▶</button>}
