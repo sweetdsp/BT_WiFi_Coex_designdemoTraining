@@ -12,7 +12,8 @@ An interactive, browser-only tool that teaches test engineers how Bluetooth and 
 | M3 | Frequency footprints, adaptive hopping, conflict detection and severity table | done |
 | M4 | Arbitration policies, dynamic priority, anchors, delays, retries | done |
 | M5 | Metrics (airtime, overlap, conflicts, per-task impact, latency, anchors) | done |
-| M6 | The five worked examples as automated tests | next |
+| M6 | The five worked examples as automated tests and presets | done |
+| M7-M9 | Views, controls, lessons, accessibility, Pages deploy | next |
 | M7-M9 | Views, controls, lessons, accessibility, Pages deploy | planned |
 
 ## Layout

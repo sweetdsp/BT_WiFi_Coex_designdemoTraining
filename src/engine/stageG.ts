@@ -155,6 +155,7 @@ export function computeMetrics(
     const late: { bytes: number; planned: number }[] = [];
     const lat: number[] = [];
     const deliveredStarts: number[] = [];
+    const queued: number[] = []; // arrivals that were not lost or corrupted: these are the ones a queue holds
     for (const r of roots) {
       req += r.payloadBytes!;
       // The chain of this packet: itself, then every retry of it.
@@ -164,6 +165,7 @@ export function computeMetrics(
       const outcomes = chain.map((x) => ({ x, o: groupOutcome(groups.get(x.groupId) ?? [x]) }));
       const ok = outcomes.find((e) => e.o === 'OK');
       const lateOne = outcomes.find((e) => e.o === 'LATE');
+      if (ok || lateOne) queued.push(r.plannedStart);
       if (ok) {
         del += r.payloadBytes!;
         lat.push(Math.max(0, ok.x.start - r.plannedStart));
@@ -180,7 +182,7 @@ export function computeMetrics(
     const queuedBytes = late.reduce((a, x) => a + x.bytes, 0);
     // A buffered stream is a queue: its i-th delivery serves the i-th packet to arrive, whichever block carried it.
     if (rt.def.buffer?.enabled && deliveredStarts.length > 0) {
-      const arrivals = roots.map((r) => r.plannedStart).sort((a, b) => a - b);
+      const arrivals = [...queued].sort((a, b) => a - b);
       const starts = [...deliveredStarts].sort((a, b) => a - b);
       lat.length = 0;
       starts.forEach((t, i) => lat.push(Math.max(0, t - arrivals[i])));

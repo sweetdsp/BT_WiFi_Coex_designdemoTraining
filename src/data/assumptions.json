@@ -448,6 +448,38 @@
    "label": "IMPLEMENTATION_VARIES",
    "milestone": "M5",
    "area": "Metrics"
+  },
+  {
+   "id": "A-51",
+   "source": "spec 7A.12 Example 1",
+   "text": "The spec does not give the Wi-Fi video bitrate. The Example 1 preset uses 150 Mbps on a 20 MHz, 2x2 Wi-Fi 7 link, which keeps the stream close to continuous. The catalogue default for the Video streaming task stays at 100 Mbps. At 150 Mbps A2DP is delayed while it has fewer than four packets waiting, becomes critical at four and delays Wi-Fi bursts, no A2DP block is lost, A2DP impact is 0 and Wi-Fi impact is about 7 percent.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M6",
+   "area": "Examples"
+  },
+  {
+   "id": "A-52",
+   "source": "spec 7A.12 Example 1",
+   "text": "\"Every Bluetooth block that overlaps in time with a Wi-Fi block is a HARD conflict\" is read together with the severity table in 7A.7: with a shared antenna, a receive against a receive is TOLERATED, and every overlap that involves a transmit is HARD, whatever the frequency.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M6",
+   "area": "Examples"
+  },
+  {
+   "id": "A-53",
+   "source": "spec 7A.12 Example 3",
+   "text": "The DEGRADED share is measured over all Bluetooth blocks that overlap a Wi-Fi block in time over the 1 second window, with Wi-Fi video as the traffic. With the 23 channels inside the footprint plus guard the result is 26.6 percent, inside the 28 percent plus or minus 5 point band. Over blocks whose conflict involves a transmit it is about 29 percent.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M6",
+   "area": "Examples"
+  },
+  {
+   "id": "A-54",
+   "source": "spec 7A.12 Example 5",
+   "text": "Example 5 uses the TIME_SHARE slice pattern described in A-42. With a 30 ms interval and 2M PHY, 16 of 34 first-attempt events are denied, each retry follows the next event by one interval, and the added latency for the retried packets is about 30.6 ms. Wi-Fi web browsing is sparse, so the denials come from the slice schedule, not from a Wi-Fi block being on the air.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M6",
+   "area": "Examples"
   }
  ]
 }
