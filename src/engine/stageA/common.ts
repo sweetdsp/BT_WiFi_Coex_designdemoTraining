@@ -2,8 +2,9 @@
 // Generators know nothing about individual tasks: they read only the fields of the task definition.
 import type { DataBundle } from '../data';
 import { packetIncluded, resolveDurationUs, type DurationContext } from '../estimate';
+import { classicPacket } from '../timing/bt';
 import { effectiveWifi } from '../params';
-import { resolveRef } from '../timing/refs';
+import { resolveRef, resolveText } from '../timing/refs';
 import { streamCount, wifiGen } from '../timing/wifi';
 import type { Rng } from '../util/rng';
 import type { AirBlock, ChanMode, Dir, DirSpec, PacketSpec, ParamMap, PlatformConfig, TaskDef } from '../types';
@@ -22,6 +23,22 @@ export function pattern(g: GenContext): Record<string, any> {
 }
 
 export const num = (g: GenContext, r: unknown): number => resolveRef(r as never, g);
+
+/** Application payload of a packet in bytes, from the same fields that set its duration. Control frames and tones carry none. */
+export function payloadOfPacket(g: GenContext, p: PacketSpec): number {
+  if (!(g.data.limits.payloadKinds as string[]).includes(String(p.kind))) return 0;
+  const d = p.dur as Record<string, any>;
+  if (d && typeof d === 'object') {
+    if ('ble' in d) return Math.max(0, resolveRef(d.ble.payloadBytes, g));
+    if ('bt' in d) {
+      const pk = classicPacket(g.data, resolveText(d.bt, g));
+      const want = typeof g.params.payloadBytes === 'number' ? g.params.payloadBytes : pk.maxPayloadBytes;
+      return Math.max(0, Math.min(want, pk.maxPayloadBytes));
+    }
+    if ('wifi' in d) return d.wifi.frame === 'DATA' || d.wifi.frame === 'AMPDU' ? Math.max(0, resolveRef(d.wifi.bytes, g)) : 0;
+  }
+  return 0;
+}
 
 export function resolveDir(spec: DirSpec, params: ParamMap): Dir {
   if (typeof spec === 'string') return spec;
@@ -108,7 +125,7 @@ export function emitSequence(g: GenContext, packets: PacketSpec[], t0: number, o
         const advGap = o.advGapUs ?? 0;
         let t = cursor + gap;
         for (const ch of g.data.constants.bleAdvChannels as { index: number; mhz: number }[]) {
-          pushBlock(g, { dir, start: t, duration: dur, kind: p.kind, chanMode: 'BLE_ADV', fixedChannel: ch.index, eventId: o.eventId, optional: p.optional || o.optional, arrivalUs: o.arrivalUs, groupId: o.groupId ?? o.eventId, eventKey: o.eventKey ?? o.eventId });
+          pushBlock(g, { dir, start: t, duration: dur, kind: p.kind, chanMode: 'BLE_ADV', fixedChannel: ch.index, eventId: o.eventId, optional: p.optional || o.optional, arrivalUs: o.arrivalUs, groupId: o.groupId ?? o.eventId, eventKey: o.eventKey ?? o.eventId, payloadBytes: payloadOfPacket(g, p) });
           cursor = t + dur;
           t = cursor + advGap;
         }
@@ -116,7 +133,7 @@ export function emitSequence(g: GenContext, packets: PacketSpec[], t0: number, o
         const start = cursor + gap;
         const evId = mode === 'BLE_DATA' && perPacket ? `${o.eventId}.${g.blocks.length}` : o.eventId;
         pushBlock(g, {
-          dir, start, duration: dur, kind: p.kind, chanMode: mode, eventId: evId, optional: p.optional || o.optional, arrivalUs: o.arrivalUs, groupId: o.groupId ?? o.eventId, eventKey: o.eventKey ?? o.eventId,
+          dir, start, duration: dur, kind: p.kind, chanMode: mode, eventId: evId, optional: p.optional || o.optional, arrivalUs: o.arrivalUs, groupId: o.groupId ?? o.eventId, eventKey: o.eventKey ?? o.eventId, payloadBytes: payloadOfPacket(g, p),
           ...(o.wifi ? { wifiBand: o.wifi.band, wifiChannel: o.wifi.channel, wifiWidth: o.wifi.width, freqWidth: o.wifi.width } : {}),
         });
         cursor = start + dur;

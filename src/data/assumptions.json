@@ -408,6 +408,46 @@
    "label": "IMPLEMENTATION_VARIES",
    "milestone": "M4",
    "area": "Conflicts"
+  },
+  {
+   "id": "A-46",
+   "source": "spec 7A.10",
+   "text": "A packet is delivered when its whole group went out (a master packet and its reply, a Wi-Fi burst and its acknowledgement) with no block denied, lost or corrupted, and every block started inside the window. Retries count: a packet is delivered if any attempt in its chain was.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M5",
+   "area": "Metrics"
+  },
+  {
+   "id": "A-47",
+   "source": "spec 7A.10, 7A.12 Example 1",
+   "text": "Throughput impact is the share of requested payload that was lost, corrupted, or still queued at the end of the window beyond what the task may hold. A buffered stream may hold up to its critical threshold (4 packets for A2DP) without penalty, because the rule is that no packet waits past the critical point. Packets queued at the end are always reported separately. Delay by itself is a latency effect, not a loss.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M5",
+   "area": "Metrics"
+  },
+  {
+   "id": "A-48",
+   "source": "spec 7A.10",
+   "text": "For a buffered stream, latency matches the i-th delivery with the i-th packet to arrive (a queue), so the figure is the real wait in the buffer and not the distance a single block was moved.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M5",
+   "area": "Metrics"
+  },
+  {
+   "id": "A-49",
+   "source": "spec 7A.10",
+   "text": "Overlap airtime is measured at the planned positions of first-attempt blocks and counts every time overlap of a Bluetooth and a Wi-Fi block, even when the pair cannot interact. The frequency part uses the Wi-Fi footprint plus guard.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M5",
+   "area": "Metrics"
+  },
+  {
+   "id": "A-50",
+   "source": "spec 7A.8",
+   "text": "Anchors hit and missed are counted per planned event: an event is a hit only if all its blocks went out on time and uncorrupted. The time left before the supervision timeout is the timeout minus the longest gap between events that went out, including the start and end of the window.",
+   "label": "IMPLEMENTATION_VARIES",
+   "milestone": "M5",
+   "area": "Metrics"
   }
  ]
 }

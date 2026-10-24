@@ -72,6 +72,8 @@ export interface AirBlock {
   /** Frequency before arbitration re-tuned the block, so the planned overlap can be shown. */
   plannedFreqCenter?: number;
   plannedChannelIndex?: number;
+  /** Application payload this block carries, in bytes (0 for control frames, tones and listen windows). */
+  payloadBytes?: number;
 }
 
 export type ConflictSeverity = 'HARD' | 'DEGRADED' | 'WARNING' | 'TOLERATED';

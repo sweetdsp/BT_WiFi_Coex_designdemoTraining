@@ -1,0 +1,18 @@
+{
+  "_note": "Plain-language definition of every metric in the summary strip (spec 7B.5 and 7A.10). Shown as tooltips.",
+  "metrics": [
+    { "key": "airtime", "label": "Airtime", "label_spec": "IMPLEMENTATION_VARIES", "help": "Time each technology is on the air, split into transmit and receive, as a share of the simulation window. Only blocks that really went out are counted; denied blocks are not." },
+    { "key": "overlap", "label": "Overlap airtime", "label_spec": "IMPLEMENTATION_VARIES", "help": "How long Bluetooth and Wi-Fi blocks overlapped in time at their planned positions, and how much of that also overlapped in frequency (counting the guard around the Wi-Fi channel)." },
+    { "key": "conflicts", "label": "Conflicts", "label_spec": "IMPLEMENTATION_VARIES", "help": "Number of overlaps that could interact, by severity (hard, degraded, warning, tolerated) and by direction (transmit or receive on each side)." },
+    { "key": "blocksLost", "label": "Blocks lost", "label_spec": "IMPLEMENTATION_VARIES", "help": "Blocks that were denied and could not be retried, so their data never went out." },
+    { "key": "blocksDelayed", "label": "Blocks delayed", "label_spec": "IMPLEMENTATION_VARIES", "help": "Blocks that arbitration moved later because another block won the air first." },
+    { "key": "blocksRetried", "label": "Blocks retried", "label_spec": "IMPLEMENTATION_VARIES", "help": "Blocks that were denied and sent again as a new block, up to the retry limit." },
+    { "key": "blocksTolerated", "label": "Blocks tolerated", "label_spec": "IMPLEMENTATION_VARIES", "help": "Blocks that overlapped another block but did no harm, for example because isolation was high enough." },
+    { "key": "throughputImpact", "label": "Throughput impact", "label_spec": "IMPLEMENTATION_VARIES", "help": "Share of the requested payload that did not get through: lost, corrupted, or still waiting beyond what the buffer allows (its critical threshold) at the end of the window. Payload counts only blocks that were granted or tolerated and not marked corrupted." },
+    { "key": "queuedAtEnd", "label": "Queued at end", "label_spec": "IMPLEMENTATION_VARIES", "help": "Packets that were delayed and had not been sent when the window ended. A buffered stream may hold packets up to its critical threshold without that counting as an impact." },
+    { "key": "latency", "label": "Added latency", "label_spec": "IMPLEMENTATION_VARIES", "help": "Average and worst extra wait between the planned start of a packet and the start of the block that finally delivered it, including retries. For a buffered stream the i-th delivery is matched with the i-th packet to arrive, as in a queue." },
+    { "key": "anchorsHit", "label": "Anchors hit and missed", "label_spec": "STANDARD", "help": "For tasks with fixed-time activity (voice slots, connection events, beacons): how many events went out as planned and how many were missed." },
+    { "key": "longestMissRun", "label": "Longest run of misses", "label_spec": "STANDARD", "help": "The most anchor events missed one after another. A link drops when too many are missed in a row." },
+    { "key": "supervisionMargin", "label": "Time before supervision timeout", "label_spec": "STANDARD", "help": "At the worst point, how much time was left before the link's supervision timer would have expired, given the longest gap between successful events." }
+  ]
+}

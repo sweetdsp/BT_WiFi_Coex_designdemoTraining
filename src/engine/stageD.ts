@@ -27,7 +27,7 @@ export function platformCase(p: PlatformConfig, bt: Pick<AirBlock, 'dir'>, wifi:
 export const dirClassOf = (bt: AirBlock, wifi: AirBlock): DirClass => `${bt.dir}_${wifi.dir}` as DirClass;
 
 /** Time-overlapping BT and Wi-Fi block pairs. Efficient for tens of thousands of blocks. */
-function* overlappingPairs(bt: AirBlock[], wifi: AirBlock[]): Generator<[AirBlock, AirBlock]> {
+export function* overlappingPairs(bt: AirBlock[], wifi: AirBlock[]): Generator<[AirBlock, AirBlock]> {
   const w = [...wifi].sort((a, b) => a.start - b.start);
   const maxEnd: number[] = [];
   let m = -Infinity;

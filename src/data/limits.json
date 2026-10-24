@@ -20,5 +20,11 @@
   },
   "uiValidationBudgetMs": 50,
   "supervisionTimeoutParamDefaultMs": 2000,
-  "maxDelaysPerBlock": 16
+  "maxDelaysPerBlock": 16,
+  "payloadKinds": [
+    "DATA",
+    "VOICE",
+    "ISO",
+    "ADV"
+  ]
 }

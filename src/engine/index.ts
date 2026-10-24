@@ -1,10 +1,11 @@
-// The engine: validation gate, then stages A to F (spec 7A.1). Stage G (metrics) is added in the next milestone.
+// The engine: validation gate, then stages A to G (spec 7A.1).
 // The engine calls the validator itself and refuses to run on any ERROR, so the gate cannot be bypassed (7C.7).
 import { arbitrate, type AnchorStats } from './arbitration/arbitrate';
 import { defaultData, type DataBundle } from './data';
 import { finalizeConflicts } from './finalize';
 import { expandAll } from './stageA';
 import { resolveFrequencies } from './stageB';
+import { computeMetrics, type Metrics } from './stageG';
 import { applyAfh, type AfhMap } from './stageC';
 import type { AirBlock, Conflict, Decision, ScenarioConfig, ValidationIssue } from './types';
 import { ValidationError, hasErrors, validate } from './validator';
@@ -18,6 +19,7 @@ export interface EngineResult {
   decisions: Decision[];
   afh: AfhMap;
   anchorStats: Record<string, AnchorStats>;
+  metrics: Metrics;
   /** Display name of each task instance. */
   taskNames: Record<string, string>;
 }
@@ -32,8 +34,9 @@ export function runEngine(config: ScenarioConfig, data: DataBundle = defaultData
   const fin = finalizeConflicts(arb.blocks, arb.decisions, config, data);
   const taskNames: Record<string, string> = {};
   for (const [id, rt] of arb.runtime) taskNames[id] = rt.name;
-  return { config, issues, blocks: fin.blocks, conflicts: fin.conflicts, decisions: arb.decisions, afh: map, anchorStats: arb.anchorStats, taskNames };
+  const metrics = computeMetrics(fin.blocks, fin.conflicts, arb.decisions, config, data, arb.runtime, arb.anchorStats);
+  return { config, issues, blocks: fin.blocks, conflicts: fin.conflicts, decisions: arb.decisions, afh: map, anchorStats: arb.anchorStats, metrics, taskNames };
 }
 
 export { ValidationError, validate, hasErrors };
-export type { AnchorStats };
+export type { AnchorStats, Metrics };

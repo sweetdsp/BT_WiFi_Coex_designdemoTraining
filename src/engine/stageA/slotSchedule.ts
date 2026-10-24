@@ -5,7 +5,7 @@ import { bitrateIntervalSlots, resolveDurationUs } from '../estimate';
 import { classicPacket } from '../timing/bt';
 import { resolveRef, resolveText } from '../timing/refs';
 import type { PacketSpec } from '../types';
-import { num, pattern, pushBlock, resolveDir, type GenContext } from './common';
+import { num, pattern, payloadOfPacket, pushBlock, resolveDir, type GenContext } from './common';
 
 function slotsOf(g: GenContext, p: PacketSpec): number {
   const d = p.dur as { bt?: string };
@@ -37,10 +37,10 @@ export function slotSchedule(g: GenContext): void {
     const mCount = master.count === undefined ? 1 : Math.round(num(g, master.count));
     const mGap = master.gapUs === undefined ? 0 : num(g, master.gapUs);
     for (let i = 0; i < mCount; i++) {
-      pushBlock(g, { dir: resolveDir(master.dir, g.params), start: m * slotUs + i * (mDur + mGap), duration: mDur, kind: master.kind, chanMode: 'CLASSIC_HOP', eventId: `${eventId}.m${i}`, groupId: eventId, eventKey, optional, arrivalUs: arrival });
+      pushBlock(g, { dir: resolveDir(master.dir, g.params), start: m * slotUs + i * (mDur + mGap), duration: mDur, kind: master.kind, chanMode: 'CLASSIC_HOP', eventId: `${eventId}.m${i}`, groupId: eventId, eventKey, optional, arrivalUs: arrival, payloadBytes: payloadOfPacket(g, master) });
     }
     const r = m + ms;
-    pushBlock(g, { dir: resolveDir(reply.dir, g.params), start: r * slotUs, duration: rDur, kind: reply.kind, chanMode: 'CLASSIC_HOP', eventId: `${eventId}.r`, groupId: eventId, eventKey, optional });
+    pushBlock(g, { dir: resolveDir(reply.dir, g.params), start: r * slotUs, duration: rDur, kind: reply.kind, chanMode: 'CLASSIC_HOP', eventId: `${eventId}.r`, groupId: eventId, eventKey, optional, payloadBytes: payloadOfPacket(g, reply) });
     return evenUp(r + rs);
   };
 
