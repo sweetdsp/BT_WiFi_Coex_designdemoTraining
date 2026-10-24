@@ -14,7 +14,8 @@ An interactive, browser-only tool that teaches test engineers how Bluetooth and 
 | M5 | Metrics (airtime, overlap, conflicts, per-task impact, latency, anchors) | done |
 | M6 | The five worked examples as automated tests and presets | done |
 | M7 | Time and frequency views, platform diagram, explanation panel, summary strip, tooltips, playback, tokens and themes | done |
-| M8-M9 | Task selection, platform controls, save/export, lessons, accessibility, Pages deploy | next |
+| M8 | Task selection, platform controls, live validation, undo, save/load/share, compare, export | done |
+| M9 | Lessons, tour, glossary, assumptions panel, accessibility pass, Pages deploy, final acceptance check | next |
 
 ## Layout
 

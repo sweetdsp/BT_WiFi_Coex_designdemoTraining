@@ -1,0 +1,159 @@
+{
+ "_note": "Typical Bluetooth use cases (spec 6.2): each selects a group of tasks and parameters in one click.",
+ "useCases": [
+  {
+   "id": "music-streaming",
+   "name": "Music streaming to headphones",
+   "description": "A2DP (TX) plus ACL control traffic.",
+   "tasks": [
+    {
+     "taskId": "bt_a2dp",
+     "params": {}
+    },
+    {
+     "taskId": "bt_avrcp_hid",
+     "params": {
+      "role": "master"
+     }
+    }
+   ]
+  },
+  {
+   "id": "phone-call",
+   "name": "Phone call on a headset",
+   "description": "An eSCO link plus ACL control traffic.",
+   "tasks": [
+    {
+     "taskId": "bt_esco",
+     "params": {}
+    },
+    {
+     "taskId": "bt_avrcp_hid",
+     "params": {
+      "role": "master"
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-audio-earbuds",
+   "name": "LE Audio earbuds with call and music",
+   "description": "A unicast CIS pair plus an LE ACL connection.",
+   "tasks": [
+    {
+     "taskId": "le_cis",
+     "params": {
+      "role": "central"
+     }
+    },
+    {
+     "taskId": "le_cis",
+     "params": {
+      "role": "central",
+      "isoIntervalMs": 20
+     }
+    },
+    {
+     "taskId": "le_conn_central",
+     "params": {}
+    }
+   ]
+  },
+  {
+   "id": "auracast",
+   "name": "Auracast broadcast",
+   "description": "Extended advertising, a periodic advertising train and a broadcast isochronous stream.",
+   "tasks": [
+    {
+     "taskId": "le_adv_extended",
+     "params": {}
+    },
+    {
+     "taskId": "le_adv_periodic",
+     "params": {}
+    },
+    {
+     "taskId": "le_bis",
+     "params": {
+      "role": "broadcaster"
+     }
+    }
+   ]
+  },
+  {
+   "id": "keyboard-mouse",
+   "name": "Wireless keyboard and mouse",
+   "description": "An LE connection with a short interval and small packets.",
+   "tasks": [
+    {
+     "taskId": "le_conn_central",
+     "params": {
+      "connIntervalMs": 7.5,
+      "payloadBytes": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "fitness-band",
+   "name": "Fitness band or sensor",
+   "description": "An LE connection with a long interval, plus periodic notification bursts.",
+   "tasks": [
+    {
+     "taskId": "le_conn_peripheral",
+     "params": {
+      "connIntervalMs": 500
+     }
+    },
+    {
+     "taskId": "le_adv_legacy",
+     "params": {
+      "advIntervalMs": 1000
+     }
+    }
+   ]
+  },
+  {
+   "id": "discovery-pairing",
+   "name": "Device discovery and pairing",
+   "description": "Inquiry, inquiry scan, page and page scan, then a connection.",
+   "tasks": [
+    {
+     "taskId": "bt_inquiry",
+     "params": {}
+    },
+    {
+     "taskId": "bt_inquiry_scan",
+     "params": {}
+    },
+    {
+     "taskId": "bt_page",
+     "params": {}
+    },
+    {
+     "taskId": "bt_page_scan",
+     "params": {}
+    },
+    {
+     "taskId": "bt_acl_active",
+     "params": {}
+    }
+   ]
+  },
+  {
+   "id": "proximity-ranging",
+   "name": "Proximity and ranging",
+   "description": "An LE connection plus Channel Sounding.",
+   "tasks": [
+    {
+     "taskId": "le_conn_central",
+     "params": {}
+    },
+    {
+     "taskId": "le_channel_sounding",
+     "params": {}
+    }
+   ]
+  }
+ ]
+}

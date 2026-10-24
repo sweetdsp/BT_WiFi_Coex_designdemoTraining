@@ -1,20 +1,32 @@
 // Application shell (spec 7B.2): a top bar, a left panel, the views in the centre, the explanation on the right and the
 // summary strip at the bottom. Milestone M7 loads the five worked examples; M8 adds task selection and platform controls.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { defaultData } from './engine/data';
+import { defaultData, defaultPlatform } from './engine/data';
 import { runEngine, ValidationError, type EngineResult } from './engine';
 import { presetConfig } from './engine/presets';
-import { applyChanges, validate } from './engine/validator';
-import type { Change, ScenarioConfig, Tech, ValidationIssue } from './engine/types';
+import { applyChanges, fixAllSafe, validate } from './engine/validator';
+import type { Change, Fix, IssueItem, ParamValue, ScenarioConfig, Tech, ValidationIssue } from './engine/types';
+import { addTask, applyPlatformPreset, applyUseCase, clearTasks, gateOf, removeTask, resetPlatform, resetTask, setOverride, setParam, setPlatform } from './lib/draft';
+import { amend, canRedo, canUndo, createHistory, pushState, redo, undo, type History } from './lib/history';
+import { parseScenario, serializeScenario } from './lib/scenarioFile';
+import { decodeShare, shareFromHash, shareHash } from './lib/shareLink';
+import { blocksCsv, download, fileSafe, makePdf, resultJson, svgFrom, svgToPngBlob, timeViewLabels } from './lib/exporters';
+import { summaryItems } from './lib/summary';
+import { explainConflict } from './lib/explanation';
 import { makeCtx } from './lib/context';
 import { conflictList, neighbour, type SortKey } from './lib/explanation';
 import { advance, eventTimes, nextEvent, prevEvent, replaySteps, type Speed } from './lib/playback';
-import { cssVariables, type ThemeName } from './lib/tokens';
+import { colorOf, cssVariables, type ThemeName } from './lib/tokens';
 import { clampViewport, pan, presetViewport, span, zoomAt, type PresetName, type Viewport } from './lib/viewport';
 import { ExplanationPanel } from './ui/ExplanationPanel';
 import { FrequencyView, type FreqMode } from './ui/FrequencyView';
 import { HelpPanel } from './ui/HelpPanel';
+import { CompareView } from './ui/CompareView';
+import { ShortcutsDialog, WarningsDialog } from './ui/Dialogs';
+import { IssuesPanel } from './ui/IssuesPanel';
 import { Legend } from './ui/Legend';
+import { PlatformPanel } from './ui/PlatformPanel';
+import { TaskPicker } from './ui/TaskPicker';
 import { PlatformDiagram } from './ui/PlatformDiagram';
 import { PlaybackBar } from './ui/PlaybackBar';
 import { SummaryStrip } from './ui/SummaryStrip';
@@ -33,7 +45,20 @@ function store(key: string, value: string) {
 export default function App() {
   const [theme, setTheme] = useState<ThemeName>(() => (stored('coex-theme', '') === 'dark' ? 'dark' : 'light'));
   const [reduced, setReduced] = useState<boolean>(() => stored('coex-reduced', '') === '1' || (typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches));
-  const [config, setConfig] = useState<ScenarioConfig | null>(null);
+  const [hist, setHist] = useState<History<ScenarioConfig>>(() => createHistory({ name: 'New scenario', tasks: [], platform: defaultPlatform(data) }));
+  const draft = hist.present.state;
+  const [tab, setTab] = useState<'build' | 'platform' | 'issues' | 'examples'>('build');
+  const [notices, setNotices] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [confirmWarn, setConfirmWarn] = useState(false);
+  const [skipWarn, setSkipWarn] = useState(false);
+  const [shortcuts, setShortcuts] = useState(false);
+  const [snapshot, setSnapshot] = useState<EngineResult | null>(null);
+  const [compareOn, setCompareOn] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [reveal, setReveal] = useState<{ id: string; n: number } | undefined>();
+  const lastEdit = useRef<{ key: string; t: number }>({ key: '', t: 0 });
+  const fileInput = useRef<HTMLInputElement>(null);
   const [result, setResult] = useState<EngineResult | null>(null);
   const [errors, setErrors] = useState<ValidationIssue[] | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -65,23 +90,144 @@ export default function App() {
   const load = useCallback((cfg: ScenarioConfig, keepView = false) => {
     try {
       const r = runEngine(cfg, data);
-      setConfig(cfg); setResult(r); setErrors(null);
+      setResult(r); setErrors(null);
       if (!keepView) {
         setViewport({ start: 0, end: cfg.platform.windowUs }); setCursor(null); setSelectedConflict(undefined); setSelectedBlock(undefined); setMuted(new Set()); setReplayStep(null); setPlaying(false);
       }
       return r;
     } catch (e) {
-      if (e instanceof ValidationError) { setErrors(e.issues.filter((i) => i.severity === 'ERROR')); setConfig(cfg); return undefined; }
+      if (e instanceof ValidationError) { setErrors(e.issues.filter((i) => i.severity === 'ERROR')); return undefined; }
       throw e;
     }
   }, []);
 
-  // Test hook for the browser checks in e2e/: only present when the page is opened with ?e2e.
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.search.includes('e2e')) (window as unknown as { __coex: unknown }).__coex = { load: (cfg: ScenarioConfig) => { const r = load(cfg); return { ok: !!r, blocks: r?.blocks.length ?? 0, errors: validate(cfg, data).filter((i) => i.severity === 'ERROR').map((i) => i.id) }; } };
+  // ---- Editing: every change goes through history, so it can be undone (7B.12). Typing in one box is one step. ----
+  const edit = useCallback((label: string, cfg: ScenarioConfig, key?: string) => {
+    const now = Date.now();
+    const same = key !== undefined && lastEdit.current.key === key && now - lastEdit.current.t < 1200;
+    lastEdit.current = { key: key ?? '', t: now };
+    setHist((h) => (same ? amend(h, cfg, label) : pushState(h, cfg, label)));
+  }, []);
+
+  const issues = useMemo(() => validate(draft, data), [draft]);
+  const gate = useMemo(() => gateOf(issues, draft.tasks.length), [issues, draft.tasks.length]);
+  const stale = !!result && JSON.stringify(result.config) !== JSON.stringify(draft);
+  const say = (...m: string[]) => setNotices(m);
+
+  // Generating is visible: the button shows its state for at least one frame before the engine runs.
+  const generateNow = useCallback((cfg: ScenarioConfig, keepView: boolean) => {
+    setBusy(true);
+    requestAnimationFrame(() => setTimeout(() => { try { load(cfg, keepView); } finally { setBusy(false); } }, 0));
   }, [load]);
 
-  const loadPreset = (id: string) => { setNote(null); load(presetConfig(id, data)); };
+  const generate = useCallback(() => {
+    if (!gate.canGenerate || busy) return;
+    if (gate.needsConfirm && !skipWarn) { setConfirmWarn(true); return; }
+    generateNow(draft, !!result);
+  }, [gate, busy, skipWarn, draft, result, generateNow]);
+
+  // Test hook for the browser checks in e2e/: only present when the page is opened with ?e2e.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('e2e')) (window as unknown as { __coex: unknown }).__coex = { load: (cfg: ScenarioConfig) => { setHist((h) => pushState(h, cfg, 'Test')); const r = load(cfg); return { ok: !!r, blocks: r?.blocks.length ?? 0, errors: validate(cfg, data).filter((i) => i.severity === 'ERROR').map((i) => i.id) }; } };
+  }, [load]);
+
+  const loadPreset = (id: string) => {
+    const cfg = presetConfig(id, data);
+    setNote(null); setNotices([]); setHist((h) => pushState(h, cfg, `Load ${cfg.name}`)); generateNow(cfg, false);
+  };
+
+  // A shared link opens the scenario it holds. It is validated like any other input (7C.5).
+  useEffect(() => {
+    const code = shareFromHash(window.location.hash);
+    if (!code) return;
+    const r = decodeShare(code, data);
+    if (!r.config) { say(...r.problems); return; }
+    const cfg = r.config;
+    setHist(createHistory(cfg, 'Shared link'));
+    say(...r.notices, 'Loaded from a share link.');
+    const g = gateOf(validate(cfg, data), cfg.tasks.length);
+    if (g.canGenerate && !g.needsConfirm) generateNow(cfg, false); else setTab(g.errors.length ? 'issues' : 'build');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onUndo = useCallback(() => setHist((h) => { if (canUndo(h)) say(`Undid: ${h.present.label}.`); return undo(h); }), []);
+  const onRedo = useCallback(() => setHist((h) => { if (canRedo(h)) say(`Redid: ${h.future[0].label}.`); return redo(h); }), []);
+
+  const onField = (field: keyof ScenarioConfig['platform'], v: ParamValue) => {
+    const label = data.platformFields.find((f) => f.field === field)?.label ?? String(field);
+    edit(`Change ${label}`, setPlatform(draft, field, v), `f:${String(field)}`);
+    if (field === 'femArrangement') say(`The antenna mode was changed to ${v === 'SEPARATE' ? 'separate' : 'shared'} to match the front-end arrangement. Undo restores the old value.`);
+  };
+  const onParam = (id: string, name: string, v: ParamValue) => edit(`Change ${name}`, setParam(draft, id, name, v), `p:${id}:${name}`);
+  const jump = (item: IssueItem) => {
+    if (item.kind === 'task') { setTab('build'); setReveal({ id: item.instanceId, n: Date.now() }); }
+    else setTab('platform');
+    setTimeout(() => {
+      const el = (item.kind === 'task' ? (item.param ? document.getElementById(`p-${item.instanceId}-${item.param}`) : null) ?? document.querySelector(`[data-instance="${item.instanceId}"]`) : document.getElementById(`pf-${item.field}`)) as HTMLElement | null;
+      el?.scrollIntoView({ block: 'center' }); el?.focus?.();
+    }, 60);
+  };
+  const onFix = (f: Fix) => { edit(`Fix: ${f.label}`, applyChanges(draft, f.changes)); say(`Applied: ${f.label}. Undo restores the old settings.`); };
+  const onFixAll = () => { const r = fixAllSafe(draft, data); if (r.applied.length) { edit('Fix all safe issues', r.config); say(`Applied ${r.applied.length} safe fix${r.applied.length === 1 ? '' : 'es'}: ${r.applied.map((f) => f.label).join('; ')}.`); } };
+
+  // ---- Files, sharing and export ----
+  const onSave = () => { download(`${fileSafe(draft.name)}.coex.json`, serializeScenario(draft), 'application/json'); say(`Saved "${draft.name}" as a file.`); };
+  const onLoadFile = async (f: File | undefined) => {
+    if (!f) return;
+    const r = parseScenario(await f.text(), data);
+    if (!r.config) { say(...r.problems); return; }
+    setHist((h) => pushState(h, r.config!, `Load file ${f.name}`));
+    const g = gateOf(validate(r.config, data), r.config.tasks.length);
+    say(`Loaded "${r.config.name}" from ${f.name}.${g.errors.length ? ` It has ${g.errors.length} problem${g.errors.length === 1 ? '' : 's'} to fix before it can run.` : ''}`, ...r.notices);
+    if (g.errors.length) setTab('issues');
+  };
+  const onShare = async () => {
+    const h = shareHash(draft, data);
+    window.history.replaceState(null, '', h);
+    const url = `${window.location.origin}${window.location.pathname}${h}`;
+    try { await navigator.clipboard.writeText(url); say('The share link was copied. It holds the scenario itself, so it works without a server.'); } catch { say(`Copy this link: ${url}`); }
+  };
+  const mainSection = () => (document.querySelector('[data-compare="b"] [data-testid="time-view"]') ?? document.querySelector('[data-testid="time-view"]')) as HTMLElement | null;
+  const diagram = (kind: 'time' | 'freq') => {
+    const name = result?.config.name ?? 'scenario';
+    if (kind === 'time') {
+      const sec = mainSection(); const svg = sec?.querySelector('.tv-plot svg') as SVGSVGElement | null;
+      if (!sec || !svg) return null;
+      return { out: svgFrom(svg, { title: `${name}: time view, ${Math.round(viewport.start)} to ${Math.round(viewport.end)} µs`, labels: timeViewLabels(sec), bg: colorOf(theme, 'bg'), fg: colorOf(theme, 'text') }), name: `${fileSafe(name)}-time` };
+    }
+    const svg = document.querySelector('.freqview svg') as SVGSVGElement | null;
+    if (!svg) return null;
+    return { out: svgFrom(svg, { title: `${name}: frequency view`, bg: colorOf(theme, 'bg'), fg: colorOf(theme, 'text') }), name: `${fileSafe(name)}-frequency` };
+  };
+  const doExport = async (what: 'time-svg' | 'time-png' | 'freq-svg' | 'freq-png' | 'csv' | 'json' | 'pdf') => {
+    setExportOpen(false);
+    if (!result || !ctx) return;
+    try {
+      const base = fileSafe(result.config.name);
+      if (what === 'csv') download(`${base}-blocks.csv`, blocksCsv(result), 'text/csv');
+      else if (what === 'json') download(`${base}-result.json`, resultJson(result), 'application/json');
+      else if (what === 'pdf') {
+        const d = diagram('time');
+        const png = d ? { blob: await svgToPngBlob(d.out.text, d.out.width, d.out.height), width: d.out.width, height: d.out.height } : undefined;
+        const lines = summaryItems(result.metrics).map((i) => `${i.label}: ${i.value}`);
+        const conflictLines = conflictList(ctx, 'severity', false).slice(0, 5).map(({ conflict, number }) => { const e = explainConflict(conflict, ctx); return `${number}. [${e.severity}] ${e.what.text} ${e.why.text} ${e.who?.text ?? ''} ${e.means.text}`; });
+        download(`${base}.pdf`, await makePdf({ result, png, lines, conflictLines, footer: `Coex Learning Tool. Seed ${result.config.platform.seed}. Standard says / Implementations vary labels are in the app.` }), 'application/pdf');
+      } else {
+        const d = diagram(what.startsWith('time') ? 'time' : 'freq');
+        if (!d) { say('There is no diagram to export yet.'); return; }
+        if (what.endsWith('svg')) download(`${d.name}.svg`, d.out.text, 'image/svg+xml');
+        else download(`${d.name}.png`, await svgToPngBlob(d.out.text, d.out.width, d.out.height), 'image/png');
+      }
+      say('Export finished. The file was saved by your browser.');
+    } catch (e) { say(`The export did not work: ${e instanceof Error ? e.message : 'unknown problem'}.`); }
+  };
+
+  const onCompare = () => {
+    if (!result) return;
+    if (!snapshot) { setSnapshot(result); say('This run is saved as A. Change a setting, generate again, then press Compare to see the differences.'); return; }
+    if (snapshot === result) { say('A and the current run are the same. Change a setting and generate again first.'); return; }
+    setCompareOn((x) => !x);
+  };
 
   // Jump the views to a conflict: centre the time view on it and move the shared cursor to its start.
   const focusConflict = useCallback((id: string) => {
@@ -159,6 +305,7 @@ export default function App() {
         case 'p': stepConflict(-1); break;
         case ' ': if (t.closest('button, [role="button"]')) return; e.preventDefault(); if (!reduced) setPlaying((x) => !x); break;
         case 'l': setLegend((x) => !x); break;
+        case '?': setShortcuts(true); break;
         case 'Home': setViewport({ start: 0, end: windowUs }); break;
         default: return;
       }
@@ -167,12 +314,27 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [cursor, viewport, windowUs, stepConflict, reduced]);
 
+  // Undo, redo and generate use the control key, so they have their own listener. Text boxes keep their own undo.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const t = e.target instanceof Element ? e.target : document.body;
+      if (e.key === 'Enter') { e.preventDefault(); generate(); return; }
+      if (t.closest('input[type="text"], input[type="number"], textarea')) return;
+      const k = e.key.toLowerCase();
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); onUndo(); } else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); onRedo(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [generate, onUndo, onRedo]);
+
   const applySuggestion = (label: string, changes: Change[]) => {
     if (!result) return;
     const before = result.metrics.conflicts;
     const next = applyChanges(result.config, changes);
     const r = load(next, true);
     if (r) {
+      edit(`Apply ${label}`, next);
       setNote(`Applied "${label}". Hard conflicts ${before.bySeverity.HARD} → ${r.metrics.conflicts.bySeverity.HARD}, degraded ${before.bySeverity.DEGRADED} → ${r.metrics.conflicts.bySeverity.DEGRADED}, tolerated ${before.bySeverity.TOLERATED} → ${r.metrics.conflicts.bySeverity.TOLERATED}.`);
       setSelectedConflict(undefined);
     }
@@ -190,19 +352,56 @@ export default function App() {
 
   const vars = cssVariables(theme);
 
+  const nErr = gate.errors.length, nWarn = gate.warnings.length;
+  const badgeText = gate.badge === 'EMPTY' ? 'Add a task to begin' : gate.badge === 'ERRORS' ? `${nErr} error${nErr === 1 ? '' : 's'}` : gate.badge === 'WARNINGS' ? `${nWarn} warning${nWarn === 1 ? '' : 's'}` : 'Ready';
+  const badgeIcon = gate.badge === 'ERRORS' ? '✖' : gate.badge === 'WARNINGS' ? '▲' : gate.badge === 'OK' ? '✔' : '•';
+  const genWhy = gate.badge === 'EMPTY' ? 'Select at least one task first.' : gate.badge === 'ERRORS' ? `Fix the ${nErr} error${nErr === 1 ? '' : 's'} first: ${gate.errors.map((e) => e.id).join(', ')}.` : '';
+  const comparing = compareOn && snapshot && result && snapshot !== result;
+
   return (
     <TooltipProvider onLearnMore={setHelp}>
       <div className="app" data-theme={theme} data-reduced-motion={reduced} style={vars as React.CSSProperties}>
         <header className="topbar">
           <h1>Coex Learning Tool</h1>
-          <span className="scenario-name" data-testid="scenario-name">{config?.name ?? 'No scenario loaded'}</span>
           <div className="spacer" />
-          <label>Example <select value="" onChange={(e) => e.target.value && loadPreset(e.target.value)} aria-label="Load a worked example"><option value="">Load an example…</option>{data.presets.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}</select></label>
-          <button type="button" onClick={() => config && load(config, true)} disabled={!config}>Generate Coex View</button>
+          <span className={`badge badge-${gate.badge.toLowerCase()}`} role="status" data-testid="validation-badge" data-state={gate.badge}><span aria-hidden="true">{badgeIcon}</span> {badgeText}</span>
+          <span className="gen-wrap" title={genWhy}>
+            <button type="button" className="primary" onClick={generate} disabled={!gate.canGenerate || busy} aria-describedby="gen-why" data-testid="generate">{busy ? 'Generating…' : 'Generate Coex View'}</button>
+            <span id="gen-why" className="sr-only">{genWhy}</span>
+          </span>
+          {stale && !busy && <span className="muted" data-testid="stale">Settings changed since the last view.</span>}
           <button type="button" onClick={() => setLegend((x) => !x)} aria-pressed={legend}>Legend</button>
+          <button type="button" onClick={() => setShortcuts(true)} aria-label="Keyboard shortcuts">?</button>
           <button type="button" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} aria-pressed={theme === 'dark'}>Dark theme</button>
           <label className="check"><input type="checkbox" checked={reduced} onChange={(e) => setReduced(e.target.checked)} /> Reduce motion</label>
         </header>
+
+        <div className="scenebar" role="toolbar" aria-label="Scenario">
+          <label>Name <input type="text" value={draft.name} maxLength={80} onChange={(e) => edit('Rename scenario', { ...draft, name: e.target.value }, 'name')} data-testid="scenario-name" /></label>
+          <button type="button" onClick={onUndo} disabled={!canUndo(hist)} data-testid="undo" title={canUndo(hist) ? `Undo: ${hist.present.label}` : 'Nothing to undo'}>Undo</button>
+          <button type="button" onClick={onRedo} disabled={!canRedo(hist)} data-testid="redo">Redo</button>
+          <button type="button" onClick={onSave} data-testid="save">Save</button>
+          <button type="button" onClick={() => fileInput.current?.click()} data-testid="load-file">Load file</button>
+          <input ref={fileInput} type="file" accept=".json,application/json" className="sr-only" tabIndex={-1} aria-label="Scenario file" data-testid="file-input" onChange={(e) => { void onLoadFile(e.target.files?.[0]); e.target.value = ''; }} />
+          <button type="button" onClick={() => void onShare()} data-testid="share">Share link</button>
+          <span className="menu">
+            <button type="button" aria-expanded={exportOpen} aria-haspopup="true" onClick={() => setExportOpen((x) => !x)} disabled={!result} data-testid="export">Export ▾</button>
+            {exportOpen && (
+              <ul className="menu-list" role="menu" data-testid="export-menu">
+                {([['time-png', 'Time view as PNG'], ['time-svg', 'Time view as SVG'], ['freq-png', 'Frequency view as PNG'], ['freq-svg', 'Frequency view as SVG'], ['csv', 'All blocks as CSV'], ['json', 'Result as JSON'], ['pdf', 'One-page PDF']] as const).map(([k, l]) => (<li key={k} role="none"><button type="button" role="menuitem" onClick={() => void doExport(k)} data-export={k}>{l}</button></li>))}
+              </ul>
+            )}
+          </span>
+          <button type="button" onClick={onCompare} disabled={!result} aria-pressed={!!comparing} data-testid="compare-btn">{!snapshot ? 'Compare: save as A' : comparing ? 'Compare: on' : 'Compare with A'}</button>
+          {snapshot && <button type="button" onClick={() => { setSnapshot(null); setCompareOn(false); }}>Forget A</button>}
+        </div>
+
+        {notices.length > 0 && (
+          <section className="note notices" role="status" data-testid="notices">
+            <ul>{notices.map((n, i) => (<li key={i}>{n}</li>))}</ul>
+            <button type="button" onClick={() => setNotices([])} aria-label="Dismiss messages">Dismiss</button>
+          </section>
+        )}
 
         {errors && (
           <section className="errors" role="alert" data-testid="errors">
@@ -212,23 +411,38 @@ export default function App() {
         )}
 
         <div className={`workspace${leftOpen ? '' : ' left-closed'}`}>
-          <nav className="left" aria-label="Scenario">
+          <nav className="left" aria-label="Scenario builder">
             <button type="button" className="collapse" onClick={() => setLeftOpen(!leftOpen)} aria-expanded={leftOpen} aria-label={leftOpen ? 'Collapse the scenario panel' : 'Expand the scenario panel'}>{leftOpen ? '‹' : '›'}</button>
             {leftOpen && (<>
-              <h2>Worked examples</h2>
-              <ol className="examples">{data.presets.map((p) => (<li key={p.id}><button type="button" className={config?.name === p.name ? 'current' : ''} onClick={() => loadPreset(p.id)} data-preset={p.id}>{p.name}</button></li>))}</ol>
-              {config && result && (<div className="scenario-info">
-                <h3>Tasks</h3><ul>{result.config.tasks.map((t) => (<li key={t.instanceId}>{result.taskNames[t.instanceId]}</li>))}</ul>
-                <h3>Platform</h3>
-                <dl className="mono">
-                  <dt>Antenna</dt><dd>{result.config.platform.antennaMode === 'SHARED' ? 'shared' : `separate, ${result.config.platform.isolationDb} dB`}</dd>
-                  <dt>Cores</dt><dd>{result.config.platform.coreCount} ({result.config.platform.coreMode.toLowerCase().replace('_', ' ')})</dd>
-                  <dt>Policy</dt><dd>{result.config.platform.arbitrationPolicy.toLowerCase().replace('_', ' ')}</dd>
-                  <dt>Wi-Fi</dt><dd>{result.config.platform.wifiGeneration} ch {result.config.platform.wifiChannel}, {result.config.platform.wifiBandwidth} MHz</dd>
-                  <dt>AFH</dt><dd>{result.config.platform.afhEnabled ? 'on' : 'off'}</dd>
-                  <dt>Window</dt><dd>{result.config.platform.windowUs / 1000} ms, seed {result.config.platform.seed}</dd>
-                </dl>
-              </div>)}
+              <div role="tablist" aria-label="Builder sections" className="tabs main-tabs">
+                {([['build', 'Tasks'], ['platform', 'Platform'], ['issues', `Issues ${issues.length}`], ['examples', 'Examples']] as const).map(([k, l]) => (
+                  <button key={k} type="button" role="tab" id={`lt-${k}`} aria-selected={tab === k} aria-controls="left-panel" onClick={() => setTab(k)} data-testid={`ltab-${k}`}>{l}</button>
+                ))}
+              </div>
+              <div role="tabpanel" id="left-panel" aria-labelledby={`lt-${tab}`} className="left-body">
+                {tab === 'build' && (
+                  <TaskPicker cfg={draft} data={data} issues={issues} reveal={reveal} onHelp={setHelp}
+                    onAdd={(id) => edit(`Add ${data.taskIndex.get(id)?.name ?? id}`, addTask(draft, id, data))}
+                    onRemove={(id) => edit('Remove a task', removeTask(draft, id))} onParam={onParam}
+                    onResetTask={(id) => edit('Reset a task', resetTask(draft, id, data))}
+                    onUseCase={(id) => { edit(`Use case: ${data.useCases.find((u) => u.id === id)?.name ?? id}`, applyUseCase(draft, id, data)); say('The task list was replaced by the use case. Undo restores the old list.'); }}
+                    onClear={() => { edit('Clear all tasks', clearTasks(draft)); say('All tasks were cleared. Undo brings them back.'); }}
+                    onResetAll={() => { edit('Reset everything', { name: 'New scenario', tasks: [], platform: defaultPlatform(data) }); say('Everything was reset to the defaults. Undo brings your settings back.'); }} />
+                )}
+                {tab === 'platform' && (
+                  <PlatformPanel cfg={draft} data={data} issues={issues} onField={onField}
+                    onPreset={(id) => { edit(`Platform preset`, applyPlatformPreset(draft, id, data)); say(`Applied the preset "${data.platformDefaults.presets.find((x) => x.id === id)?.name}". Undo restores the old settings.`); }}
+                    onResetPlatform={() => { edit('Reset platform', resetPlatform(draft, data)); say('The platform settings were reset. Undo restores them.'); }}
+                    onOverride={(kind, key, v) => edit('Edit priority table', setOverride(draft, kind, key, v), `o:${kind}:${key}`)} />
+                )}
+                {tab === 'issues' && <IssuesPanel issues={issues} onFix={onFix} onFixAllSafe={onFixAll} onJump={jump} onHelp={setHelp} />}
+                {tab === 'examples' && (
+                  <div>
+                    <h2>Worked examples</h2>
+                    <ol className="examples">{data.presets.map((p) => (<li key={p.id}><button type="button" className={draft.name === p.name ? 'current' : ''} onClick={() => loadPreset(p.id)} data-preset={p.id}>{p.name}</button></li>))}</ol>
+                  </div>
+                )}
+              </div>
             </>)}
           </nav>
 
@@ -238,19 +452,23 @@ export default function App() {
                 <h2>See how Bluetooth and Wi-Fi share the air</h2>
                 <p>Pick activities for each radio, set up the hardware, and watch where they collide and who wins. Everything runs in your browser.</p>
                 <button type="button" className="primary" onClick={() => loadPreset('example-1')} data-testid="load-first-example">Load the first example</button>
-                <p className="muted">The first example is an audio stream and a Wi-Fi video stream sharing one antenna.</p>
+                <p className="muted">The first example is an audio stream and a Wi-Fi video stream sharing one antenna. Or build your own from the Tasks tab, then press Generate Coex View.</p>
               </section>
             ) : (<>
               {note && <p className="note" role="status" data-testid="note">{note}</p>}
-              <section className="guide" data-testid="guide">
-                <strong>Start here.</strong> The blue lane is Bluetooth and the orange lane is Wi-Fi. Each numbered red band marks a moment when they wanted the air together.
-                <button type="button" className="primary" onClick={() => { const first = conflictList(ctx, 'time', false)[0]; if (first) focusConflict(first.conflict.id); }} disabled={result.conflicts.length === 0} data-testid="open-first-conflict">Open the first conflict</button>
-              </section>
-              <Legend theme={theme} open={legend} onClose={() => setLegend(false)} />
-              <TimeView ctx={ctx} theme={theme} viewport={viewport} onViewport={setViewport} cursor={cursor} onCursor={setCursor}
-                selectedBlockId={selectedBlock} selectedConflictId={selectedConflict} hoverBlockId={hoverBlock} onHoverBlock={setHoverBlock}
-                onSelectBlock={selectBlock} onSelectConflict={focusConflict} muted={muted} onToggleMute={(id) => setMuted((m) => { const n = new Set(m); if (n.has(id)) n.delete(id); else n.add(id); return n; })}
-                collapsed={collapsed} onToggleGroup={(t) => setCollapsed((c) => ({ ...c, [t]: !c[t] }))} reveal={playing} focusIds={focusIds} flashBand={replayStep === 2 || replayStep === 3} onHelp={setHelp} />
+              {comparing && snapshot ? (
+                <CompareView a={snapshot} b={result} data={data} theme={theme} viewport={viewport} onViewport={setViewport} cursor={cursor} onCursor={setCursor} collapsed={collapsed} onToggleGroup={(t) => setCollapsed((c) => ({ ...c, [t]: !c[t] }))} onHelp={setHelp} onClose={() => setCompareOn(false)} />
+              ) : (<>
+                <section className="guide" data-testid="guide">
+                  <strong>Start here.</strong> The blue lane is Bluetooth and the orange lane is Wi-Fi. Each numbered red band marks a moment when they wanted the air together.
+                  <button type="button" className="primary" onClick={() => { const first = conflictList(ctx, 'time', false)[0]; if (first) focusConflict(first.conflict.id); }} disabled={result.conflicts.length === 0} data-testid="open-first-conflict">Open the first conflict</button>
+                </section>
+                <Legend theme={theme} open={legend} onClose={() => setLegend(false)} />
+                <TimeView ctx={ctx} theme={theme} viewport={viewport} onViewport={setViewport} cursor={cursor} onCursor={setCursor}
+                  selectedBlockId={selectedBlock} selectedConflictId={selectedConflict} hoverBlockId={hoverBlock} onHoverBlock={setHoverBlock}
+                  onSelectBlock={selectBlock} onSelectConflict={focusConflict} muted={muted} onToggleMute={(id) => setMuted((m) => { const n = new Set(m); if (n.has(id)) n.delete(id); else n.add(id); return n; })}
+                  collapsed={collapsed} onToggleGroup={(t) => setCollapsed((c) => ({ ...c, [t]: !c[t] }))} reveal={playing} focusIds={focusIds} flashBand={replayStep === 2 || replayStep === 3} onHelp={setHelp} />
+              </>)}
               <PlaybackBar playing={playing} onPlay={() => !reduced && setPlaying(true)} onPause={() => setPlaying(false)} onPrev={() => stepEvent(-1)} onNext={() => stepEvent(1)} speed={speed} onSpeed={setSpeed}
                 windowUs={windowUs} cursor={cursor} onScrub={(t) => setCursor(t)} onPreset={(n: PresetName) => setViewport(presetViewport(n, windowUs, cursor ?? (viewport.start + viewport.end) / 2))}
                 onZoom={(f) => setViewport((v) => zoomAt(v, cursor ?? (v.start + v.end) / 2, f, windowUs))} replay={replay} replayStep={replayStep} onReplay={() => setReplayStep(1)} onReplayStep={setReplayStep} canReplay={!!conflict} />
@@ -266,7 +484,7 @@ export default function App() {
           <div className="right">
             {result && ctx ? (
               <ExplanationPanel ctx={ctx} theme={theme} selectedId={selectedConflict} onSelect={focusConflict} onApply={applySuggestion} hardOnly={hardOnly} onHardOnly={setHardOnly} sort={sort} onSort={setSort} />
-            ) : (<aside className="explain"><h2>Explanation</h2><p className="muted">Load an example to see conflicts and read why they happened.</p></aside>)}
+            ) : (<aside className="explain"><h2>Explanation</h2><p className="muted">Load an example, or build a scenario and generate it, to see conflicts and read why they happened.</p></aside>)}
           </div>
         </div>
 
@@ -274,6 +492,8 @@ export default function App() {
           {result ? <SummaryStrip metrics={result.metrics} /> : <p className="muted">The summary of the results appears here.</p>}
         </footer>
         <HelpPanel topic={help} data={data} onClose={() => setHelp(null)} />
+        {confirmWarn && <WarningsDialog warnings={gate.warnings} onCancel={() => { setConfirmWarn(false); setTab('issues'); }} onConfirm={(remember) => { setConfirmWarn(false); if (remember) setSkipWarn(true); generateNow(draft, !!result); }} />}
+        {shortcuts && <ShortcutsDialog onClose={() => setShortcuts(false)} />}
       </div>
     </TooltipProvider>
   );

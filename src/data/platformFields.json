@@ -1,0 +1,440 @@
+{
+ "_note": "Platform settings catalogue (spec 6.3, FR-7 to FR-14a): labels, groups, ranges and help for each setting. The settings panel, the tooltips and the compare view are built from this file.",
+ "fields": [
+  {
+   "field": "wifiGeneration",
+   "label": "Wi-Fi generation",
+   "group": "Wi-Fi",
+   "type": "choice",
+   "help": "The Wi-Fi standard generation of the simulated device, from 802.11b to Wi-Fi 7.",
+   "effect": "Limits the bands, bandwidths and features, and changes frame lengths: older generations send longer frames.",
+   "typical": "802.11n to 802.11be",
+   "spec": "STANDARD",
+   "choices": [
+    "11b",
+    "11g",
+    "11a",
+    "11n",
+    "11ac",
+    "11ax",
+    "11be"
+   ],
+   "choiceLabels": {
+    "11b": "802.11b",
+    "11g": "802.11g",
+    "11a": "802.11a",
+    "11n": "802.11n (Wi-Fi 4)",
+    "11ac": "802.11ac (Wi-Fi 5)",
+    "11ax": "802.11ax (Wi-Fi 6/6E)",
+    "11be": "802.11be (Wi-Fi 7)"
+   }
+  },
+  {
+   "field": "wifiBand",
+   "label": "Wi-Fi band",
+   "group": "Wi-Fi",
+   "type": "choice",
+   "help": "The band Wi-Fi uses: 2.4, 5 or 6 GHz.",
+   "effect": "Only 2.4 GHz overlaps Bluetooth in frequency; 5 and 6 GHz interact only through the platform.",
+   "typical": "2.4 GHz for coexistence demos",
+   "spec": "STANDARD",
+   "choices": [
+    "2.4",
+    "5",
+    "6"
+   ],
+   "choiceLabels": {
+    "2.4": "2.4 GHz",
+    "5": "5 GHz",
+    "6": "6 GHz"
+   }
+  },
+  {
+   "field": "wifiChannel",
+   "label": "Wi-Fi channel",
+   "group": "Wi-Fi",
+   "type": "number",
+   "help": "The Wi-Fi channel number. On 2.4 GHz the centre frequency is 2407 plus 5 times the channel number.",
+   "effect": "Moves the orange band in the frequency view and changes which Bluetooth hops are hit.",
+   "typical": "1, 6 or 11 on 2.4 GHz",
+   "spec": "STANDARD",
+   "min": 1,
+   "max": 233,
+   "step": 1
+  },
+  {
+   "field": "wifiBandwidth",
+   "label": "Wi-Fi bandwidth",
+   "group": "Wi-Fi",
+   "type": "choice",
+   "help": "The channel width in MHz.",
+   "effect": "A wider channel covers more of the Bluetooth band and shortens frames.",
+   "typical": "20 or 40 MHz on 2.4 GHz",
+   "spec": "STANDARD",
+   "choices": [
+    20,
+    40,
+    80,
+    160,
+    320
+   ],
+   "unit": "MHz"
+  },
+  {
+   "field": "btMaxVersion",
+   "label": "Bluetooth Core version of the device",
+   "group": "Bluetooth",
+   "type": "choice",
+   "help": "The highest Bluetooth Core Specification version the simulated device supports.",
+   "effect": "Tasks and parameters that need a later version are greyed out and flagged.",
+   "typical": "5.2 or later for LE Audio",
+   "spec": "STANDARD",
+   "choices": [
+    4.0,
+    4.1,
+    4.2,
+    5.0,
+    5.1,
+    5.2,
+    5.3,
+    5.4,
+    6.0
+   ]
+  },
+  {
+   "field": "femArrangement",
+   "label": "Front-end arrangement",
+   "group": "Front end",
+   "type": "choice",
+   "help": "How Wi-Fi and Bluetooth connect to antennas: a shared antenna with a switch, separate antennas, or a shared antenna with a diplexer or combiner.",
+   "effect": "A shared antenna forces taking turns. Separate antennas let both run, depending on isolation.",
+   "typical": "Shared switch on small devices",
+   "spec": "IMPLEMENTATION_VARIES",
+   "choices": [
+    "SHARED_SWITCH",
+    "SEPARATE",
+    "SHARED_DIPLEXER"
+   ],
+   "choiceLabels": {
+    "SHARED_SWITCH": "Shared antenna with a switch",
+    "SEPARATE": "Separate antennas",
+    "SHARED_DIPLEXER": "Shared antenna with a diplexer or combiner"
+   }
+  },
+  {
+   "field": "isolationDb",
+   "label": "Isolation between Wi-Fi and Bluetooth",
+   "group": "Front end",
+   "type": "number",
+   "help": "How much a transmitter on one side is attenuated at the other side's receiver, in dB.",
+   "effect": "Above the interaction threshold an overlap is tolerated; below it a receive may be corrupted.",
+   "typical": "15 to 40 dB",
+   "spec": "IMPLEMENTATION_VARIES",
+   "min": 0,
+   "max": 100,
+   "step": 1,
+   "unit": "dB"
+  },
+  {
+   "field": "interactionThresholdDb",
+   "label": "Interaction threshold",
+   "group": "Front end",
+   "type": "number",
+   "help": "The isolation below which separate paths still interact.",
+   "effect": "Moves the line between tolerated and degraded overlaps.",
+   "typical": "15 dB",
+   "spec": "IMPLEMENTATION_VARIES",
+   "min": 0,
+   "max": 100,
+   "step": 1,
+   "unit": "dB"
+  },
+  {
+   "field": "guardMHz",
+   "label": "Guard around the Wi-Fi channel",
+   "group": "Front end",
+   "type": "number",
+   "help": "Extra margin on each side of the Wi-Fi channel that counts as overlap for Bluetooth, standing in for spectral skirts.",
+   "effect": "Widens the footprint in the frequency view and in adaptive hopping.",
+   "typical": "1 MHz",
+   "spec": "IMPLEMENTATION_VARIES",
+   "min": 0,
+   "max": 10,
+   "step": 1,
+   "unit": "MHz"
+  },
+  {
+   "field": "coreCount",
+   "label": "Number of cores",
+   "group": "Cores",
+   "type": "number",
+   "help": "How many radio cores serve Wi-Fi and Bluetooth: one combo core, or separate cores.",
+   "effect": "One core can only serve one radio at a time unless the hardware allows concurrent operation.",
+   "typical": "1 or 2",
+   "spec": "IMPLEMENTATION_VARIES",
+   "min": 1,
+   "max": 4,
+   "step": 1
+  },
+  {
+   "field": "coreMode",
+   "label": "Core behaviour",
+   "group": "Cores",
+   "type": "choice",
+   "help": "How the cores work together: time-division arbitration, concurrent operation where hardware allows, or priority-based pre-emption.",
+   "effect": "Concurrent operation lets overlapping blocks run together; the other modes make them take turns.",
+   "typical": "Time division on combo chips",
+   "spec": "IMPLEMENTATION_VARIES",
+   "choices": [
+    "TIME_DIVISION",
+    "CONCURRENT",
+    "PRIORITY"
+   ],
+   "choiceLabels": {
+    "TIME_DIVISION": "Time-division arbitration",
+    "CONCURRENT": "Concurrent operation",
+    "PRIORITY": "Priority-based pre-emption"
+   }
+  },
+  {
+   "field": "txRxStreams",
+   "label": "Wi-Fi streams (TX x RX)",
+   "group": "Cores",
+   "type": "choice",
+   "help": "Number of Wi-Fi spatial streams, for example 1x1 or 2x2.",
+   "effect": "More streams raise the rate and shorten frames.",
+   "typical": "1x1 or 2x2",
+   "spec": "STANDARD",
+   "choices": [
+    "1x1",
+    "2x2",
+    "3x3",
+    "4x4"
+   ]
+  },
+  {
+   "field": "wifiChains",
+   "label": "Wi-Fi chains in the device",
+   "group": "Cores",
+   "type": "number",
+   "help": "How many Wi-Fi radio chains the device has. Streams cannot exceed this.",
+   "effect": "Caps the stream count.",
+   "typical": "1 to 4",
+   "spec": "IMPLEMENTATION_VARIES",
+   "min": 1,
+   "max": 8,
+   "step": 1
+  },
+  {
+   "field": "simultaneousWifiTxBtRx",
+   "label": "Simultaneous Wi-Fi TX with Bluetooth RX",
+   "group": "Cores",
+   "type": "boolean",
+   "help": "Whether the platform can transmit Wi-Fi while receiving Bluetooth.",
+   "effect": "If off, that pair always takes turns, even with separate antennas.",
+   "typical": "Depends on the product",
+   "spec": "IMPLEMENTATION_VARIES"
+  },
+  {
+   "field": "wifiMultiRole",
+   "label": "Wi-Fi multi-role",
+   "group": "Cores",
+   "type": "boolean",
+   "help": "Whether the device can be an access point and a station together.",
+   "effect": "Allows soft-AP and station tasks in one scenario.",
+   "typical": "Off for simple devices",
+   "spec": "IMPLEMENTATION_VARIES"
+  },
+  {
+   "field": "mloSimultaneousTxRx",
+   "label": "Multi-link simultaneous TX and RX",
+   "group": "Cores",
+   "type": "boolean",
+   "help": "Whether Wi-Fi 7 multi-link operation can send on one link while receiving on another.",
+   "effect": "Affects how the links of a multi-link task interact.",
+   "typical": "Depends on the product",
+   "spec": "IMPLEMENTATION_VARIES"
+  },
+  {
+   "field": "arbitrationPolicy",
+   "label": "Arbitration policy",
+   "group": "Arbitration",
+   "type": "choice",
+   "help": "Who wins when Bluetooth and Wi-Fi want the air together: by priority, first come first served, Bluetooth favoured, Wi-Fi favoured, or time share.",
+   "effect": "Changes which block is granted, delayed or lost.",
+   "typical": "Priority by traffic type",
+   "spec": "IMPLEMENTATION_VARIES",
+   "choices": [
+    "PRIORITY",
+    "FIRST_COME",
+    "BT_FAVOURED",
+    "WIFI_FAVOURED",
+    "TIME_SHARE"
+   ],
+   "choiceLabels": {
+    "PRIORITY": "Priority by traffic type",
+    "FIRST_COME": "First come, first served",
+    "BT_FAVOURED": "Bluetooth favoured",
+    "WIFI_FAVOURED": "Wi-Fi favoured",
+    "TIME_SHARE": "Time share"
+   }
+  },
+  {
+   "field": "timeShareBtPercent",
+   "label": "Time share: Bluetooth share",
+   "group": "Arbitration",
+   "type": "number",
+   "help": "Share of the time slices given to Bluetooth when the policy is time share.",
+   "effect": "Moves the split between the two technologies.",
+   "typical": "50 percent",
+   "spec": "IMPLEMENTATION_VARIES",
+   "min": 1,
+   "max": 99,
+   "step": 1,
+   "unit": "%"
+  },
+  {
+   "field": "timeShareSliceUs",
+   "label": "Time share: slice length",
+   "group": "Arbitration",
+   "type": "number",
+   "help": "Length of each time slice when the policy is time share.",
+   "effect": "Shorter slices alternate more often.",
+   "typical": "5000 us",
+   "spec": "IMPLEMENTATION_VARIES",
+   "min": 100,
+   "max": 1000000,
+   "step": 100,
+   "unit": "\u00b5s"
+  },
+  {
+   "field": "afhEnabled",
+   "label": "Adaptive frequency hopping",
+   "group": "Hopping",
+   "type": "boolean",
+   "help": "Bluetooth removes channels inside the Wi-Fi channel from its hop set, after a delay.",
+   "effect": "Hops stop landing inside the Wi-Fi channel once the map takes effect.",
+   "typical": "On when Wi-Fi shares the band",
+   "spec": "STANDARD"
+  },
+  {
+   "field": "afhMinChannelsClassic",
+   "label": "AFH minimum channels (Classic)",
+   "group": "Hopping",
+   "type": "number",
+   "help": "The fewest Classic channels the hop set may keep.",
+   "effect": "A higher minimum keeps some channels inside the Wi-Fi channel.",
+   "typical": "20 (the specified minimum)",
+   "spec": "STANDARD",
+   "min": 20,
+   "max": 79,
+   "step": 1
+  },
+  {
+   "field": "afhMinChannelsBle",
+   "label": "AFH minimum channels (LE)",
+   "group": "Hopping",
+   "type": "number",
+   "help": "The fewest LE data channels the hop set may keep.",
+   "effect": "A higher minimum keeps some channels inside the Wi-Fi channel.",
+   "typical": "2",
+   "spec": "STANDARD",
+   "min": 2,
+   "max": 37,
+   "step": 1
+  },
+  {
+   "field": "afhDelayUs",
+   "label": "AFH delay",
+   "group": "Hopping",
+   "type": "number",
+   "help": "How long before the new channel map takes effect.",
+   "effect": "Conflicts are still shown in the first part of the window.",
+   "typical": "100 ms",
+   "spec": "IMPLEMENTATION_VARIES",
+   "min": 0,
+   "max": 10000000,
+   "step": 1000,
+   "unit": "\u00b5s"
+  },
+  {
+   "field": "retryLimit",
+   "label": "Retry limit",
+   "group": "Simulation",
+   "type": "number",
+   "help": "The most retries a block gets before it is counted as lost.",
+   "effect": "Stops endless retry loops.",
+   "typical": "7",
+   "spec": "IMPLEMENTATION_VARIES",
+   "min": 0,
+   "max": 64,
+   "step": 1
+  },
+  {
+   "field": "seed",
+   "label": "Random seed",
+   "group": "Simulation",
+   "type": "number",
+   "help": "Seed for the repeatable random numbers (hops, delays, backoff).",
+   "effect": "The same seed and settings always give the same result.",
+   "typical": "Any whole number",
+   "spec": "IMPLEMENTATION_VARIES",
+   "min": 0,
+   "max": 4294967295,
+   "step": 1
+  },
+  {
+   "field": "windowUs",
+   "label": "Simulation window",
+   "group": "Simulation",
+   "type": "number",
+   "help": "Length of time simulated, in microseconds.",
+   "effect": "Longer windows show more events and take longer to draw.",
+   "typical": "10 000 to 1 000 000 \u00b5s",
+   "spec": "IMPLEMENTATION_VARIES",
+   "min": 1,
+   "max": 10000000,
+   "step": 1000,
+   "unit": "\u00b5s"
+  },
+  {
+   "field": "maxBleConnections",
+   "label": "Limit: BLE connections",
+   "group": "Limits",
+   "type": "number",
+   "help": "The most simultaneous LE connections the device supports.",
+   "effect": "Selecting more raises a validation error.",
+   "typical": "8",
+   "spec": "IMPLEMENTATION_VARIES",
+   "min": 1,
+   "max": 64,
+   "step": 1
+  },
+  {
+   "field": "maxEscoLinks",
+   "label": "Limit: eSCO links",
+   "group": "Limits",
+   "type": "number",
+   "help": "The most eSCO voice links the device supports at once.",
+   "effect": "Selecting more raises a validation error.",
+   "typical": "1",
+   "spec": "IMPLEMENTATION_VARIES",
+   "min": 0,
+   "max": 3,
+   "step": 1
+  },
+  {
+   "field": "maxIsoStreams",
+   "label": "Limit: isochronous streams",
+   "group": "Limits",
+   "type": "number",
+   "help": "The most concurrent LE Audio streams the device supports.",
+   "effect": "Selecting more raises a validation error.",
+   "typical": "4",
+   "spec": "IMPLEMENTATION_VARIES",
+   "min": 0,
+   "max": 16,
+   "step": 1
+  }
+ ]
+}

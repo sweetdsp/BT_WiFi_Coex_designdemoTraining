@@ -303,10 +303,17 @@ export interface TaskInstance {
   params: ParamMap;
 }
 
+/** Edits to the default priority table (FR-13): base priority per class and the critical threshold of buffered tasks. */
+export interface PriorityOverrides {
+  base?: Record<string, number>;
+  bufferThreshold?: Record<string, number>;
+}
+
 export interface ScenarioConfig {
   name: string;
   tasks: TaskInstance[];
   platform: PlatformConfig;
+  overrides?: PriorityOverrides;
 }
 
 // ---------------------------------------------------------------------------

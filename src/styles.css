@@ -29,7 +29,7 @@ select { background: var(--c-panel); border: 1px solid var(--c-border); border-r
 .errors .id { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--c-border); padding: 0 4px; border-radius: 4px; }
 .note { margin: 8px; padding: 8px 12px; border-left: 4px solid var(--c-granted); background: var(--c-panel); border-radius: 6px; }
 
-.workspace { display: grid; grid-template-columns: 220px minmax(0, 1fr) 400px; gap: 8px; padding: 8px; align-items: start; flex: 1; }
+.workspace { display: grid; grid-template-columns: 340px minmax(0, 1fr) 400px; gap: 8px; padding: 8px; align-items: start; flex: 1; }
 .workspace.left-closed { grid-template-columns: 36px minmax(0, 1fr) 400px; }
 .left { position: sticky; top: 8px; background: var(--c-panel); border: 1px solid var(--c-border); border-radius: 6px; padding: 8px; min-height: 120px; }
 .left .collapse { position: absolute; top: 4px; right: 4px; padding: 0 8px; }
@@ -113,3 +113,37 @@ table.tasks { width: 100%; border-collapse: collapse; font-size: 13px; } table.t
 /* Motion: nothing longer than 400 ms outside playback, and none at all when Reduce motion is on (7B.1). */
 .app[data-reduced-motion="true"] *, .app[data-reduced-motion="true"] *::before { animation: none !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) { .app * { animation: none !important; transition: none !important; } }
+
+/* M8: builder, validation, dialogs, compare. Status is always an icon plus words, never colour alone (7B.1). */
+.scenebar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 6px 16px; border-bottom: 1px solid var(--c-border); background: var(--c-bg); }
+.scenebar input[type="text"] { width: 240px; }
+input[type="text"], input[type="number"] { font: inherit; color: inherit; background: var(--c-bg); border: 1px solid var(--c-border); border-radius: 6px; padding: 3px 6px; }
+input[type="number"] { width: 110px; }
+input[aria-invalid="true"], select[aria-invalid="true"] { border: 2px solid var(--c-denied); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0 8px; } .row h3 { margin: 0; flex: 1; }
+.badge { display: inline-block; font-size: 12px; border: 1px solid var(--c-border); border-radius: 10px; padding: 0 8px; white-space: nowrap; }
+.badge-error, .badge-errors { border: 2px solid var(--c-denied); font-weight: 600; } .badge-warn, .badge-warnings { border: 2px dashed var(--c-warning); font-weight: 600; } .badge-ok { border-color: var(--c-granted); }
+.count { display: inline-block; min-width: 18px; text-align: center; font-size: 12px; border: 1px solid var(--c-border); border-radius: 9px; padding: 0 4px; }
+.tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; } .tabs button { border-radius: 6px 6px 0 0; flex: 1; } .tabs button[aria-selected="true"] { background: var(--c-text); color: var(--c-bg); }
+.main-tabs { margin-top: 24px; }
+.left-body { max-height: calc(100vh - 160px); overflow: auto; padding-right: 4px; }
+.catalogue, .catalogue ul, .selected { list-style: none; padding: 0; margin: 0; } .catalogue h4 { margin: 8px 0 2px; }
+.task-def { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-bottom: 2px; } .task-def .add { text-align: left; flex: 1; font-size: 13px; }
+.small-note { font-size: 12px; color: var(--c-text-muted); }
+.sel { border: 1px solid var(--c-border); border-left-width: 6px; border-radius: 6px; padding: 4px 8px; margin-bottom: 6px; background: var(--c-bg); } .sel-bt { border-left-color: var(--c-bt); } .sel-wifi { border-left-color: var(--c-wifi); }
+.sel-head { display: flex; gap: 6px; align-items: center; justify-content: space-between; flex-wrap: wrap; } .sel-head .link { text-align: left; flex: 1; }
+.params, .platform-panel { display: grid; gap: 6px; } .param { display: grid; grid-template-columns: 1fr auto auto; gap: 2px 6px; align-items: center; font-size: 13px; } .param label { grid-column: 1; } .param input, .param select { grid-column: 1; max-width: 100%; }
+.param .info { grid-column: 2; grid-row: 1; } .param > .badge { grid-column: 3; grid-row: 1; } .param-err { grid-column: 1 / -1; margin: 0; font-size: 12px; border-left: 3px solid var(--c-denied); padding-left: 6px; }
+.group { border: 1px solid var(--c-border); border-radius: 6px; margin: 0 0 8px; padding: 4px 8px 8px; display: grid; gap: 6px; }
+.issues ul { list-style: none; padding: 0; margin: 0; } .issue { border: 1px solid var(--c-border); border-radius: 6px; padding: 4px 8px; margin-bottom: 6px; background: var(--c-bg); } .issue p { margin: 2px 0; }
+.issue-error { border-left: 6px solid var(--c-denied); } .issue-warning { border-left: 6px dashed var(--c-warning); } .issue-info { border-left: 6px dotted var(--c-border); }
+.issue .id { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--c-border); padding: 0 4px; border-radius: 4px; } .fixes { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; } .issue .link { margin-right: 8px; }
+.notices { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; } .notices ul { margin: 0; padding-left: 16px; }
+.menu { position: relative; } .menu-list { position: absolute; z-index: 60; top: 100%; left: 0; list-style: none; margin: 4px 0 0; padding: 4px; background: var(--c-bg); border: 1px solid var(--c-border); border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.25); min-width: 220px; } .menu-list button { width: 100%; text-align: left; border: none; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 200; }
+.modal { background: var(--c-bg); color: var(--c-text); border: 1px solid var(--c-border); border-radius: 6px; padding: 16px 24px; max-width: 560px; width: calc(100% - 32px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); max-height: 90vh; overflow: auto; }
+kbd { font-family: var(--font-mono); border: 1px solid var(--c-border); border-radius: 4px; padding: 0 4px; background: var(--c-panel); }
+.compare { background: var(--c-panel); border: 1px solid var(--c-border); border-radius: 6px; padding: 8px; display: grid; gap: 8px; } .compare h3 { margin: 4px 0; }
+table.diff { width: 100%; border-collapse: collapse; font-size: 13px; } table.diff caption { text-align: left; font-size: 12px; color: var(--c-text-muted); padding: 4px 0; } table.diff th, table.diff td { text-align: left; padding: 3px 8px; border-bottom: 1px solid var(--c-border); }
+.diff-better td:last-child { color: var(--c-granted); font-weight: 600; } .diff-worse td:last-child { color: var(--c-denied); font-weight: 600; }
+.gen-wrap { display: inline-block; }

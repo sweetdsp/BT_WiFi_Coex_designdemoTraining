@@ -16,6 +16,7 @@ const mk = (specs, platform = {}) => ({
   tasks: specs.map(([id, over], i) => { const def = tasks.find((t) => t.id === id); const params = {}; for (const [k, p] of Object.entries(def.params)) params[k] = p.default; return { instanceId: `t${i + 1}`, taskId: id, params: { ...params, ...(over ?? {}) } }; }),
 });
 
+const settled = () => page.waitForFunction(() => !/Generating/.test(document.querySelector('[data-testid="generate"]')?.textContent ?? ''), null, { timeout: 15000 });
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome', args: ['--no-sandbox'] });
 const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
 const page = await ctx.newPage();
@@ -147,16 +148,22 @@ await page.getByRole('button', { name: 'Dark theme' }).click();
 
 // ---- other examples render ----
 for (const [id, name] of [['example-3', 'Example 3'], ['example-4', 'Example 4'], ['example-5', 'Example 5']]) {
-  await page.locator(`[data-preset="${id}"]`).click();
+  await page.getByTestId('ltab-examples').click();
+  await page.locator(`[data-preset=\"${id}\"]`).click();
+  await settled();
   await page.waitForSelector('[data-testid="time-view"]');
   check(`${name} loads without errors and shows conflicts or blocks`, (await page.locator('g.block').count()) > 0 || (await page.locator('[data-lod="density"]').count()) > 0);
   await page.screenshot({ path: `${SHOTS}/${id}.png`, fullPage: true });
 }
-await page.locator('[data-preset="example-3"]').click();
+await page.getByTestId('ltab-examples').click();
+await page.locator('[data-preset=\"example-3\"]').click();
+await settled();
 await page.getByRole('button', { name: 'Histogram' }).click();
 check('histogram mode draws bars', (await page.locator('[data-mode="histogram"] rect').count()) > 50);
 await page.screenshot({ path: `${SHOTS}/example3-histogram.png`, fullPage: true });
-await page.locator('[data-preset="example-4"]').click();
+await page.getByTestId('ltab-examples').click();
+await page.locator('[data-preset=\"example-4\"]').click();
+await settled();
 check('adaptive hopping strip shows removed channels in Example 4', (await page.locator('[data-testid="afh-strip"] rect[data-removed="true"]').count()) === 23);
 
 // ---- legend ----
@@ -166,7 +173,9 @@ await page.screenshot({ path: `${SHOTS}/legend.png` });
 await page.getByRole('button', { name: 'Close legend' }).click();
 
 // ---- greyscale view for UX-3 ----
-await page.locator('[data-preset="example-3"]').click();
+await page.getByTestId('ltab-examples').click();
+await page.locator('[data-preset=\"example-3\"]').click();
+await settled();
 await page.addStyleTag({ content: 'html { filter: grayscale(1) !important; }' });
 await page.screenshot({ path: `${SHOTS}/example3-greyscale.png`, fullPage: true });
 await page.addStyleTag({ content: 'html { filter: none !important; }' });
@@ -207,6 +216,147 @@ await page.keyboard.press('Home');
 const lod = await page.getByTestId('lod-label').innerText();
 check('zoomed out, the dense scenario switches to density bars', /Density/.test(lod), lod);
 await page.screenshot({ path: `${SHOTS}/dense.png`, fullPage: true });
+
+
+// ---- M8: building a scenario, validation gate, undo, files, share, compare, export ----
+{
+  await page.goto(`${URL}?e2e`);
+  const badge = () => page.getByTestId('validation-badge').getAttribute('data-state');
+  const gen = page.getByTestId('generate');
+  check('VAL-5: Generate is disabled with no tasks, and says why', (await gen.isDisabled()) && (await badge()) === 'EMPTY');
+  const add = async (id) => page.locator(`[data-task="${id}"]`).click();
+  // AC-1: three Bluetooth and three Wi-Fi tasks, then generate.
+  for (const id of ['bt_a2dp', 'bt_avrcp_hid', 'le_conn_central']) await add(id);
+  await page.getByTestId('tab-WIFI').click();
+  for (const id of ['wifi_video_stream', 'wifi_beacon', 'wifi_web']) await add(id);
+  check('AC-1: six tasks are selected', (await page.getByTestId('selected-tasks').locator('li.sel').count()) === 6);
+  check('AC-1: a valid six-task scenario can be generated', (await badge()) !== 'ERRORS' && !(await gen.isDisabled()), await badge());
+  if (await badge() === 'WARNINGS') { await gen.click(); await page.getByTestId('confirm-generate').click(); } else await gen.click();
+  await page.waitForSelector('[data-testid="time-view"]');
+  check('AC-1: the six-task scenario is drawn', (await page.locator('g.block').count()) > 0);
+  await page.screenshot({ path: `${SHOTS}/builder-six-tasks.png`, fullPage: true });
+
+  // Parameter editing, VAL-1: an out-of-range value is flagged at once and blocks Generate.
+  await page.getByTestId('ltab-build').click();
+  await page.locator('[data-instance="t1"] .link').first().click();
+  const bitrate = page.locator('#p-t1-bitrateKbps');
+  await bitrate.fill('99999999');
+  check('VAL-1: out-of-range value shows an error badge and disables Generate', (await badge()) === 'ERRORS' && await gen.isDisabled());
+  check('VAL-1: the error is shown beside the field in words', /between|must be/i.test(await page.locator('[data-instance="t1"] .param-err').first().innerText()));
+  await page.getByTestId('ltab-issues').click();
+  check('issues panel lists the error with an id and a fix button', (await page.locator('.issue-error [data-fix]').count()) > 0);
+  await page.locator('.issue-error [data-fix]').first().click();
+  check('VAL-1: applying the suggested fix clears the error', (await badge()) !== 'ERRORS');
+  // Undo and redo.
+  await page.getByTestId('undo').click();
+  check('undo brings the invalid value back', (await badge()) === 'ERRORS');
+  await page.getByTestId('redo').click();
+  check('redo re-applies the fix', (await badge()) !== 'ERRORS');
+  await page.keyboard.press('Control+z');
+  check('Ctrl+Z undoes', (await badge()) === 'ERRORS');
+  await page.keyboard.press('Control+Shift+z');
+  check('Ctrl+Shift+Z redoes', (await badge()) !== 'ERRORS');
+
+  // Platform panel: tooltips, antenna sync is announced, preset applies.
+  await page.getByTestId('ltab-platform').click();
+  await page.getByRole('combobox', { name: 'Front-end arrangement' }).first().selectOption('SEPARATE').catch(() => undefined);
+  const infoTip = page.getByRole('button', { name: 'About Isolation' }).first();
+  await infoTip.focus();
+  await page.waitForTimeout(100);
+  const tipText = await page.getByTestId('tooltip').innerText().catch(() => '');
+  check('platform settings have info tooltips with a Standard says / Implementations vary label', /Standard says|Implementations vary/.test(tipText), tipText.slice(0, 80));
+  await page.keyboard.press('Escape');
+  await page.getByTestId('platform-preset').selectOption('dual-antenna-phone');
+  check('platform preset applies and is announced', /Dual-antenna phone/.test(await page.getByTestId('notices').innerText()));
+
+  // VAL-7: warnings need a confirmation; "remember for the session" skips it afterwards.
+  await page.getByTestId('ltab-build').click();
+  await page.getByTestId('clear-tasks').click();
+  await add('bt_a2dp'); await page.getByTestId('tab-WIFI').click(); await add('wifi_web'); await add('wifi_web');
+  check('VAL-7: duplicates give a warning, not an error', (await badge()) === 'WARNINGS');
+  await gen.click();
+  check('VAL-7: a confirmation lists the warning', await page.getByTestId('warn-dialog').isVisible());
+  await page.keyboard.press('Escape');
+  check('VAL-7: cancelling does not generate', !(await page.getByTestId('warn-dialog').isVisible()));
+  await gen.click();
+  await page.getByTestId('confirm-generate').click();
+  await page.waitForSelector('g.block');
+  check('VAL-7: confirming generates', (await page.locator('g.block').count()) > 0);
+
+  // Files: save, edit to be invalid, load, and the validator catches it (VAL-6).
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.getByTestId('save').click()]);
+  const saved = readFileSync(await dl.path(), 'utf8');
+  const obj = JSON.parse(saved);
+  check('saved file has the scenario format and tasks', obj.format === 'coex-scenario' && obj.tasks.length === 3);
+  obj.tasks[0].params.bitrateKbps = 99999999;
+  const { writeFileSync } = await import('node:fs');
+  writeFileSync(`${SHOTS}/edited.coex.json`, JSON.stringify(obj));
+  await page.getByTestId('file-input').setInputFiles(`${SHOTS}/edited.coex.json`);
+  await page.waitForTimeout(200);
+  check('VAL-6: an edited file with a bad value is flagged on load', (await badge()) === 'ERRORS' && await gen.isDisabled());
+  writeFileSync(`${SHOTS}/broken.coex.json`, '{nope');
+  await page.getByTestId('file-input').setInputFiles(`${SHOTS}/broken.coex.json`);
+  await page.waitForTimeout(200);
+  check('a damaged file gets a plain-language message', /not valid JSON/.test(await page.getByTestId('notices').innerText()));
+
+  // Share link round-trip.
+  await page.getByTestId('undo').click().catch(() => undefined);
+  await page.getByTestId('ltab-examples').click();
+  await page.locator('[data-preset="example-2"]').click();
+  await settled();
+  await page.waitForSelector('g.block');
+  await page.getByTestId('share').click();
+  await page.waitForTimeout(100);
+  const href = await page.evaluate(() => window.location.href);
+  check('share link puts the scenario in the address', /#s=/.test(href));
+  const p2 = await ctx.newPage();
+  await p2.goto(href.replace('?e2e', '?e2e'));
+  await p2.waitForSelector('g.block', { timeout: 8000 }).catch(() => undefined);
+  check('opening the share link restores and draws the scenario', (await p2.locator('g.block').count()) > 0 && /Example 2/.test(await p2.getByTestId('scenario-name').inputValue()));
+  await p2.close();
+
+  // Compare mode: A = example 1, B = example 2.
+  await page.getByTestId('ltab-examples').click();
+  await page.locator('[data-preset="example-1"]').click();
+  await settled();
+  await page.waitForSelector('g.block');
+  await page.getByTestId('compare-btn').click();
+  await page.locator('[data-preset="example-2"]').click();
+  await settled();
+  await page.waitForTimeout(300);
+  await page.getByTestId('compare-btn').click();
+  await page.waitForSelector('[data-testid="compare"]');
+  check('UX-6: compare shows two time views', (await page.locator('[data-testid="compare"] [data-testid="time-view"]').count()) === 2);
+  const hardRow = page.locator('[data-metric="hard"]');
+  check('UX-6: hard conflicts row is an improvement with an up arrow and words', (await hardRow.getAttribute('data-verdict')) === 'BETTER' && /▲/.test(await hardRow.innerText()) && /improved/.test(await hardRow.innerText()), await hardRow.innerText());
+  check('compare lists the settings that changed', (await page.getByTestId('change-list').locator('li').count()) > 0);
+  await page.screenshot({ path: `${SHOTS}/compare.png`, fullPage: true });
+
+  // Export: files open and match the screen (UX-8).
+  const exp = async (key) => { await page.getByTestId('export').click(); const [d] = await Promise.all([page.waitForEvent('download'), page.locator(`[data-export="${key}"]`).click()]); return readFileSync(await d.path()); };
+  const svg = (await exp('time-svg')).toString('utf8');
+  const onScreen = await page.locator('[data-compare="b"] .tv-plot g.block').count();
+  const inFile = (svg.match(/class="block/g) ?? []).length;
+  check('UX-8: SVG export is a valid standalone image with the same blocks as the screen', svg.startsWith('<?xml') && svg.includes('</svg>') && inFile === onScreen && onScreen > 0, `${inFile} vs ${onScreen}`);
+  check('UX-8: SVG export carries the lane names', /A2DP/i.test(svg));
+  const png = await exp('time-png');
+  check('UX-8: PNG export is a PNG', png.subarray(0, 8).toString('hex') === '89504e470d0a1a0a' && png.length > 2000, `${png.length} bytes`);
+  const fsvg = (await exp('freq-svg')).toString('utf8');
+  check('frequency view exports as SVG', fsvg.includes('</svg>'));
+  const csv = (await exp('csv')).toString('utf8');
+  const rows = csv.trim().split(/\r\n/);
+  check('UX-8: CSV has a header and one row per block', rows[0].startsWith('block_id,') && rows.length > 10, `${rows.length} rows`);
+  const js = JSON.parse((await exp('json')).toString('utf8'));
+  check('JSON export holds config, metrics and blocks', js.format === 'coex-result' && js.blocks.length === rows.length - 1);
+  const pdf = await exp('pdf');
+  check('UX-8: PDF export is a PDF', pdf.subarray(0, 4).toString() === '%PDF' && pdf.length > 3000, `${pdf.length} bytes`);
+
+  // Shortcuts list.
+  await page.keyboard.press('?');
+  check('? opens the shortcuts list, Escape closes it', await page.getByTestId('shortcuts').isVisible());
+  await page.keyboard.press('Escape');
+  check('shortcuts dialog closes', !(await page.getByTestId('shortcuts').isVisible().catch(() => false)));
+}
 
 check('no page errors', errors.length === 0, errors.join(' | '));
 await browser.close();

@@ -3,6 +3,7 @@
 import { arbitrate, type AnchorStats } from './arbitration/arbitrate';
 import { defaultData, type DataBundle } from './data';
 import { finalizeConflicts } from './finalize';
+import { withOverrides } from './overrides';
 import { expandAll } from './stageA';
 import { resolveFrequencies } from './stageB';
 import { computeMetrics, type Metrics } from './stageG';
@@ -24,7 +25,8 @@ export interface EngineResult {
   taskNames: Record<string, string>;
 }
 
-export function runEngine(config: ScenarioConfig, data: DataBundle = defaultData): EngineResult {
+export function runEngine(config: ScenarioConfig, base: DataBundle = defaultData): EngineResult {
+  const data = withOverrides(base, config.overrides);
   const issues = validate(config, data);
   if (hasErrors(issues)) throw new ValidationError(issues);
   const a = expandAll(config, data);

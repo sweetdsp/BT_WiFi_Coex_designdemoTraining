@@ -84,6 +84,20 @@ const paramOutOfRange: ConditionFn = (ctx, rp) => {
       });
     }
   }
+  // Edits to the priority table must be sensible numbers.
+  const ov = ctx.cfg.overrides;
+  for (const [group, label] of [['base', 'Base priority'], ['bufferThreshold', 'Critical threshold']] as const) {
+    for (const [k, v] of Object.entries((ov?.[group] ?? {}) as Record<string, unknown>)) {
+      const [lo, hi] = group === 'base' ? [0, 1000] : [1, 64];
+      if (isFiniteNum(v) && (v < lo || v > hi)) {
+        out.push({
+          items: [platformItem('overrides', `${label} of ${k}`)],
+          vars: { task: 'Priority table', param: `${label} of ${k}`, value: v, min: lo, max: hi, unit: '', nearest: String(Math.min(hi, Math.max(lo, v))) },
+          fixes: [],
+        });
+      }
+    }
+  }
   return out;
 };
 

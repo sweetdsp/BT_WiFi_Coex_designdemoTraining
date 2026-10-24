@@ -11,6 +11,8 @@ import priorityTable from '../data/priorityTable.json';
 import platformDefaults from '../data/platformDefaults.json';
 import tasks from '../data/tasks.json';
 import presets from '../data/presets.json';
+import platformFields from '../data/platformFields.json';
+import useCases from '../data/useCases.json';
 import conflictSeverity from '../data/conflictSeverity.json';
 import validationRules from '../data/validationRules.json';
 import type { ParamMap, PlatformConfig, RuleDef, SpecLabel, TaskDef } from './types';
@@ -33,8 +35,13 @@ export interface SeverityRow { dirClass: string; freqOverlap: boolean; SHARED: S
 
 export interface Preset { id: string; example: number; name: string; summary: string; label: SpecLabel; tasks: { taskId: string; params?: ParamMap }[]; platform: Partial<PlatformConfig> }
 
+export interface PlatformField { field: keyof PlatformConfig; label: string; group: string; type: 'choice' | 'number' | 'boolean'; help: string; effect: string; typical: string; spec: SpecLabel; choices?: (string | number)[]; choiceLabels?: Record<string, string>; min?: number; max?: number; step?: number; unit?: string }
+export interface UseCase { id: string; name: string; description: string; tasks: { taskId: string; params?: ParamMap }[] }
+
 export interface DataBundle {
   presets: Preset[];
+  platformFields: PlatformField[];
+  useCases: UseCase[];
   conflictSeverity: { testLabels: Record<string, string>; rows: SeverityRow[] };
   constants: Record<string, any>;
   btPackets: Record<string, BtPacketDef>;
@@ -74,6 +81,8 @@ export function buildDataBundle(): DataBundle {
     priorityTable: copy(priorityTable) as unknown as DataBundle['priorityTable'],
     platformDefaults: copy(platformDefaults) as unknown as DataBundle['platformDefaults'],
     presets: copy((presets as unknown as { presets: Preset[] }).presets),
+    platformFields: copy((platformFields as unknown as { fields: PlatformField[] }).fields),
+    useCases: copy((useCases as unknown as { useCases: UseCase[] }).useCases),
     conflictSeverity: copy(conflictSeverity) as unknown as DataBundle['conflictSeverity'],
     tasks: taskList,
     taskIndex: new Map(taskList.map((t) => [t.id, t])),
