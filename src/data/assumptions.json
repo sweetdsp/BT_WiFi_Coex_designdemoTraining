@@ -704,6 +704,14 @@
       "label": "IMPLEMENTATION_VARIES",
       "milestone": "M9",
       "area": "Release"
+    },
+    {
+      "id": "A-83",
+      "source": "owner request after release",
+      "text": "An optional visitor-statistics feature uses GoatCounter (no cookies, no personal data). It is off until a site code is put in src/data/analytics.json. When on, visits are counted only on the published site, never on localhost or in the browser checks, and not when the browser sends Do Not Track. A Visitor stats button in the bottom-left corner opens a dialog that explains what is counted and links to the public statistics page. The tool itself collects nothing about the scenarios people build.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "Post-release",
+      "area": "Release"
     }
   ]
 }

@@ -24,6 +24,7 @@ import { HelpPanel } from './ui/HelpPanel';
 import { ShortcutsDialog, WarningsDialog } from './ui/Dialogs';
 import { GlossContext } from './ui/Gloss';
 import { LessonCard, TourCard } from './ui/Learn';
+import { VisitorStats } from './ui/VisitorStats';
 import { lessonOf, lessons, tourSteps, type LessonState, startLesson } from './lib/learn';
 import { IssuesPanel } from './ui/IssuesPanel';
 import { Legend } from './ui/Legend';
@@ -559,6 +560,7 @@ export default function App() {
         <footer className="bottom" data-area="summary">
           {result ? <SummaryStrip metrics={result.metrics} /> : <p className="muted">The summary of the results appears here.</p>}
         </footer>
+        <VisitorStats />
         <HelpPanel topic={help} data={data} onClose={() => setHelp(null)} />
         {confirmWarn && <WarningsDialog warnings={gate.warnings} onCancel={() => { setConfirmWarn(false); setTab('issues'); }} onConfirm={(remember) => { setConfirmWarn(false); if (remember) setSkipWarn(true); generateNow(draft, !!result); }} />}
         {shortcuts && <ShortcutsDialog onClose={() => setShortcuts(false)} />}
