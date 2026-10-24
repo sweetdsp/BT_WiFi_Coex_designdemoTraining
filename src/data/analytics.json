@@ -1,5 +1,5 @@
 {
-  "_note": "Visitor statistics (optional). Set siteCode to the code of a free GoatCounter site (the part before .goatcounter.com) and turn on 'Allow public viewing of the dashboard' in its settings. While siteCode is empty nothing is loaded and the Visitor stats button explains how to set it up.",
+  "_note": "Visitor statistics (optional). siteCode is the code of a free GoatCounter site (the part before .goatcounter.com). Turn on 'Allow public viewing of the dashboard' in that site's settings so the Visitor stats link works for others. If it is emptied, nothing is loaded and the Visitor stats button explains how to set it up.",
   "provider": "goatcounter",
-  "siteCode": ""
+  "siteCode": "sweetdsp"
 }

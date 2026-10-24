@@ -23,7 +23,10 @@ describe('visitor statistics', () => {
     expect(shouldCount({ ...prod, doNotTrack: '1' }, live)).toBe(false);
     expect(shouldCount(prod, { provider: 'goatcounter', siteCode: '' })).toBe(false);
   });
-  it('the shipped configuration is either empty or valid', () => {
-    expect(analytics.siteCode === '' || validCode(analytics.siteCode)).toBe(true);
+  it('the shipped configuration is valid and points at the owner\'s site', () => {
+    expect(isConfigured()).toBe(true);
+    expect(dashboardUrl()).toBe('https://sweetdsp.goatcounter.com/');
+    expect(countUrl()).toBe('https://sweetdsp.goatcounter.com/count');
+    expect(analytics.siteCode).toBe('sweetdsp');
   });
 });
