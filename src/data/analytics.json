@@ -1,0 +1,5 @@
+{
+  "_note": "Visitor statistics (optional). Set siteCode to the code of a free GoatCounter site (the part before .goatcounter.com) and turn on 'Allow public viewing of the dashboard' in its settings. While siteCode is empty nothing is loaded and the Visitor stats button explains how to set it up.",
+  "provider": "goatcounter",
+  "siteCode": ""
+}

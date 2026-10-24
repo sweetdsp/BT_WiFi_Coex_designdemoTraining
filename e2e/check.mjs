@@ -523,6 +523,22 @@ await page.screenshot({ path: `${SHOTS}/dense.png`, fullPage: true });
   await page.getByLabel('Reduce motion').uncheck();
 }
 
+
+// ---- Visitor stats corner button ----
+{
+  await page.goto(`${URL}?e2e`);
+  const btn = page.getByTestId('visitor-stats-btn');
+  check('a Visitor stats button sits in the corner of the page', await btn.isVisible());
+  const box = await btn.boundingBox();
+  check('the button is in the bottom-left corner', box.x < 40 && box.y > 1000 - 80, `${Math.round(box.x)},${Math.round(box.y)}`);
+  await btn.click();
+  check('the dialog opens and explains what is counted', /No cookies/.test(await page.getByTestId('visitor-stats').innerText()));
+  check('while no site code is set it says so and offers no link', await page.getByTestId('stats-not-set').isVisible() && (await page.getByTestId('stats-link').count()) === 0);
+  check('no statistics script is loaded in the browser checks', (await page.locator('script[data-goatcounter]').count()) === 0);
+  await page.keyboard.press('Escape');
+  check('Escape closes the dialog', (await page.getByTestId('visitor-stats').count()) === 0);
+}
+
 check('no page errors', errors.length === 0, errors.join(' | '));
 await browser.close();
 const failed = results.filter((r) => !r.ok);

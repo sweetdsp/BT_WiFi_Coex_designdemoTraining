@@ -163,3 +163,7 @@ table.diff { width: 100%; border-collapse: collapse; font-size: 13px; } table.di
 .glossary { margin: 8px 0; } .glossary > div { padding: 4px 8px; border-bottom: 1px solid var(--c-border); } .glossary dt { font-weight: 700; } .glossary dd { margin: 2px 0 0; } .glossary .focus { outline: 3px solid var(--c-focus); border-radius: 6px; }
 .assumptions { list-style: none; padding: 0; margin: 8px 0; } .assumptions li { border-bottom: 1px solid var(--c-border); padding: 4px 0; } .assumptions p { margin: 2px 0; } .assumptions .id { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--c-border); padding: 0 4px; border-radius: 4px; }
 .sev-hard > span[aria-hidden] { color: var(--c-denied); } .sev-degraded > span[aria-hidden] { color: var(--c-degraded); } .sev-tolerated > span[aria-hidden] { color: var(--c-granted); } .sev-warning > span[aria-hidden] { color: var(--c-warning); }
+
+/* Visitor stats: a small button fixed in the bottom-left corner. */
+.stats-corner { position: fixed; left: 8px; bottom: 8px; z-index: 40; font-size: 12px; padding: 2px 10px; border-radius: 12px; background: var(--c-panel); box-shadow: 0 1px 6px rgba(0,0,0,0.25); }
+.modal a { color: var(--c-focus); font-weight: 600; }

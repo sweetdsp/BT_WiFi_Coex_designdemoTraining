@@ -44,6 +44,16 @@ npm run build       # static build for GitHub Pages
 - Build your own scenario in the **Tasks** and **Platform** tabs. The badge at the top says whether it can be generated; **Issues** lists every problem with a fix button.
 - Everything you see is labelled **Standard says** (fixed by a public specification) or **Implementations vary** (a choice real products make differently).
 
+## Visitor statistics (optional)
+
+The **Visitor stats** button in the bottom-left corner opens a dialog that links to a statistics page (visitors, countries, pages, referrers). It uses GoatCounter, which sets no cookies and stores no personal data. To switch it on:
+
+1. Create a free site at goatcounter.com. Its code is the part before `.goatcounter.com`.
+2. In that site's settings, tick **Allow public viewing of the dashboard**, so the button's link works for anyone you share it with (leave it off to keep the numbers private to you).
+3. Put the code in `src/data/analytics.json` as `siteCode`, commit and merge. The deploy publishes it.
+
+Until a code is set nothing is loaded or collected. Visits are not counted on localhost, in the browser checks, or when the browser sends Do Not Track.
+
 ## Adding content without changing code
 
 | To add | Edit |
