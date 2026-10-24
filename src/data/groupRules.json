@@ -1,0 +1,30 @@
+{
+  "_note": "Rule tables for P-2 (exclusive pairs) and P-3 (group limits). Each rule has a short reason and a source type. The exclusive list starts empty: Classic discovery tasks may run together by taking turns (spec P-2).",
+  "exclusivePairs": [],
+  "groupLimits": [
+    {
+      "id": "ble-connections",
+      "countTag": "BLE_CONNECTION",
+      "platformField": "maxBleConnections",
+      "what": "BLE connections",
+      "reason": "A device supports a limited number of simultaneous LE connections.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "esco-links",
+      "countTag": "ESCO",
+      "platformField": "maxEscoLinks",
+      "what": "eSCO links",
+      "reason": "Most devices support only one eSCO link at a time.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "iso-streams",
+      "countTag": "ISO_STREAM",
+      "platformField": "maxIsoStreams",
+      "what": "isochronous streams",
+      "reason": "The controller supports a limited number of concurrent CIS and BIS streams.",
+      "label": "IMPLEMENTATION_VARIES"
+    }
+  ]
+}

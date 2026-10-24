@@ -1,0 +1,224 @@
+{
+  "_note": "Preset scenarios: the five worked examples of spec 7A.12 (FR-22b, AC-6). Platform values override the defaults in platformDefaults.json. The Example 1 Wi-Fi video bitrate (150 Mbps) is chosen so the stream is near continuous, which the example needs.",
+  "presets": [
+    {
+      "id": "example-1",
+      "example": 1,
+      "name": "Example 1: A2DP and Wi-Fi 7 on a shared antenna",
+      "summary": "A2DP at 328 kbps shares one antenna with a Wi-Fi 7 video stream. Wi-Fi wins until A2DP has four packets waiting, then A2DP becomes critical.",
+      "label": "IMPLEMENTATION_VARIES",
+      "tasks": [
+        {
+          "taskId": "bt_a2dp",
+          "params": {
+            "bitrateKbps": 328,
+            "packetType": "2-DH5"
+          }
+        },
+        {
+          "taskId": "wifi_video_stream",
+          "params": {
+            "bitrateMbps": 150
+          }
+        }
+      ],
+      "platform": {
+        "wifiGeneration": "11be",
+        "wifiBand": "2.4",
+        "wifiChannel": 6,
+        "wifiBandwidth": 20,
+        "antennaMode": "SHARED",
+        "femArrangement": "SHARED_SWITCH",
+        "coreCount": 1,
+        "coreMode": "TIME_DIVISION",
+        "arbitrationPolicy": "PRIORITY",
+        "afhEnabled": false,
+        "windowUs": 100000,
+        "seed": 1
+      }
+    },
+    {
+      "id": "example-2",
+      "example": 2,
+      "name": "Example 2: separate antennas and 40 dB isolation",
+      "summary": "The same traffic, but with separate antennas and high isolation. The overlaps still happen, and they are tolerated.",
+      "label": "IMPLEMENTATION_VARIES",
+      "tasks": [
+        {
+          "taskId": "bt_a2dp",
+          "params": {
+            "bitrateKbps": 328,
+            "packetType": "2-DH5"
+          }
+        },
+        {
+          "taskId": "wifi_video_stream",
+          "params": {
+            "bitrateMbps": 150
+          }
+        }
+      ],
+      "platform": {
+        "wifiGeneration": "11be",
+        "wifiBand": "2.4",
+        "wifiChannel": 6,
+        "wifiBandwidth": 20,
+        "femArrangement": "SEPARATE",
+        "antennaMode": "SEPARATE",
+        "coreCount": 2,
+        "coreMode": "CONCURRENT",
+        "simultaneousWifiTxBtRx": true,
+        "isolationDb": 40,
+        "arbitrationPolicy": "PRIORITY",
+        "afhEnabled": false,
+        "windowUs": 100000,
+        "seed": 1
+      }
+    },
+    {
+      "id": "example-3",
+      "example": 3,
+      "name": "Example 3: Wi-Fi channel overlap hurts Bluetooth hops",
+      "summary": "Separate antennas with only 10 dB isolation and no adaptive hopping. Bluetooth hops that land inside the Wi-Fi channel are degraded.",
+      "label": "IMPLEMENTATION_VARIES",
+      "tasks": [
+        {
+          "taskId": "bt_a2dp",
+          "params": {
+            "bitrateKbps": 328,
+            "packetType": "2-DH5"
+          }
+        },
+        {
+          "taskId": "wifi_video_stream",
+          "params": {
+            "bitrateMbps": 150
+          }
+        }
+      ],
+      "platform": {
+        "wifiGeneration": "11be",
+        "wifiBand": "2.4",
+        "wifiChannel": 6,
+        "wifiBandwidth": 20,
+        "femArrangement": "SEPARATE",
+        "antennaMode": "SEPARATE",
+        "coreCount": 2,
+        "coreMode": "CONCURRENT",
+        "simultaneousWifiTxBtRx": true,
+        "isolationDb": 10,
+        "arbitrationPolicy": "PRIORITY",
+        "afhEnabled": false,
+        "windowUs": 1000000,
+        "seed": 1
+      }
+    },
+    {
+      "id": "example-4",
+      "example": 4,
+      "name": "Example 4: adaptive hopping fixes it",
+      "summary": "The same setup with adaptive frequency hopping on. After the map takes effect, Bluetooth stays out of the Wi-Fi channel.",
+      "label": "IMPLEMENTATION_VARIES",
+      "tasks": [
+        {
+          "taskId": "bt_a2dp",
+          "params": {
+            "bitrateKbps": 328,
+            "packetType": "2-DH5"
+          }
+        },
+        {
+          "taskId": "wifi_video_stream",
+          "params": {
+            "bitrateMbps": 150
+          }
+        }
+      ],
+      "platform": {
+        "wifiGeneration": "11be",
+        "wifiBand": "2.4",
+        "wifiChannel": 6,
+        "wifiBandwidth": 20,
+        "femArrangement": "SEPARATE",
+        "antennaMode": "SEPARATE",
+        "coreCount": 2,
+        "coreMode": "CONCURRENT",
+        "simultaneousWifiTxBtRx": true,
+        "isolationDb": 10,
+        "arbitrationPolicy": "PRIORITY",
+        "afhEnabled": true,
+        "windowUs": 1000000,
+        "seed": 1
+      }
+    },
+    {
+      "id": "example-5",
+      "example": 5,
+      "name": "Example 5: time sharing adds latency to a BLE link",
+      "summary": "A BLE connection and Wi-Fi 6 web browsing share one antenna with a 50/50 time share in 5 ms slices. Connection events that fall in a Wi-Fi slice are denied and retried at the next event.",
+      "label": "IMPLEMENTATION_VARIES",
+      "tasks": [
+        {
+          "taskId": "le_conn_central",
+          "params": {
+            "connIntervalMs": 30,
+            "phy": "2M"
+          }
+        },
+        {
+          "taskId": "wifi_web",
+          "params": {}
+        }
+      ],
+      "platform": {
+        "wifiGeneration": "11ax",
+        "wifiBand": "2.4",
+        "wifiChannel": 1,
+        "wifiBandwidth": 20,
+        "antennaMode": "SHARED",
+        "femArrangement": "SHARED_SWITCH",
+        "coreCount": 1,
+        "coreMode": "TIME_DIVISION",
+        "arbitrationPolicy": "TIME_SHARE",
+        "timeShareBtPercent": 50,
+        "timeShareSliceUs": 5000,
+        "afhEnabled": false,
+        "windowUs": 1000000,
+        "seed": 1
+      }
+    },
+    {
+      "id": "example-6",
+      "example": 6,
+      "name": "Example 6: LE Audio and Wi-Fi, spare slots absorb denied events",
+      "summary": "LE Audio earbuds (an isochronous stream with two spare retransmission slots per event) share one antenna with a Wi-Fi video stream, and the arbitration policy favours Wi-Fi. Some audio events lose the air, and the spare slots deliver the audio a little later.",
+      "label": "IMPLEMENTATION_VARIES",
+      "tasks": [
+        {
+          "taskId": "le_cis",
+          "params": {}
+        },
+        {
+          "taskId": "wifi_video_stream",
+          "params": {
+            "bitrateMbps": 20
+          }
+        }
+      ],
+      "platform": {
+        "wifiGeneration": "11ax",
+        "wifiBand": "2.4",
+        "wifiChannel": 6,
+        "wifiBandwidth": 20,
+        "femArrangement": "SHARED_SWITCH",
+        "antennaMode": "SHARED",
+        "coreCount": 1,
+        "coreMode": "TIME_DIVISION",
+        "arbitrationPolicy": "WIFI_FAVOURED",
+        "afhEnabled": false,
+        "windowUs": 1000000,
+        "seed": 1
+      }
+    }
+  ]
+}

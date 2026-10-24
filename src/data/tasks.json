@@ -1,0 +1,5717 @@
+{
+ "_note": "Task catalogue (spec 6.2). Each task is a data record that maps to one of the pattern generators in 7A.3. See src/engine/types.ts for the schema.",
+ "tasks": [
+  {
+   "id": "bt_inquiry",
+   "name": "Inquiry",
+   "tech": "BT",
+   "category": "CLASSIC",
+   "description": "ID packets sent while hopping, to discover devices.",
+   "introducedIn": "BR/EDR 1.0",
+   "minVersion": 1.0,
+   "roles": [
+    "master"
+   ],
+   "generator": "SLOT_SCHEDULE",
+   "pattern": {
+    "channel": {
+     "mode": "CLASSIC_HOP"
+    },
+    "intervalSlots": "$intervalSlots",
+    "offsetSlots": 0,
+    "pairs": 1,
+    "master": {
+     "dir": "TX",
+     "kind": "ID",
+     "dur": {
+      "bt": "ID"
+     },
+     "count": 2,
+     "gapUs": 244
+    },
+    "reply": {
+     "dir": "RX",
+     "kind": "SCAN",
+     "dur": {
+      "bt": "FHS"
+     }
+    }
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "master",
+     "choices": [
+      "master"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "intervalSlots": {
+     "label": "Slot interval",
+     "type": "number",
+     "default": 4,
+     "min": 2,
+     "max": 64,
+     "unit": "slots",
+     "spec": "STANDARD",
+     "help": "Slots between inquiry transmit/listen pairs."
+    }
+   },
+   "priorityClass": "BT_SCAN_ADV",
+   "anchor": null,
+   "retry": "NEXT_SLOT_PAIR",
+   "delayable": true,
+   "tags": [
+    "CLASSIC_DISCOVERY"
+   ],
+   "help": "The inquirer sends two ID packets in a transmit slot and listens in the next slot for a response, while hopping.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "bt_inquiry_scan",
+   "name": "Inquiry scan",
+   "tech": "BT",
+   "category": "CLASSIC",
+   "description": "A short listening window at a fixed interval, waiting for inquiry.",
+   "introducedIn": "BR/EDR 1.0",
+   "minVersion": 1.0,
+   "roles": [
+    "slave"
+   ],
+   "generator": "WINDOWED_LISTEN",
+   "pattern": {
+    "channel": {
+     "mode": "CLASSIC_HOP"
+    },
+    "windowUs": {
+     "mul": [
+      "$scanWindowMs",
+      1000
+     ]
+    },
+    "intervalUs": {
+     "mul": [
+      "$scanIntervalMs",
+      1000
+     ]
+    },
+    "dir": "RX",
+    "kind": "SCAN"
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "slave",
+     "choices": [
+      "slave"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "scanWindowMs": {
+     "label": "Scan window",
+     "type": "number",
+     "default": 11.25,
+     "min": 0.625,
+     "max": 2560,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Length of the listening window."
+    },
+    "scanIntervalMs": {
+     "label": "Scan interval",
+     "type": "number",
+     "default": 1280,
+     "min": 11.25,
+     "max": 2560,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between windows."
+    }
+   },
+   "priorityClass": "BT_SCAN_ADV",
+   "anchor": null,
+   "retry": "NONE",
+   "delayable": false,
+   "tags": [
+    "CLASSIC_DISCOVERY"
+   ],
+   "help": "A short listening window at a fixed interval, waiting for inquiry.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "bt_page",
+   "name": "Page",
+   "tech": "BT",
+   "category": "CLASSIC",
+   "description": "ID packets sent to a known device to start a connection.",
+   "introducedIn": "BR/EDR 1.0",
+   "minVersion": 1.0,
+   "roles": [
+    "master"
+   ],
+   "generator": "SLOT_SCHEDULE",
+   "pattern": {
+    "channel": {
+     "mode": "CLASSIC_HOP"
+    },
+    "intervalSlots": "$intervalSlots",
+    "offsetSlots": 0,
+    "pairs": 1,
+    "master": {
+     "dir": "TX",
+     "kind": "ID",
+     "dur": {
+      "bt": "ID"
+     },
+     "count": 2,
+     "gapUs": 244
+    },
+    "reply": {
+     "dir": "RX",
+     "kind": "ID",
+     "dur": {
+      "bt": "ID"
+     }
+    }
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "master",
+     "choices": [
+      "master"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "intervalSlots": {
+     "label": "Slot interval",
+     "type": "number",
+     "default": 4,
+     "min": 2,
+     "max": 64,
+     "unit": "slots",
+     "spec": "STANDARD",
+     "help": "Slots between page transmit/listen pairs."
+    }
+   },
+   "priorityClass": "BT_SCAN_ADV",
+   "anchor": null,
+   "retry": "NEXT_SLOT_PAIR",
+   "delayable": true,
+   "tags": [
+    "CLASSIC_DISCOVERY"
+   ],
+   "help": "ID packets sent to a known device to start a connection.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "bt_page_scan",
+   "name": "Page scan",
+   "tech": "BT",
+   "category": "CLASSIC",
+   "description": "A listening window at a fixed interval, waiting to be paged.",
+   "introducedIn": "BR/EDR 1.0",
+   "minVersion": 1.0,
+   "roles": [
+    "slave"
+   ],
+   "generator": "WINDOWED_LISTEN",
+   "pattern": {
+    "channel": {
+     "mode": "CLASSIC_HOP"
+    },
+    "windowUs": {
+     "mul": [
+      "$scanWindowMs",
+      1000
+     ]
+    },
+    "intervalUs": {
+     "mul": [
+      "$scanIntervalMs",
+      1000
+     ]
+    },
+    "dir": "RX",
+    "kind": "SCAN"
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "slave",
+     "choices": [
+      "slave"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "scanWindowMs": {
+     "label": "Scan window",
+     "type": "number",
+     "default": 11.25,
+     "min": 0.625,
+     "max": 2560,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Length of the listening window."
+    },
+    "scanIntervalMs": {
+     "label": "Scan interval",
+     "type": "number",
+     "default": 1280,
+     "min": 11.25,
+     "max": 2560,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between windows."
+    }
+   },
+   "priorityClass": "BT_SCAN_ADV",
+   "anchor": null,
+   "retry": "NONE",
+   "delayable": false,
+   "tags": [
+    "CLASSIC_DISCOVERY"
+   ],
+   "help": "A listening window at a fixed interval, waiting to be paged.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "bt_acl_active",
+   "name": "ACL data link (active mode)",
+   "tech": "BT",
+   "category": "CLASSIC",
+   "description": "Master and slave slots at one, three or five slot lengths.",
+   "introducedIn": "BR/EDR 1.0",
+   "minVersion": 1.0,
+   "roles": [
+    "master",
+    "slave"
+   ],
+   "generator": "SLOT_SCHEDULE",
+   "pattern": {
+    "channel": {
+     "mode": "CLASSIC_HOP"
+    },
+    "intervalSlots": "$intervalSlots",
+    "offsetSlots": "$offsetSlots",
+    "pairs": 1,
+    "master": {
+     "dir": {
+      "role": {
+       "master": "TX",
+       "slave": "RX"
+      }
+     },
+     "kind": "DATA",
+     "dur": {
+      "bt": "$packetType"
+     }
+    },
+    "reply": {
+     "dir": {
+      "role": {
+       "master": "RX",
+       "slave": "TX"
+      }
+     },
+     "kind": "ACK",
+     "dur": {
+      "bt": "$replyPacketType"
+     }
+    }
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "master",
+     "choices": [
+      "master",
+      "slave"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "packetType": {
+     "label": "Packet type",
+     "type": "choice",
+     "default": "DH3",
+     "choices": [
+      "DM1",
+      "DH1",
+      "DM3",
+      "DH3",
+      "DM5",
+      "DH5",
+      "2-DH1",
+      "2-DH3",
+      "2-DH5",
+      "3-DH1",
+      "3-DH3",
+      "3-DH5"
+     ],
+     "spec": "STANDARD",
+     "help": "ACL packet type; sets slot count and payload.",
+     "gate": {
+      "btCore": 2.0,
+      "whenIn": [
+       "2-DH1",
+       "2-DH3",
+       "2-DH5",
+       "3-DH1",
+       "3-DH3",
+       "3-DH5"
+      ]
+     }
+    },
+    "replyPacketType": {
+     "label": "Reply packet",
+     "type": "choice",
+     "default": "NULL",
+     "choices": [
+      "NULL",
+      "DM1",
+      "DH1",
+      "DM3",
+      "DH3",
+      "DM5",
+      "DH5",
+      "2-DH1",
+      "2-DH3",
+      "2-DH5",
+      "3-DH1",
+      "3-DH3",
+      "3-DH5"
+     ],
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Packet sent by the other side in the reply slot."
+    },
+    "slotLimit": {
+     "label": "Allowed slot count",
+     "type": "choice",
+     "default": 5,
+     "choices": [
+      1,
+      3,
+      5
+     ],
+     "spec": "STANDARD",
+     "help": "Longest packet the link allows, in slots."
+    },
+    "payloadBytes": {
+     "label": "Payload",
+     "type": "number",
+     "default": 183,
+     "min": 0,
+     "max": 1021,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Payload size per packet."
+    },
+    "intervalSlots": {
+     "label": "Slot interval",
+     "type": "number",
+     "default": 20,
+     "min": 2,
+     "max": 1600,
+     "unit": "slots",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Slots between data exchanges."
+    },
+    "offsetSlots": {
+     "label": "Slot offset",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 1598,
+     "unit": "slots",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "First master slot (even)."
+    }
+   },
+   "priorityClass": "BT_ACL_DATA",
+   "anchor": {
+    "isAnchor": true,
+    "basis": "IMPLEMENTATION_VARIES",
+    "basisNote": "Poll and response slots in a link with a running supervision timer behave as anchors in common practice.",
+    "missCost": "LOW",
+    "toleratedMisses": 3
+   },
+   "retry": "NEXT_SLOT_PAIR",
+   "delayable": true,
+   "tags": [
+    "CLASSIC_ACL"
+   ],
+   "help": "Master and slave slots at one, three or five slot lengths.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "bt_acl_sniff",
+   "name": "ACL data link (sniff mode)",
+   "tech": "BT",
+   "category": "CLASSIC",
+   "description": "Short bursts of slots at a sniff interval with attempt and timeout windows.",
+   "introducedIn": "BR/EDR 1.0",
+   "minVersion": 1.0,
+   "roles": [
+    "master",
+    "slave"
+   ],
+   "generator": "SLOT_SCHEDULE",
+   "pattern": {
+    "channel": {
+     "mode": "CLASSIC_HOP"
+    },
+    "intervalSlots": "$intervalSlots",
+    "offsetSlots": "$offsetSlots",
+    "pairs": "$attemptSlots",
+    "master": {
+     "dir": {
+      "role": {
+       "master": "TX",
+       "slave": "RX"
+      }
+     },
+     "kind": "POLL",
+     "dur": {
+      "bt": "$packetType"
+     }
+    },
+    "reply": {
+     "dir": {
+      "role": {
+       "master": "RX",
+       "slave": "TX"
+      }
+     },
+     "kind": "DATA",
+     "dur": {
+      "bt": "$packetType"
+     }
+    }
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "master",
+     "choices": [
+      "master",
+      "slave"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "packetType": {
+     "label": "Packet type",
+     "type": "choice",
+     "default": "DH1",
+     "choices": [
+      "DM1",
+      "DH1",
+      "DM3",
+      "DH3",
+      "DM5",
+      "DH5",
+      "2-DH1",
+      "2-DH3",
+      "2-DH5",
+      "3-DH1",
+      "3-DH3",
+      "3-DH5"
+     ],
+     "spec": "STANDARD",
+     "help": "Packet type used at each anchor.",
+     "gate": {
+      "btCore": 2.0,
+      "whenIn": [
+       "2-DH1",
+       "2-DH3",
+       "2-DH5",
+       "3-DH1",
+       "3-DH3",
+       "3-DH5"
+      ]
+     }
+    },
+    "slotLimit": {
+     "label": "Allowed slot count",
+     "type": "choice",
+     "default": 1,
+     "choices": [
+      1,
+      3,
+      5
+     ],
+     "spec": "STANDARD",
+     "help": "Longest packet the link allows."
+    },
+    "payloadBytes": {
+     "label": "Payload",
+     "type": "number",
+     "default": 27,
+     "min": 0,
+     "max": 1021,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Payload size."
+    },
+    "intervalSlots": {
+     "label": "Sniff interval",
+     "type": "number",
+     "default": 800,
+     "min": 2,
+     "max": 4096,
+     "unit": "slots",
+     "spec": "STANDARD",
+     "help": "Slots between sniff anchor points."
+    },
+    "offsetSlots": {
+     "label": "Sniff offset",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 4094,
+     "unit": "slots",
+     "spec": "STANDARD",
+     "help": "Offset of the first anchor (even)."
+    },
+    "attemptSlots": {
+     "label": "Sniff attempt",
+     "type": "number",
+     "default": 2,
+     "min": 1,
+     "max": 16,
+     "unit": "slot pairs",
+     "spec": "STANDARD",
+     "help": "Slot pairs listened to at each anchor."
+    },
+    "timeoutSlots": {
+     "label": "Sniff timeout",
+     "type": "number",
+     "default": 1,
+     "min": 0,
+     "max": 16,
+     "unit": "slot pairs",
+     "spec": "STANDARD",
+     "help": "Extra slot pairs when data was received."
+    }
+   },
+   "priorityClass": "BT_ACL_DATA",
+   "anchor": {
+    "isAnchor": true,
+    "basis": "STANDARD",
+    "basisNote": "Sniff anchor points are defined by the specification; a miss delays the link.",
+    "missCost": "HIGH",
+    "toleratedMisses": 0
+   },
+   "retry": "NEXT_SLOT_PAIR",
+   "delayable": false,
+   "tags": [
+    "CLASSIC_ACL",
+    "POLLING_LINK"
+   ],
+   "help": "Short bursts of slots at a sniff interval with attempt and timeout windows.",
+   "specLabel": "STANDARD",
+   "slotReservation": {
+    "intervalParam": "intervalSlots",
+    "offsetParam": "offsetSlots",
+    "pairsParam": "attemptSlots",
+    "exclusive": false
+   }
+  },
+  {
+   "id": "bt_sco",
+   "name": "SCO voice link",
+   "tech": "BT",
+   "category": "CLASSIC",
+   "description": "Reserved slot pairs at a fixed interval with no retransmissions (HV1, HV2, HV3).",
+   "introducedIn": "BR/EDR 1.0",
+   "minVersion": 1.0,
+   "roles": [
+    "master",
+    "slave"
+   ],
+   "generator": "SLOT_SCHEDULE",
+   "pattern": {
+    "channel": {
+     "mode": "CLASSIC_HOP"
+    },
+    "intervalSlots": "$intervalSlots",
+    "offsetSlots": "$offsetSlots",
+    "pairs": 1,
+    "master": {
+     "dir": {
+      "role": {
+       "master": "TX",
+       "slave": "RX"
+      }
+     },
+     "kind": "VOICE",
+     "dur": {
+      "bt": "$packetType"
+     }
+    },
+    "reply": {
+     "dir": {
+      "role": {
+       "master": "RX",
+       "slave": "TX"
+      }
+     },
+     "kind": "VOICE",
+     "dur": {
+      "bt": "$packetType"
+     }
+    }
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "master",
+     "choices": [
+      "master",
+      "slave"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "packetType": {
+     "label": "Packet type",
+     "type": "choice",
+     "default": "HV3",
+     "choices": [
+      "HV1",
+      "HV2",
+      "HV3"
+     ],
+     "spec": "STANDARD",
+     "help": "HV1 interval 2 slots, HV2 4, HV3 6."
+    },
+    "slotLimit": {
+     "label": "Allowed slot count",
+     "type": "choice",
+     "default": 1,
+     "choices": [
+      1
+     ],
+     "spec": "STANDARD",
+     "help": "SCO packets are always one slot."
+    },
+    "payloadBytes": {
+     "label": "Payload",
+     "type": "number",
+     "default": 30,
+     "min": 0,
+     "max": 30,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Voice payload."
+    },
+    "intervalSlots": {
+     "label": "Reserved interval (Tsco)",
+     "type": "choice",
+     "default": 6,
+     "choices": [
+      2,
+      4,
+      6
+     ],
+     "spec": "STANDARD",
+     "help": "Slots between reserved pairs."
+    },
+    "offsetSlots": {
+     "label": "Slot offset (Dsco)",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 4094,
+     "unit": "slots",
+     "spec": "STANDARD",
+     "help": "First reserved slot (even)."
+    }
+   },
+   "priorityClass": "VOICE_LINK",
+   "anchor": {
+    "isAnchor": true,
+    "basis": "STANDARD",
+    "basisNote": "SCO reserved slots are specified with fixed timing and no retransmission.",
+    "missCost": "HIGH",
+    "toleratedMisses": 0
+   },
+   "retry": "NONE",
+   "delayable": false,
+   "tags": [
+    "VOICE_LINK",
+    "SCO",
+    "RESERVED_SLOTS"
+   ],
+   "help": "Reserved slot pairs at a fixed interval with no retransmissions (HV1, HV2, HV3).",
+   "specLabel": "STANDARD",
+   "slotReservation": {
+    "intervalParam": "intervalSlots",
+    "offsetParam": "offsetSlots",
+    "exclusive": true
+   }
+  },
+  {
+   "id": "bt_esco",
+   "name": "eSCO voice link",
+   "tech": "BT",
+   "category": "CLASSIC",
+   "description": "Reserved slots at a fixed interval plus a retransmission window (EV3, EV4, EV5, 2-EV3...).",
+   "introducedIn": "BR/EDR 1.2",
+   "minVersion": 1.2,
+   "roles": [
+    "master",
+    "slave"
+   ],
+   "generator": "SLOT_SCHEDULE",
+   "pattern": {
+    "channel": {
+     "mode": "CLASSIC_HOP"
+    },
+    "intervalSlots": "$intervalSlots",
+    "offsetSlots": "$offsetSlots",
+    "pairs": 1,
+    "master": {
+     "dir": {
+      "role": {
+       "master": "TX",
+       "slave": "RX"
+      }
+     },
+     "kind": "VOICE",
+     "dur": {
+      "bt": "$packetType"
+     }
+    },
+    "reply": {
+     "dir": {
+      "role": {
+       "master": "RX",
+       "slave": "TX"
+      }
+     },
+     "kind": "VOICE",
+     "dur": {
+      "bt": "$packetType"
+     }
+    },
+    "retxWindowSlots": "$retxWindowSlots"
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "master",
+     "choices": [
+      "master",
+      "slave"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "packetType": {
+     "label": "Packet type",
+     "type": "choice",
+     "default": "EV3",
+     "choices": [
+      "EV3",
+      "EV4",
+      "EV5",
+      "2-EV3",
+      "2-EV5",
+      "3-EV3",
+      "3-EV5"
+     ],
+     "spec": "STANDARD",
+     "help": "eSCO packet type.",
+     "gate": {
+      "btCore": 2.0,
+      "whenIn": [
+       "2-EV3",
+       "2-EV5",
+       "3-EV3",
+       "3-EV5"
+      ]
+     }
+    },
+    "slotLimit": {
+     "label": "Allowed slot count",
+     "type": "choice",
+     "default": 3,
+     "choices": [
+      1,
+      3
+     ],
+     "spec": "STANDARD",
+     "help": "Longest packet the link allows."
+    },
+    "payloadBytes": {
+     "label": "Payload",
+     "type": "number",
+     "default": 30,
+     "min": 0,
+     "max": 540,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Voice payload."
+    },
+    "intervalSlots": {
+     "label": "Reserved interval (Tesco)",
+     "type": "number",
+     "default": 12,
+     "min": 2,
+     "max": 254,
+     "unit": "slots",
+     "spec": "STANDARD",
+     "help": "Slots between reserved pairs."
+    },
+    "offsetSlots": {
+     "label": "Slot offset (Desco)",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 252,
+     "unit": "slots",
+     "spec": "STANDARD",
+     "help": "First reserved slot (even)."
+    },
+    "retxWindowSlots": {
+     "label": "Retransmission window (Wesco)",
+     "type": "number",
+     "default": 4,
+     "min": 0,
+     "max": 32,
+     "unit": "slots",
+     "spec": "STANDARD",
+     "help": "Slots after the reserved pair for retransmissions."
+    }
+   },
+   "priorityClass": "VOICE_LINK",
+   "anchor": {
+    "isAnchor": true,
+    "basis": "STANDARD",
+    "basisNote": "eSCO reserved slots are specified; the retransmission window is a fallback and is not protected.",
+    "missCost": "HIGH",
+    "toleratedMisses": 0
+   },
+   "retry": "ESCO_WINDOW",
+   "delayable": false,
+   "tags": [
+    "VOICE_LINK",
+    "ESCO",
+    "RESERVED_SLOTS"
+   ],
+   "help": "Reserved slots at a fixed interval plus a retransmission window (EV3, EV4, EV5, 2-EV3...).",
+   "specLabel": "STANDARD",
+   "slotReservation": {
+    "intervalParam": "intervalSlots",
+    "offsetParam": "offsetSlots",
+    "windowParam": "retxWindowSlots",
+    "exclusive": true
+   }
+  },
+  {
+   "id": "bt_a2dp",
+   "name": "A2DP streaming",
+   "tech": "BT",
+   "category": "CLASSIC",
+   "description": "Large ACL packets sent in bursts, with the bitrate and packet type as parameters.",
+   "introducedIn": "BR/EDR 2.0",
+   "minVersion": 2.0,
+   "roles": [
+    "master"
+   ],
+   "generator": "SLOT_SCHEDULE",
+   "pattern": {
+    "channel": {
+     "mode": "CLASSIC_HOP"
+    },
+    "bitrateKbps": "$bitrateKbps",
+    "payloadPacketType": "$packetType",
+    "offsetSlots": "$offsetSlots",
+    "pairs": 1,
+    "master": {
+     "dir": "TX",
+     "kind": "DATA",
+     "dur": {
+      "bt": "$packetType"
+     }
+    },
+    "reply": {
+     "dir": "RX",
+     "kind": "ACK",
+     "dur": {
+      "bt": "$replyPacketType"
+     }
+    }
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "master",
+     "choices": [
+      "master"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "packetType": {
+     "label": "Packet type",
+     "type": "choice",
+     "default": "2-DH5",
+     "choices": [
+      "DM1",
+      "DH1",
+      "DM3",
+      "DH3",
+      "DM5",
+      "DH5",
+      "2-DH1",
+      "2-DH3",
+      "2-DH5",
+      "3-DH1",
+      "3-DH3",
+      "3-DH5"
+     ],
+     "spec": "STANDARD",
+     "help": "ACL packet type used for the audio stream.",
+     "gate": {
+      "btCore": 2.0,
+      "whenIn": [
+       "2-DH1",
+       "2-DH3",
+       "2-DH5",
+       "3-DH1",
+       "3-DH3",
+       "3-DH5"
+      ]
+     }
+    },
+    "replyPacketType": {
+     "label": "Reply packet",
+     "type": "choice",
+     "default": "2-DH5",
+     "choices": [
+      "NULL",
+      "DM1",
+      "DH1",
+      "DM3",
+      "DH3",
+      "DM5",
+      "DH5",
+      "2-DH1",
+      "2-DH3",
+      "2-DH5",
+      "3-DH1",
+      "3-DH3",
+      "3-DH5"
+     ],
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Packet in the slave reply slot. The spec example uses a 5-slot reply."
+    },
+    "slotLimit": {
+     "label": "Allowed slot count",
+     "type": "choice",
+     "default": 5,
+     "choices": [
+      1,
+      3,
+      5
+     ],
+     "spec": "STANDARD",
+     "help": "Longest packet the link allows."
+    },
+    "payloadBytes": {
+     "label": "Payload",
+     "type": "number",
+     "default": 679,
+     "min": 0,
+     "max": 1021,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Payload size per packet."
+    },
+    "bitrateKbps": {
+     "label": "Stream bitrate",
+     "type": "number",
+     "default": 328,
+     "min": 8,
+     "max": 1000,
+     "unit": "kbps",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Average audio bitrate; sets how fast packets are queued."
+    },
+    "offsetSlots": {
+     "label": "Slot offset",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 1598,
+     "unit": "slots",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "First master slot (even)."
+    },
+    "onVoice": {
+     "label": "When a voice call starts",
+     "type": "choice",
+     "default": "REDUCE",
+     "choices": [
+      "REDUCE",
+      "PAUSE"
+     ],
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Keep A2DP at a lower bitrate or pause it (rule P-4)."
+    }
+   },
+   "priorityClass": "A2DP",
+   "anchor": null,
+   "retry": "NEXT_SLOT_PAIR",
+   "delayable": true,
+   "tags": [
+    "A2DP",
+    "CLASSIC_ACL"
+   ],
+   "help": "Audio is buffered and sent as large packets. Its priority is low until packets pile up, then it becomes critical.",
+   "specLabel": "IMPLEMENTATION_VARIES",
+   "buffer": {
+    "enabled": true,
+    "bitrateParam": "bitrateKbps",
+    "criticalThreshold": 4
+   }
+  },
+  {
+   "id": "bt_avrcp_hid",
+   "name": "AVRCP and HID traffic",
+   "tech": "BT",
+   "category": "CLASSIC",
+   "description": "Small periodic ACL exchanges.",
+   "introducedIn": "BR/EDR 1.0",
+   "minVersion": 1.0,
+   "roles": [
+    "master",
+    "slave"
+   ],
+   "generator": "SLOT_SCHEDULE",
+   "pattern": {
+    "channel": {
+     "mode": "CLASSIC_HOP"
+    },
+    "intervalSlots": "$intervalSlots",
+    "offsetSlots": "$offsetSlots",
+    "pairs": 1,
+    "master": {
+     "dir": {
+      "role": {
+       "master": "TX",
+       "slave": "RX"
+      }
+     },
+     "kind": "DATA",
+     "dur": {
+      "bt": "DH1"
+     }
+    },
+    "reply": {
+     "dir": {
+      "role": {
+       "master": "RX",
+       "slave": "TX"
+      }
+     },
+     "kind": "DATA",
+     "dur": {
+      "bt": "DH1"
+     }
+    }
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "master",
+     "choices": [
+      "master",
+      "slave"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "packetType": {
+     "label": "Packet type",
+     "type": "choice",
+     "default": "DH1",
+     "choices": [
+      "DM1",
+      "DH1"
+     ],
+     "spec": "STANDARD",
+     "help": "Small ACL packet."
+    },
+    "slotLimit": {
+     "label": "Allowed slot count",
+     "type": "choice",
+     "default": 1,
+     "choices": [
+      1
+     ],
+     "spec": "STANDARD",
+     "help": "Always one slot."
+    },
+    "payloadBytes": {
+     "label": "Payload",
+     "type": "number",
+     "default": 8,
+     "min": 0,
+     "max": 27,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Report size."
+    },
+    "intervalSlots": {
+     "label": "Interval",
+     "type": "number",
+     "default": 32,
+     "min": 2,
+     "max": 1600,
+     "unit": "slots",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Slots between exchanges (32 slots is 20 ms)."
+    },
+    "offsetSlots": {
+     "label": "Slot offset",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 1598,
+     "unit": "slots",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "First master slot (even)."
+    }
+   },
+   "priorityClass": "BT_ACL_DATA",
+   "anchor": {
+    "isAnchor": true,
+    "basis": "IMPLEMENTATION_VARIES",
+    "basisNote": "HID links run at sniff anchor points in common practice; a miss shows as visible lag.",
+    "missCost": "HIGH",
+    "toleratedMisses": 0
+   },
+   "retry": "NEXT_SLOT_PAIR",
+   "delayable": false,
+   "tags": [
+    "CLASSIC_ACL",
+    "POLLING_LINK"
+   ],
+   "help": "Small periodic ACL exchanges.",
+   "specLabel": "IMPLEMENTATION_VARIES",
+   "slotReservation": {
+    "intervalParam": "intervalSlots",
+    "offsetParam": "offsetSlots",
+    "exclusive": false
+   }
+  },
+  {
+   "id": "bt_role_supervision",
+   "name": "Role switch and link supervision polling",
+   "tech": "BT",
+   "category": "CLASSIC",
+   "description": "Short, sparse exchanges.",
+   "introducedIn": "BR/EDR 1.0",
+   "minVersion": 1.0,
+   "roles": [
+    "master",
+    "slave"
+   ],
+   "generator": "SLOT_SCHEDULE",
+   "pattern": {
+    "channel": {
+     "mode": "CLASSIC_HOP"
+    },
+    "intervalSlots": "$intervalSlots",
+    "offsetSlots": "$offsetSlots",
+    "pairs": 1,
+    "master": {
+     "dir": {
+      "role": {
+       "master": "TX",
+       "slave": "RX"
+      }
+     },
+     "kind": "POLL",
+     "dur": {
+      "bt": "POLL"
+     }
+    },
+    "reply": {
+     "dir": {
+      "role": {
+       "master": "RX",
+       "slave": "TX"
+      }
+     },
+     "kind": "POLL",
+     "dur": {
+      "bt": "NULL"
+     }
+    }
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "master",
+     "choices": [
+      "master",
+      "slave"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "intervalSlots": {
+     "label": "Poll interval",
+     "type": "number",
+     "default": 3200,
+     "min": 2,
+     "max": 32000,
+     "unit": "slots",
+     "spec": "STANDARD",
+     "help": "Slots between polls (3200 slots is 2 s)."
+    },
+    "offsetSlots": {
+     "label": "Slot offset",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 31998,
+     "unit": "slots",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "First master slot (even)."
+    }
+   },
+   "priorityClass": "BT_ACL_DATA",
+   "anchor": {
+    "isAnchor": true,
+    "basis": "STANDARD",
+    "basisNote": "The supervision timer requires periodic poll exchanges.",
+    "missCost": "LOW",
+    "toleratedMisses": 3
+   },
+   "retry": "NEXT_SLOT_PAIR",
+   "delayable": false,
+   "tags": [
+    "POLLING_LINK"
+   ],
+   "help": "Short, sparse exchanges.",
+   "specLabel": "STANDARD",
+   "slotReservation": {
+    "intervalParam": "intervalSlots",
+    "offsetParam": "offsetSlots",
+    "exclusive": false
+   }
+  },
+  {
+   "id": "le_adv_legacy",
+   "name": "Legacy advertising",
+   "tech": "BT",
+   "category": "LE",
+   "description": "ADV_IND on channels 37, 38 and 39 at an advertising interval plus random delay.",
+   "introducedIn": "Core 4.0",
+   "minVersion": 4.0,
+   "roles": [
+    "advertiser"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "BLE_DATA"
+    },
+    "intervalUs": {
+     "mul": [
+      "$advIntervalMs",
+      1000
+     ]
+    },
+    "jitterUs": "@constants.bleAdvDelayMaxUs",
+    "advChannelGapUs": "@constants.bleAdvInterChannelGapUs",
+    "sequence": [
+     {
+      "dir": "TX",
+      "kind": "ADV",
+      "dur": {
+       "ble": {
+        "phy": "1M",
+        "payloadBytes": "$payloadBytes"
+       }
+      },
+      "chan": "ADV3"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "advertiser",
+     "choices": [
+      "advertiser"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "advIntervalMs": {
+     "label": "Advertising interval",
+     "type": "number",
+     "default": 100,
+     "min": 20,
+     "max": 10240,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between advertising events; a random 0 to 10 ms is added."
+    },
+    "payloadBytes": {
+     "label": "Payload",
+     "type": "number",
+     "default": 31,
+     "min": 0,
+     "max": 31,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Legacy advertising data length."
+    }
+   },
+   "priorityClass": "BT_SCAN_ADV",
+   "anchor": null,
+   "retry": "NONE",
+   "delayable": true,
+   "tags": [
+    "LE_ADV"
+   ],
+   "help": "ADV_IND on channels 37, 38 and 39 at an advertising interval plus random delay.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "le_adv_extended",
+   "name": "Extended advertising",
+   "tech": "BT",
+   "category": "LE",
+   "description": "Primary packets on 37, 38, 39 and secondary packets on data channels.",
+   "introducedIn": "Core 5.0",
+   "minVersion": 5.0,
+   "roles": [
+    "advertiser"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "BLE_DATA"
+    },
+    "intervalUs": {
+     "mul": [
+      "$advIntervalMs",
+      1000
+     ]
+    },
+    "jitterUs": "@constants.bleAdvDelayMaxUs",
+    "advChannelGapUs": "@constants.bleAdvInterChannelGapUs",
+    "sequence": [
+     {
+      "dir": "TX",
+      "kind": "ADV",
+      "dur": {
+       "ble": {
+        "phy": "$primaryPhy",
+        "payloadBytes": 6
+       }
+      },
+      "chan": "ADV3"
+     },
+     {
+      "dir": "TX",
+      "kind": "ADV",
+      "dur": {
+       "ble": {
+        "phy": "$secondaryPhy",
+        "payloadBytes": "$payloadBytes"
+       }
+      },
+      "chan": "DATA",
+      "gapUs": 300
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "advertiser",
+     "choices": [
+      "advertiser"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "advIntervalMs": {
+     "label": "Advertising interval",
+     "type": "number",
+     "default": 100,
+     "min": 20,
+     "max": 10240,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between advertising events."
+    },
+    "primaryPhy": {
+     "label": "Primary PHY",
+     "type": "choice",
+     "default": "1M",
+     "choices": [
+      "1M",
+      "CODED_S2",
+      "CODED_S8"
+     ],
+     "spec": "STANDARD",
+     "help": "PHY on the primary channels.",
+     "isPhy": true
+    },
+    "secondaryPhy": {
+     "label": "Secondary PHY",
+     "type": "choice",
+     "default": "2M",
+     "choices": [
+      "1M",
+      "2M",
+      "CODED_S2",
+      "CODED_S8"
+     ],
+     "spec": "STANDARD",
+     "help": "PHY on the data channels.",
+     "isPhy": true
+    },
+    "payloadBytes": {
+     "label": "Payload",
+     "type": "number",
+     "default": 100,
+     "min": 0,
+     "max": 254,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Secondary packet payload."
+    }
+   },
+   "priorityClass": "BT_SCAN_ADV",
+   "anchor": null,
+   "retry": "NONE",
+   "delayable": true,
+   "tags": [
+    "LE_ADV"
+   ],
+   "help": "Primary packets on 37, 38, 39 and secondary packets on data channels.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "le_adv_periodic",
+   "name": "Periodic advertising train",
+   "tech": "BT",
+   "category": "LE",
+   "description": "Packets at a fixed interval on data channels.",
+   "introducedIn": "Core 5.0",
+   "minVersion": 5.0,
+   "roles": [
+    "advertiser"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "BLE_DATA"
+    },
+    "intervalUs": {
+     "mul": [
+      "$periodicIntervalMs",
+      1000
+     ]
+    },
+    "jitterUs": 0,
+    "sequence": [
+     {
+      "dir": "TX",
+      "kind": "ADV",
+      "dur": {
+       "ble": {
+        "phy": "$phy",
+        "payloadBytes": "$payloadBytes"
+       }
+      }
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "advertiser",
+     "choices": [
+      "advertiser"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "periodicIntervalMs": {
+     "label": "Periodic interval",
+     "type": "number",
+     "default": 100,
+     "min": 7.5,
+     "max": 10000,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between periodic advertising packets."
+    },
+    "phy": {
+     "label": "PHY",
+     "type": "choice",
+     "default": "2M",
+     "choices": [
+      "1M",
+      "2M",
+      "CODED_S2",
+      "CODED_S8"
+     ],
+     "spec": "STANDARD",
+     "help": "PHY used by the train.",
+     "isPhy": true
+    },
+    "payloadBytes": {
+     "label": "Payload",
+     "type": "number",
+     "default": 100,
+     "min": 0,
+     "max": 254,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Packet payload."
+    }
+   },
+   "priorityClass": "BT_SCAN_ADV",
+   "anchor": {
+    "isAnchor": true,
+    "basis": "STANDARD",
+    "basisNote": "Periodic advertising events occur at fixed anchor points.",
+    "missCost": "LOW",
+    "toleratedMisses": 3
+   },
+   "retry": "NONE",
+   "delayable": false,
+   "tags": [
+    "LE_PERIODIC"
+   ],
+   "help": "Packets at a fixed interval on data channels.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "le_sync_periodic",
+   "name": "Periodic advertising sync",
+   "tech": "BT",
+   "category": "LE",
+   "description": "Receive windows matched to the train, with window widening.",
+   "introducedIn": "Core 5.0",
+   "minVersion": 5.0,
+   "roles": [
+    "scanner"
+   ],
+   "generator": "WINDOWED_LISTEN",
+   "pattern": {
+    "channel": {
+     "mode": "BLE_DATA"
+    },
+    "windowUs": {
+     "sum": [
+      {
+       "ble": {
+        "phy": "$phy",
+        "payloadBytes": "$payloadBytes"
+       }
+      },
+      "$windowWideningUs",
+      "$windowWideningUs"
+     ]
+    },
+    "intervalUs": {
+     "mul": [
+      "$periodicIntervalMs",
+      1000
+     ]
+    },
+    "dir": "RX",
+    "kind": "ADV"
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "scanner",
+     "choices": [
+      "scanner"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "periodicIntervalMs": {
+     "label": "Periodic interval",
+     "type": "number",
+     "default": 100,
+     "min": 7.5,
+     "max": 10000,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Interval of the train being followed."
+    },
+    "phy": {
+     "label": "PHY",
+     "type": "choice",
+     "default": "2M",
+     "choices": [
+      "1M",
+      "2M",
+      "CODED_S2",
+      "CODED_S8"
+     ],
+     "spec": "STANDARD",
+     "help": "PHY of the train.",
+     "isPhy": true
+    },
+    "payloadBytes": {
+     "label": "Payload",
+     "type": "number",
+     "default": 100,
+     "min": 0,
+     "max": 254,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Expected packet payload."
+    },
+    "windowWideningUs": {
+     "label": "Window widening",
+     "type": "number",
+     "default": 50,
+     "min": 0,
+     "max": 2000,
+     "unit": "us",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Extra listening time on each side for clock drift."
+    }
+   },
+   "priorityClass": "BT_SCAN_ADV",
+   "anchor": {
+    "isAnchor": true,
+    "basis": "STANDARD",
+    "basisNote": "Sync events are scheduled at the train's anchor points.",
+    "missCost": "LOW",
+    "toleratedMisses": 3
+   },
+   "retry": "NONE",
+   "delayable": false,
+   "tags": [
+    "LE_PERIODIC"
+   ],
+   "help": "Receive windows matched to the train, with window widening.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "le_adv_pawr",
+   "name": "Periodic advertising with responses",
+   "tech": "BT",
+   "category": "LE",
+   "description": "Subevents with response slots.",
+   "introducedIn": "Core 5.4",
+   "minVersion": 5.4,
+   "roles": [
+    "advertiser",
+    "scanner"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "BLE_DATA"
+    },
+    "intervalUs": {
+     "mul": [
+      "$periodicIntervalMs",
+      1000
+     ]
+    },
+    "jitterUs": 0,
+    "sequence": [
+     {
+      "dir": {
+       "role": {
+        "advertiser": "TX",
+        "scanner": "RX"
+       }
+      },
+      "kind": "ADV",
+      "dur": {
+       "ble": {
+        "phy": "$phy",
+        "payloadBytes": 30
+       }
+      }
+     },
+     {
+      "dir": {
+       "role": {
+        "advertiser": "RX",
+        "scanner": "TX"
+       }
+      },
+      "kind": "DATA",
+      "dur": {
+       "ble": {
+        "phy": "$phy",
+        "payloadBytes": 20
+       }
+      },
+      "count": "$responseSlots",
+      "gapUs": "@constants.bleInterFrameSpacingUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "advertiser",
+     "choices": [
+      "advertiser",
+      "scanner"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "periodicIntervalMs": {
+     "label": "Periodic interval",
+     "type": "number",
+     "default": 100,
+     "min": 7.5,
+     "max": 10000,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between subevents."
+    },
+    "phy": {
+     "label": "PHY",
+     "type": "choice",
+     "default": "2M",
+     "choices": [
+      "1M",
+      "2M",
+      "CODED_S2",
+      "CODED_S8"
+     ],
+     "spec": "STANDARD",
+     "help": "PHY used.",
+     "isPhy": true
+    },
+    "responseSlots": {
+     "label": "Response slots",
+     "type": "number",
+     "default": 4,
+     "min": 1,
+     "max": 16,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Response slots after each subevent."
+    }
+   },
+   "priorityClass": "BT_SCAN_ADV",
+   "anchor": {
+    "isAnchor": true,
+    "basis": "STANDARD",
+    "basisNote": "Periodic advertising events occur at fixed anchor points.",
+    "missCost": "LOW",
+    "toleratedMisses": 3
+   },
+   "retry": "NONE",
+   "delayable": false,
+   "tags": [
+    "LE_PERIODIC"
+   ],
+   "help": "Subevents with response slots.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "le_scan_passive",
+   "name": "Passive scanning",
+   "tech": "BT",
+   "category": "LE",
+   "description": "A scan window within a scan interval, hopping across 37, 38 and 39.",
+   "introducedIn": "Core 4.0",
+   "minVersion": 4.0,
+   "roles": [
+    "scanner"
+   ],
+   "generator": "WINDOWED_LISTEN",
+   "pattern": {
+    "channel": {
+     "mode": "BLE_ADV"
+    },
+    "windowUs": {
+     "mul": [
+      "$scanWindowMs",
+      1000
+     ]
+    },
+    "intervalUs": {
+     "mul": [
+      "$scanIntervalMs",
+      1000
+     ]
+    },
+    "dir": "RX",
+    "kind": "SCAN"
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "scanner",
+     "choices": [
+      "scanner"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "scanWindowMs": {
+     "label": "Scan window",
+     "type": "number",
+     "default": 30,
+     "min": 2.5,
+     "max": 10240,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Listening time per interval."
+    },
+    "scanIntervalMs": {
+     "label": "Scan interval",
+     "type": "number",
+     "default": 100,
+     "min": 2.5,
+     "max": 10240,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between window starts."
+    }
+   },
+   "priorityClass": "BT_SCAN_ADV",
+   "anchor": null,
+   "retry": "NONE",
+   "delayable": false,
+   "tags": [
+    "LE_SCAN"
+   ],
+   "help": "A scan window within a scan interval, hopping across 37, 38 and 39.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "le_scan_active",
+   "name": "Active scanning",
+   "tech": "BT",
+   "category": "LE",
+   "description": "Passive scan plus SCAN_REQ transmissions and SCAN_RSP receptions.",
+   "introducedIn": "Core 4.0",
+   "minVersion": 4.0,
+   "roles": [
+    "scanner"
+   ],
+   "generator": "WINDOWED_LISTEN",
+   "pattern": {
+    "channel": {
+     "mode": "BLE_ADV"
+    },
+    "windowUs": {
+     "mul": [
+      "$scanWindowMs",
+      1000
+     ]
+    },
+    "intervalUs": {
+     "mul": [
+      "$scanIntervalMs",
+      1000
+     ]
+    },
+    "dir": "RX",
+    "kind": "SCAN",
+    "exchange": [
+     {
+      "dir": "TX",
+      "kind": "SCAN",
+      "dur": {
+       "ble": {
+        "phy": "1M",
+        "payloadBytes": 12
+       }
+      },
+      "gapUs": "@constants.bleInterFrameSpacingUs"
+     },
+     {
+      "dir": "RX",
+      "kind": "SCAN",
+      "dur": {
+       "ble": {
+        "phy": "1M",
+        "payloadBytes": 31
+       }
+      },
+      "gapUs": "@constants.bleInterFrameSpacingUs"
+     }
+    ],
+    "exchangeRepeat": "$reqPerWindow"
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "scanner",
+     "choices": [
+      "scanner"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "scanWindowMs": {
+     "label": "Scan window",
+     "type": "number",
+     "default": 30,
+     "min": 2.5,
+     "max": 10240,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Listening time per interval."
+    },
+    "scanIntervalMs": {
+     "label": "Scan interval",
+     "type": "number",
+     "default": 100,
+     "min": 2.5,
+     "max": 10240,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between window starts."
+    },
+    "reqPerWindow": {
+     "label": "Scan requests per window",
+     "type": "number",
+     "default": 1,
+     "min": 0,
+     "max": 8,
+     "unit": "",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "SCAN_REQ and SCAN_RSP exchanges in each window."
+    }
+   },
+   "priorityClass": "BT_SCAN_ADV",
+   "anchor": null,
+   "retry": "BLE_NEXT_PACKET_OR_EVENT",
+   "delayable": true,
+   "tags": [
+    "LE_SCAN"
+   ],
+   "help": "Passive scan plus SCAN_REQ transmissions and SCAN_RSP receptions.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "le_initiating",
+   "name": "Initiating",
+   "tech": "BT",
+   "category": "LE",
+   "description": "Scanning for a target, then sending CONNECT_IND.",
+   "introducedIn": "Core 4.0",
+   "minVersion": 4.0,
+   "roles": [
+    "initiator"
+   ],
+   "generator": "WINDOWED_LISTEN",
+   "pattern": {
+    "channel": {
+     "mode": "BLE_ADV"
+    },
+    "windowUs": {
+     "mul": [
+      "$scanWindowMs",
+      1000
+     ]
+    },
+    "intervalUs": {
+     "mul": [
+      "$scanIntervalMs",
+      1000
+     ]
+    },
+    "dir": "RX",
+    "kind": "SCAN",
+    "exchange": [
+     {
+      "dir": "TX",
+      "kind": "CTRL",
+      "dur": {
+       "ble": {
+        "phy": "1M",
+        "payloadBytes": 22
+       }
+      },
+      "gapUs": "@constants.bleInterFrameSpacingUs"
+     }
+    ],
+    "exchangeRepeat": 1,
+    "exchangeOnce": true
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "initiator",
+     "choices": [
+      "initiator"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "scanWindowMs": {
+     "label": "Scan window",
+     "type": "number",
+     "default": 30,
+     "min": 2.5,
+     "max": 10240,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Listening time per interval."
+    },
+    "scanIntervalMs": {
+     "label": "Scan interval",
+     "type": "number",
+     "default": 60,
+     "min": 2.5,
+     "max": 10240,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between window starts."
+    }
+   },
+   "priorityClass": "BT_SCAN_ADV",
+   "anchor": null,
+   "retry": "BLE_NEXT_PACKET_OR_EVENT",
+   "delayable": false,
+   "tags": [
+    "LE_SCAN"
+   ],
+   "help": "Scanning for a target, then sending CONNECT_IND.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "le_conn_central",
+   "name": "LE connection (central)",
+   "tech": "BT",
+   "category": "LE",
+   "description": "One event per connection interval, with a TX then RX packet pair on a hopping data channel.",
+   "introducedIn": "Core 4.0",
+   "minVersion": 4.0,
+   "roles": [
+    "central"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "BLE_DATA"
+    },
+    "intervalUs": {
+     "mul": [
+      "$connIntervalMs",
+      1000,
+      "$subrateFactor"
+     ]
+    },
+    "jitterUs": 0,
+    "repeat": "$packetsPerEvent",
+    "sequence": [
+     {
+      "dir": "TX",
+      "kind": "DATA",
+      "dur": {
+       "ble": {
+        "phy": "$phy",
+        "payloadBytes": "$payloadBytes"
+       }
+      },
+      "gapUs": "@constants.bleInterFrameSpacingUs"
+     },
+     {
+      "dir": "RX",
+      "kind": "DATA",
+      "dur": {
+       "ble": {
+        "phy": "$phy",
+        "payloadBytes": "$payloadBytes"
+       }
+      },
+      "gapUs": "@constants.bleInterFrameSpacingUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "central",
+     "choices": [
+      "central"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "connIntervalMs": {
+     "label": "Connection interval",
+     "type": "number",
+     "default": 30,
+     "min": 7.5,
+     "max": 4000,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between connection events."
+    },
+    "phy": {
+     "label": "PHY",
+     "type": "choice",
+     "default": "1M",
+     "choices": [
+      "1M",
+      "2M",
+      "CODED_S2",
+      "CODED_S8"
+     ],
+     "spec": "STANDARD",
+     "help": "PHY used for the connection.",
+     "isPhy": true
+    },
+    "payloadBytes": {
+     "label": "Payload (data length)",
+     "type": "number",
+     "default": 27,
+     "min": 0,
+     "max": 251,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Data length; above 27 needs data length extension.",
+     "gate": {
+      "btCore": 4.2,
+      "whenGt": 27
+     }
+    },
+    "packetsPerEvent": {
+     "label": "Packets per event",
+     "type": "number",
+     "default": 1,
+     "min": 1,
+     "max": 8,
+     "unit": "",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "TX and RX pairs in one connection event."
+    },
+    "subrateFactor": {
+     "label": "Subrate factor",
+     "type": "number",
+     "default": 1,
+     "min": 1,
+     "max": 500,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Connection subrating: events are used every N intervals.",
+     "gate": {
+      "btCore": 5.3,
+      "whenGt": 1
+     }
+    },
+    "supervisionTimeoutMs": {
+     "label": "Supervision timeout",
+     "type": "number",
+     "default": 2000,
+     "min": 100,
+     "max": 32000,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time without a successful event before the link drops."
+    }
+   },
+   "priorityClass": "BLE_CONN",
+   "anchor": {
+    "isAnchor": true,
+    "basis": "STANDARD",
+    "basisNote": "Connection events occur at fixed anchor points.",
+    "missCost": "LOW",
+    "toleratedMisses": 3,
+    "supervisionParam": "supervisionTimeoutMs"
+   },
+   "retry": "BLE_NEXT_PACKET_OR_EVENT",
+   "delayable": false,
+   "tags": [
+    "BLE_CONNECTION",
+    "LE_CONN"
+   ],
+   "help": "One event per connection interval, with a TX then RX packet pair on a hopping data channel.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "le_conn_peripheral",
+   "name": "LE connection (peripheral)",
+   "tech": "BT",
+   "category": "LE",
+   "description": "One event per connection interval, with a TX then RX packet pair on a hopping data channel.",
+   "introducedIn": "Core 4.0",
+   "minVersion": 4.0,
+   "roles": [
+    "peripheral"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "BLE_DATA"
+    },
+    "intervalUs": {
+     "mul": [
+      "$connIntervalMs",
+      1000,
+      "$subrateFactor"
+     ]
+    },
+    "jitterUs": 0,
+    "repeat": "$packetsPerEvent",
+    "sequence": [
+     {
+      "dir": "RX",
+      "kind": "DATA",
+      "dur": {
+       "sum": [
+        {
+         "ble": {
+          "phy": "$phy",
+          "payloadBytes": "$payloadBytes"
+         }
+        },
+        "$windowWideningUs"
+       ]
+      },
+      "gapUs": "@constants.bleInterFrameSpacingUs"
+     },
+     {
+      "dir": "TX",
+      "kind": "DATA",
+      "dur": {
+       "ble": {
+        "phy": "$phy",
+        "payloadBytes": "$payloadBytes"
+       }
+      },
+      "gapUs": "@constants.bleInterFrameSpacingUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "peripheral",
+     "choices": [
+      "peripheral"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "connIntervalMs": {
+     "label": "Connection interval",
+     "type": "number",
+     "default": 30,
+     "min": 7.5,
+     "max": 4000,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between connection events."
+    },
+    "phy": {
+     "label": "PHY",
+     "type": "choice",
+     "default": "1M",
+     "choices": [
+      "1M",
+      "2M",
+      "CODED_S2",
+      "CODED_S8"
+     ],
+     "spec": "STANDARD",
+     "help": "PHY used for the connection.",
+     "isPhy": true
+    },
+    "payloadBytes": {
+     "label": "Payload (data length)",
+     "type": "number",
+     "default": 27,
+     "min": 0,
+     "max": 251,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Data length; above 27 needs data length extension.",
+     "gate": {
+      "btCore": 4.2,
+      "whenGt": 27
+     }
+    },
+    "packetsPerEvent": {
+     "label": "Packets per event",
+     "type": "number",
+     "default": 1,
+     "min": 1,
+     "max": 8,
+     "unit": "",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "TX and RX pairs in one connection event."
+    },
+    "subrateFactor": {
+     "label": "Subrate factor",
+     "type": "number",
+     "default": 1,
+     "min": 1,
+     "max": 500,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Connection subrating: events are used every N intervals.",
+     "gate": {
+      "btCore": 5.3,
+      "whenGt": 1
+     }
+    },
+    "supervisionTimeoutMs": {
+     "label": "Supervision timeout",
+     "type": "number",
+     "default": 2000,
+     "min": 100,
+     "max": 32000,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time without a successful event before the link drops."
+    },
+    "windowWideningUs": {
+     "label": "Window widening",
+     "type": "number",
+     "default": 100,
+     "min": 0,
+     "max": 2000,
+     "unit": "us",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Extra listening time at the start of the event for clock drift."
+    }
+   },
+   "priorityClass": "BLE_CONN",
+   "anchor": {
+    "isAnchor": true,
+    "basis": "STANDARD",
+    "basisNote": "Connection events occur at fixed anchor points.",
+    "missCost": "LOW",
+    "toleratedMisses": 3,
+    "supervisionParam": "supervisionTimeoutMs"
+   },
+   "retry": "BLE_NEXT_PACKET_OR_EVENT",
+   "delayable": false,
+   "tags": [
+    "BLE_CONNECTION",
+    "LE_CONN"
+   ],
+   "help": "One event per connection interval, with a TX then RX packet pair on a hopping data channel.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "le_cis",
+   "name": "LE Audio unicast stream (CIS)",
+   "tech": "BT",
+   "category": "LE",
+   "description": "Isochronous events at an ISO interval with subevents and retransmissions.",
+   "introducedIn": "Core 5.2",
+   "minVersion": 5.2,
+   "roles": [
+    "central",
+    "peripheral"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "BLE_DATA"
+    },
+    "intervalUs": {
+     "mul": [
+      "$isoIntervalMs",
+      1000
+     ]
+    },
+    "jitterUs": 0,
+    "repeat": "$nse",
+    "optionalAfter": "$bn",
+    "sequence": [
+     {
+      "dir": {
+       "role": {
+        "central": "TX",
+        "peripheral": "RX"
+       }
+      },
+      "kind": "ISO",
+      "dur": {
+       "ble": {
+        "phy": "$phy",
+        "payloadBytes": "$sduBytes"
+       }
+      },
+      "gapUs": "@constants.bleInterFrameSpacingUs"
+     },
+     {
+      "dir": {
+       "role": {
+        "central": "RX",
+        "peripheral": "TX"
+       }
+      },
+      "kind": "ACK",
+      "dur": {
+       "ble": {
+        "phy": "$phy",
+        "payloadBytes": 0
+       }
+      },
+      "gapUs": "@constants.bleInterFrameSpacingUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "central",
+     "choices": [
+      "central",
+      "peripheral"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "isoIntervalMs": {
+     "label": "ISO interval",
+     "type": "number",
+     "default": 10,
+     "min": 5,
+     "max": 4000,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between isochronous events."
+    },
+    "phy": {
+     "label": "PHY",
+     "type": "choice",
+     "default": "2M",
+     "choices": [
+      "1M",
+      "2M",
+      "CODED_S2",
+      "CODED_S8"
+     ],
+     "spec": "STANDARD",
+     "help": "PHY used.",
+     "isPhy": true
+    },
+    "sduBytes": {
+     "label": "Payload (SDU)",
+     "type": "number",
+     "default": 100,
+     "min": 1,
+     "max": 251,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Audio payload per packet."
+    },
+    "nse": {
+     "label": "Subevents (NSE)",
+     "type": "number",
+     "default": 3,
+     "min": 1,
+     "max": 8,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Subevents per ISO interval."
+    },
+    "bn": {
+     "label": "Burst number (BN)",
+     "type": "number",
+     "default": 1,
+     "min": 1,
+     "max": 4,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Subevents that carry new data; the rest are retransmission opportunities."
+    }
+   },
+   "priorityClass": "ISO_AUDIO",
+   "anchor": {
+    "isAnchor": true,
+    "basis": "STANDARD",
+    "basisNote": "Isochronous events occur at fixed anchor points.",
+    "missCost": "MEDIUM",
+    "toleratedMisses": 1
+   },
+   "retry": "BLE_NEXT_PACKET_OR_EVENT",
+   "delayable": false,
+   "tags": [
+    "ISO_STREAM",
+    "LE_AUDIO"
+   ],
+   "help": "Isochronous events at an ISO interval with subevents and retransmissions.",
+   "specLabel": "STANDARD",
+   "buffer": {
+    "enabled": true,
+    "criticalThreshold": 4
+   },
+   "isoStream": true
+  },
+  {
+   "id": "le_bis",
+   "name": "LE Audio broadcast stream (BIS)",
+   "tech": "BT",
+   "category": "LE",
+   "description": "Isochronous events without acknowledgement, with repeated packets.",
+   "introducedIn": "Core 5.2",
+   "minVersion": 5.2,
+   "roles": [
+    "broadcaster",
+    "receiver"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "BLE_DATA"
+    },
+    "intervalUs": {
+     "mul": [
+      "$isoIntervalMs",
+      1000
+     ]
+    },
+    "jitterUs": 0,
+    "repeat": "$irc",
+    "sequence": [
+     {
+      "dir": {
+       "role": {
+        "broadcaster": "TX",
+        "receiver": "RX"
+       }
+      },
+      "kind": "ISO",
+      "dur": {
+       "ble": {
+        "phy": "$phy",
+        "payloadBytes": "$sduBytes"
+       }
+      },
+      "gapUs": "@constants.bleInterFrameSpacingUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "broadcaster",
+     "choices": [
+      "broadcaster",
+      "receiver"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "isoIntervalMs": {
+     "label": "ISO interval",
+     "type": "number",
+     "default": 10,
+     "min": 5,
+     "max": 4000,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between isochronous events."
+    },
+    "phy": {
+     "label": "PHY",
+     "type": "choice",
+     "default": "2M",
+     "choices": [
+      "1M",
+      "2M",
+      "CODED_S2",
+      "CODED_S8"
+     ],
+     "spec": "STANDARD",
+     "help": "PHY used.",
+     "isPhy": true
+    },
+    "sduBytes": {
+     "label": "Payload (SDU)",
+     "type": "number",
+     "default": 100,
+     "min": 1,
+     "max": 251,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Audio payload per packet."
+    },
+    "irc": {
+     "label": "Repeats (IRC)",
+     "type": "number",
+     "default": 2,
+     "min": 1,
+     "max": 4,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Times each packet is repeated; there is no acknowledgement."
+    }
+   },
+   "priorityClass": "ISO_AUDIO",
+   "anchor": {
+    "isAnchor": true,
+    "basis": "STANDARD",
+    "basisNote": "Isochronous events occur at fixed anchor points.",
+    "missCost": "MEDIUM",
+    "toleratedMisses": 1
+   },
+   "retry": "NONE",
+   "delayable": false,
+   "tags": [
+    "ISO_STREAM",
+    "LE_AUDIO"
+   ],
+   "help": "Isochronous events without acknowledgement, with repeated packets.",
+   "specLabel": "STANDARD",
+   "buffer": {
+    "enabled": true,
+    "criticalThreshold": 4
+   },
+   "isoStream": true
+  },
+  {
+   "id": "le_channel_sounding",
+   "name": "Channel Sounding",
+   "tech": "BT",
+   "category": "LE",
+   "description": "A burst of tone and packet exchanges across many channels at set intervals.",
+   "introducedIn": "Core 6.0",
+   "minVersion": 6.0,
+   "roles": [
+    "initiator",
+    "reflector"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "BLE_DATA",
+     "perPacket": true
+    },
+    "intervalUs": {
+     "mul": [
+      "$csIntervalMs",
+      1000
+     ]
+    },
+    "jitterUs": 0,
+    "repeat": "$steps",
+    "sequence": [
+     {
+      "dir": {
+       "role": {
+        "initiator": "TX",
+        "reflector": "RX"
+       }
+      },
+      "kind": "TONE",
+      "dur": "$toneUs"
+     },
+     {
+      "dir": {
+       "role": {
+        "initiator": "RX",
+        "reflector": "TX"
+       }
+      },
+      "kind": "TONE",
+      "dur": "$toneUs",
+      "gapUs": 10
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "initiator",
+     "choices": [
+      "initiator",
+      "reflector"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "csIntervalMs": {
+     "label": "Procedure interval",
+     "type": "number",
+     "default": 100,
+     "min": 10,
+     "max": 5000,
+     "unit": "ms",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Time between sounding procedures."
+    },
+    "steps": {
+     "label": "Steps per procedure",
+     "type": "number",
+     "default": 20,
+     "min": 1,
+     "max": 80,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Channels sounded in one procedure."
+    },
+    "toneUs": {
+     "label": "Tone length",
+     "type": "number",
+     "default": 40,
+     "min": 10,
+     "max": 80,
+     "unit": "us",
+     "spec": "STANDARD",
+     "help": "Length of each tone."
+    }
+   },
+   "priorityClass": "BT_ACL_DATA",
+   "anchor": null,
+   "retry": "NONE",
+   "delayable": false,
+   "tags": [
+    "LE_RANGING"
+   ],
+   "help": "Channel Sounding measures distance by exchanging tones on many channels, so it touches the whole band.",
+   "specLabel": "IMPLEMENTATION_VARIES"
+  },
+  {
+   "id": "le_direction_finding",
+   "name": "Direction finding",
+   "tech": "BT",
+   "category": "LE",
+   "description": "Constant tone extension appended to packets, with switching and sampling slots.",
+   "introducedIn": "Core 5.1",
+   "minVersion": 5.1,
+   "roles": [
+    "transmitter",
+    "receiver"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "BLE_DATA"
+    },
+    "intervalUs": {
+     "mul": [
+      "$intervalMs",
+      1000
+     ]
+    },
+    "jitterUs": 0,
+    "sequence": [
+     {
+      "dir": {
+       "role": {
+        "transmitter": "TX",
+        "receiver": "RX"
+       }
+      },
+      "kind": "DATA",
+      "dur": {
+       "ble": {
+        "phy": "$phy",
+        "payloadBytes": "$payloadBytes"
+       }
+      }
+     },
+     {
+      "dir": {
+       "role": {
+        "transmitter": "TX",
+        "receiver": "RX"
+       }
+      },
+      "kind": "TONE",
+      "dur": "$cteLengthUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "transmitter",
+     "choices": [
+      "transmitter",
+      "receiver"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "intervalMs": {
+     "label": "Event interval",
+     "type": "number",
+     "default": 100,
+     "min": 7.5,
+     "max": 4000,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between events."
+    },
+    "phy": {
+     "label": "PHY",
+     "type": "choice",
+     "default": "1M",
+     "choices": [
+      "1M",
+      "2M"
+     ],
+     "spec": "STANDARD",
+     "help": "PHY used.",
+     "isPhy": true
+    },
+    "payloadBytes": {
+     "label": "Payload",
+     "type": "number",
+     "default": 20,
+     "min": 0,
+     "max": 251,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Packet payload."
+    },
+    "cteLengthUs": {
+     "label": "CTE length",
+     "type": "number",
+     "default": 160,
+     "min": 16,
+     "max": 160,
+     "unit": "us",
+     "spec": "STANDARD",
+     "help": "Constant tone extension length."
+    },
+    "switchSlotUs": {
+     "label": "Switching slot",
+     "type": "choice",
+     "default": 2,
+     "choices": [
+      1,
+      2
+     ],
+     "spec": "STANDARD",
+     "help": "Antenna switching slot length."
+    }
+   },
+   "priorityClass": "BT_ACL_DATA",
+   "anchor": null,
+   "retry": "NONE",
+   "delayable": false,
+   "tags": [
+    "LE_RANGING"
+   ],
+   "help": "Constant tone extension appended to packets, with switching and sampling slots.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "le_mesh",
+   "name": "Mesh relay and advertising",
+   "tech": "BT",
+   "category": "LE",
+   "description": "Bursts of advertising bearer packets and scanning.",
+   "introducedIn": "Core 4.0",
+   "minVersion": 4.0,
+   "roles": [
+    "relay"
+   ],
+   "generator": "IRREGULAR_BURSTS",
+   "pattern": {
+    "channel": {
+     "mode": "BLE_DATA"
+    },
+    "ratePerSec": "$messagesPerSec",
+    "advChannelGapUs": "@constants.bleAdvInterChannelGapUs",
+    "burst": [
+     {
+      "dir": "RX",
+      "kind": "ADV",
+      "dur": {
+       "ble": {
+        "phy": "1M",
+        "payloadBytes": "$payloadBytes"
+       }
+      },
+      "chan": "ADV3"
+     },
+     {
+      "dir": "TX",
+      "kind": "ADV",
+      "dur": {
+       "ble": {
+        "phy": "1M",
+        "payloadBytes": "$payloadBytes"
+       }
+      },
+      "chan": "ADV3",
+      "gapUs": 1000
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "relay",
+     "choices": [
+      "relay"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "messagesPerSec": {
+     "label": "Messages per second",
+     "type": "number",
+     "default": 5,
+     "min": 0.1,
+     "max": 50,
+     "unit": "1/s",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Average relayed messages per second."
+    },
+    "payloadBytes": {
+     "label": "Payload",
+     "type": "number",
+     "default": 29,
+     "min": 0,
+     "max": 29,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "Advertising bearer payload."
+    }
+   },
+   "priorityClass": "BT_SCAN_ADV",
+   "anchor": null,
+   "retry": "NONE",
+   "delayable": true,
+   "tags": [
+    "MESH"
+   ],
+   "help": "Bursts of advertising bearer packets and scanning.",
+   "specLabel": "IMPLEMENTATION_VARIES"
+  },
+  {
+   "id": "wifi_beacon",
+   "name": "Beacon reception / transmission",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "A short receive window at each beacon interval at the station, and beacon transmission at the access point.",
+   "introducedIn": "802.11",
+   "minVersion": 0,
+   "roles": [
+    "STA",
+    "AP"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "intervalUs": {
+     "mul": [
+      "$beaconIntervalTU",
+      1024
+     ]
+    },
+    "jitterUs": 0,
+    "sequence": [
+     {
+      "dir": {
+       "role": {
+        "STA": "RX",
+        "AP": "TX"
+       }
+      },
+      "kind": "BEACON",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.beaconBytes",
+        "frame": "BEACON",
+        "rate": "BASIC"
+       }
+      }
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA",
+      "AP"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "beaconIntervalTU": {
+     "label": "Beacon interval",
+     "type": "number",
+     "default": 100,
+     "min": 20,
+     "max": 1000,
+     "unit": "TU",
+     "spec": "STANDARD",
+     "help": "Beacon interval in time units (1 TU = 1.024 ms)."
+    }
+   },
+   "priorityClass": "WIFI_BACKGROUND",
+   "anchor": {
+    "isAnchor": true,
+    "basis": "IMPLEMENTATION_VARIES",
+    "basisNote": "Beacon reception is required by many platforms to stay associated; it is common practice, not a hard timing rule.",
+    "missCost": "LOW",
+    "toleratedMisses": 3
+   },
+   "retry": "NONE",
+   "delayable": false,
+   "tags": [
+    "WIFI_BEACON"
+   ],
+   "help": "A short receive window at each beacon interval at the station, and beacon transmission at the access point.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "wifi_scan_passive",
+   "name": "Passive scan",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Dwell on each channel in turn, listening for beacons.",
+   "introducedIn": "802.11",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "SCAN_SWEEP",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "channels": "$scanChannels",
+    "dwellUs": {
+     "mul": [
+      "$dwellMs",
+      1000
+     ]
+    },
+    "sweepIntervalUs": {
+     "mul": [
+      "$sweepIntervalMs",
+      1000
+     ]
+    },
+    "startUs": {
+     "mul": [
+      "$startMs",
+      1000
+     ]
+    },
+    "listen": {
+     "dir": "RX",
+     "kind": "SCAN",
+     "dur": {
+      "mul": [
+       "$dwellMs",
+       1000
+      ]
+     }
+    }
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "scanChannels": {
+     "label": "Channels",
+     "type": "choice",
+     "default": "1,6,11",
+     "choices": [
+      "1,6,11",
+      "1-13"
+     ],
+     "spec": "STANDARD",
+     "help": "2.4 GHz channels swept in turn."
+    },
+    "dwellMs": {
+     "label": "Dwell per channel",
+     "type": "number",
+     "default": 100,
+     "min": 5,
+     "max": 500,
+     "unit": "ms",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Time spent on each channel."
+    },
+    "sweepIntervalMs": {
+     "label": "Sweep interval",
+     "type": "number",
+     "default": 5000,
+     "min": 100,
+     "max": 60000,
+     "unit": "ms",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Time between sweeps."
+    },
+    "startMs": {
+     "label": "Start time",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 60000,
+     "unit": "ms",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "When the first sweep starts."
+    }
+   },
+   "priorityClass": "WIFI_BACKGROUND",
+   "anchor": null,
+   "retry": "NONE",
+   "delayable": true,
+   "tags": [
+    "WIFI_SCAN"
+   ],
+   "help": "Dwell on each channel in turn, listening for beacons.",
+   "specLabel": "IMPLEMENTATION_VARIES",
+   "sweepsChannels": true
+  },
+  {
+   "id": "wifi_scan_active",
+   "name": "Active scan",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Probe requests sent per channel, then a dwell listening for probe responses.",
+   "introducedIn": "802.11",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "SCAN_SWEEP",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "channels": "$scanChannels",
+    "dwellUs": {
+     "mul": [
+      "$dwellMs",
+      1000
+     ]
+    },
+    "sweepIntervalUs": {
+     "mul": [
+      "$sweepIntervalMs",
+      1000
+     ]
+    },
+    "startUs": {
+     "mul": [
+      "$startMs",
+      1000
+     ]
+    },
+    "probe": {
+     "dir": "TX",
+     "kind": "MGMT",
+     "dur": {
+      "wifi": {
+       "bytes": "@wifiTiming.probeRequestBytes",
+       "frame": "MGMT",
+       "rate": "BASIC"
+      }
+     }
+    },
+    "listen": {
+     "dir": "RX",
+     "kind": "SCAN",
+     "dur": {
+      "mul": [
+       "$dwellMs",
+       1000
+      ]
+     },
+     "gapUs": "@wifiTiming.sifsUs"
+    }
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "scanChannels": {
+     "label": "Channels",
+     "type": "choice",
+     "default": "1,6,11",
+     "choices": [
+      "1,6,11",
+      "1-13"
+     ],
+     "spec": "STANDARD",
+     "help": "2.4 GHz channels swept in turn."
+    },
+    "dwellMs": {
+     "label": "Dwell per channel",
+     "type": "number",
+     "default": 30,
+     "min": 5,
+     "max": 500,
+     "unit": "ms",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Time spent on each channel."
+    },
+    "sweepIntervalMs": {
+     "label": "Sweep interval",
+     "type": "number",
+     "default": 5000,
+     "min": 100,
+     "max": 60000,
+     "unit": "ms",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Time between sweeps."
+    },
+    "startMs": {
+     "label": "Start time",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 60000,
+     "unit": "ms",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "When the first sweep starts."
+    }
+   },
+   "priorityClass": "WIFI_BACKGROUND",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_SCAN"
+   ],
+   "help": "Probe requests sent per channel, then a dwell listening for probe responses.",
+   "specLabel": "IMPLEMENTATION_VARIES",
+   "sweepsChannels": true
+  },
+  {
+   "id": "wifi_assoc",
+   "name": "Authentication and association",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "A short burst of management frames, followed by the key handshake frames.",
+   "introducedIn": "802.11",
+   "minVersion": 0,
+   "roles": [
+    "STA",
+    "AP"
+   ],
+   "generator": "ONE_SHOT_EXCHANGE",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "startUs": {
+     "mul": [
+      "$startMs",
+      1000
+     ]
+    },
+    "sequence": [
+     {
+      "dir": {
+       "role": {
+        "STA": "TX",
+        "AP": "RX"
+       }
+      },
+      "kind": "MGMT",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.mgmtFrameBytes",
+        "frame": "MGMT",
+        "rate": "BASIC"
+       }
+      }
+     },
+     {
+      "dir": {
+       "role": {
+        "STA": "RX",
+        "AP": "TX"
+       }
+      },
+      "kind": "MGMT",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.mgmtFrameBytes",
+        "frame": "MGMT",
+        "rate": "BASIC"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     },
+     {
+      "dir": {
+       "role": {
+        "STA": "TX",
+        "AP": "RX"
+       }
+      },
+      "kind": "MGMT",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.mgmtFrameBytes",
+        "frame": "MGMT",
+        "rate": "BASIC"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     },
+     {
+      "dir": {
+       "role": {
+        "STA": "RX",
+        "AP": "TX"
+       }
+      },
+      "kind": "MGMT",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.mgmtFrameBytes",
+        "frame": "MGMT",
+        "rate": "BASIC"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     },
+     {
+      "dir": {
+       "role": {
+        "STA": "RX",
+        "AP": "TX"
+       }
+      },
+      "kind": "MGMT",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.eapolBytes",
+        "frame": "MGMT"
+       }
+      },
+      "gapUs": 500
+     },
+     {
+      "dir": {
+       "role": {
+        "STA": "TX",
+        "AP": "RX"
+       }
+      },
+      "kind": "MGMT",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.eapolBytes",
+        "frame": "MGMT"
+       }
+      },
+      "gapUs": 500
+     },
+     {
+      "dir": {
+       "role": {
+        "STA": "RX",
+        "AP": "TX"
+       }
+      },
+      "kind": "MGMT",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.eapolBytes",
+        "frame": "MGMT"
+       }
+      },
+      "gapUs": 500
+     },
+     {
+      "dir": {
+       "role": {
+        "STA": "TX",
+        "AP": "RX"
+       }
+      },
+      "kind": "MGMT",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.eapolBytes",
+        "frame": "MGMT"
+       }
+      },
+      "gapUs": 500
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA",
+      "AP"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "startMs": {
+     "label": "Start time",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 60000,
+     "unit": "ms",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "When the exchange starts."
+    }
+   },
+   "priorityClass": "WIFI_INTERACTIVE",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_MGMT"
+   ],
+   "help": "A short burst of management frames, followed by the key handshake frames.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "wifi_idle_ps",
+   "name": "Idle connected (power save)",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Wake for each beacon or DTIM period, check the traffic indication, then sleep.",
+   "introducedIn": "802.11",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "intervalUs": {
+     "mul": [
+      "$beaconIntervalTU",
+      1024,
+      "$dtimPeriod"
+     ]
+    },
+    "jitterUs": 0,
+    "sequence": [
+     {
+      "dir": "RX",
+      "kind": "BEACON",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.beaconBytes",
+        "frame": "BEACON",
+        "rate": "BASIC"
+       }
+      }
+     },
+     {
+      "dir": "TX",
+      "kind": "CTRL",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.ackBytes",
+        "frame": "ACK",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "beaconIntervalTU": {
+     "label": "Beacon interval",
+     "type": "number",
+     "default": 100,
+     "min": 20,
+     "max": 1000,
+     "unit": "TU",
+     "spec": "STANDARD",
+     "help": "Beacon interval in time units."
+    },
+    "dtimPeriod": {
+     "label": "DTIM period",
+     "type": "number",
+     "default": 3,
+     "min": 1,
+     "max": 10,
+     "unit": "beacons",
+     "spec": "STANDARD",
+     "help": "Beacons between traffic-indication wake-ups."
+    }
+   },
+   "priorityClass": "WIFI_BACKGROUND",
+   "anchor": {
+    "isAnchor": true,
+    "basis": "IMPLEMENTATION_VARIES",
+    "basisNote": "DTIM wake-ups are required by the platform to receive buffered traffic; protection of these wake-ups is common practice.",
+    "missCost": "LOW",
+    "toleratedMisses": 3
+   },
+   "retry": "NONE",
+   "delayable": false,
+   "tags": [
+    "WIFI_PS"
+   ],
+   "help": "Wake for each beacon or DTIM period, check the traffic indication, then sleep.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "wifi_twt",
+   "name": "Target Wake Time service period",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Scheduled wake windows agreed in advance.",
+   "introducedIn": "802.11ax",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "intervalUs": {
+     "mul": [
+      "$twtIntervalMs",
+      1000
+     ]
+    },
+    "jitterUs": 0,
+    "repeat": "$exchanges",
+    "sequence": [
+     {
+      "dir": "TX",
+      "kind": "DATA",
+      "dur": {
+       "wifi": {
+        "bytes": "$payloadBytes",
+        "frame": "AMPDU",
+        "rate": "DATA"
+       }
+      }
+     },
+     {
+      "dir": "RX",
+      "kind": "ACK",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.blockAckBytes",
+        "frame": "BA",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "twtIntervalMs": {
+     "label": "TWT interval",
+     "type": "number",
+     "default": 100,
+     "min": 1,
+     "max": 10000,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between service periods."
+    },
+    "exchanges": {
+     "label": "Exchanges per service period",
+     "type": "number",
+     "default": 4,
+     "min": 1,
+     "max": 32,
+     "unit": "",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Frame exchanges inside one service period."
+    },
+    "payloadBytes": {
+     "label": "Payload per exchange",
+     "type": "number",
+     "default": 1500,
+     "min": 100,
+     "max": 65535,
+     "unit": "bytes",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Payload of each frame."
+    }
+   },
+   "priorityClass": "WIFI_INTERACTIVE",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_TWT"
+   ],
+   "help": "Scheduled wake windows agreed in advance.",
+   "specLabel": "STANDARD",
+   "requiresFeature": "TWT"
+  },
+  {
+   "id": "wifi_ul_burst",
+   "name": "Uplink data burst",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Aggregated frames at a given rate and bandwidth, followed by a block acknowledgement.",
+   "introducedIn": "802.11n",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "BURST_TRAIN",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "mode": "BITRATE",
+    "bitrateParam": "bitrateMbps",
+    "aggregationParam": "aggregationBytes",
+    "sequence": [
+     {
+      "dir": "TX",
+      "kind": "DATA",
+      "dur": {
+       "wifi": {
+        "bytes": "$aggregationBytes",
+        "frame": "AMPDU",
+        "rate": "DATA"
+       }
+      }
+     },
+     {
+      "dir": "RX",
+      "kind": "ACK",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.blockAckBytes",
+        "frame": "BA",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "bitrateMbps": {
+     "label": "Application bitrate",
+     "type": "number",
+     "default": 20,
+     "min": 0.1,
+     "max": 2000,
+     "unit": "Mbps",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Requested payload rate; sets how often bursts are sent."
+    },
+    "aggregationBytes": {
+     "label": "Aggregation size",
+     "type": "number",
+     "default": 32768,
+     "min": 1500,
+     "max": 262143,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "A-MPDU size; capped by the maximum aggregation time."
+    }
+   },
+   "priorityClass": "WIFI_INTERACTIVE",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_DATA"
+   ],
+   "help": "Aggregated frames at a given rate and bandwidth, followed by a block acknowledgement.",
+   "specLabel": "IMPLEMENTATION_VARIES"
+  },
+  {
+   "id": "wifi_dl_burst",
+   "name": "Downlink data burst",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Mirror of uplink: receive an aggregated burst, then send the acknowledgement.",
+   "introducedIn": "802.11n",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "BURST_TRAIN",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "mode": "BITRATE",
+    "bitrateParam": "bitrateMbps",
+    "aggregationParam": "aggregationBytes",
+    "sequence": [
+     {
+      "dir": "RX",
+      "kind": "DATA",
+      "dur": {
+       "wifi": {
+        "bytes": "$aggregationBytes",
+        "frame": "AMPDU",
+        "rate": "DATA"
+       }
+      }
+     },
+     {
+      "dir": "TX",
+      "kind": "ACK",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.blockAckBytes",
+        "frame": "BA",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "bitrateMbps": {
+     "label": "Application bitrate",
+     "type": "number",
+     "default": 20,
+     "min": 0.1,
+     "max": 2000,
+     "unit": "Mbps",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Requested payload rate; sets how often bursts are sent."
+    },
+    "aggregationBytes": {
+     "label": "Aggregation size",
+     "type": "number",
+     "default": 32768,
+     "min": 1500,
+     "max": 262143,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "A-MPDU size; capped by the maximum aggregation time."
+    }
+   },
+   "priorityClass": "WIFI_INTERACTIVE",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_DATA"
+   ],
+   "help": "Mirror of uplink: receive an aggregated burst, then send the acknowledgement.",
+   "specLabel": "IMPLEMENTATION_VARIES"
+  },
+  {
+   "id": "wifi_web",
+   "name": "Web browsing",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Short, irregular bursts in both directions.",
+   "introducedIn": "802.11",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "IRREGULAR_BURSTS",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "ratePerSec": "$burstsPerSec",
+    "burst": [
+     {
+      "dir": "TX",
+      "kind": "DATA",
+      "dur": {
+       "wifi": {
+        "bytes": 600,
+        "frame": "DATA",
+        "rate": "DATA"
+       }
+      }
+     },
+     {
+      "dir": "RX",
+      "kind": "DATA",
+      "dur": {
+       "wifi": {
+        "bytes": "$responseBytes",
+        "frame": "AMPDU",
+        "rate": "DATA"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     },
+     {
+      "dir": "TX",
+      "kind": "ACK",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.blockAckBytes",
+        "frame": "BA",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "burstsPerSec": {
+     "label": "Bursts per second",
+     "type": "number",
+     "default": 3,
+     "min": 0.1,
+     "max": 100,
+     "unit": "1/s",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Average request bursts per second."
+    },
+    "responseBytes": {
+     "label": "Response size",
+     "type": "number",
+     "default": 60000,
+     "min": 1000,
+     "max": 500000,
+     "unit": "bytes",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Downlink bytes per burst."
+    }
+   },
+   "priorityClass": "WIFI_INTERACTIVE",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_DATA"
+   ],
+   "help": "Short, irregular bursts in both directions.",
+   "specLabel": "IMPLEMENTATION_VARIES"
+  },
+  {
+   "id": "wifi_video_stream",
+   "name": "Video streaming",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Sustained downlink bursts at a regular cadence, with a small uplink acknowledgement stream.",
+   "introducedIn": "802.11",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "BURST_TRAIN",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "mode": "BITRATE",
+    "bitrateParam": "bitrateMbps",
+    "aggregationParam": "aggregationBytes",
+    "sequence": [
+     {
+      "dir": "RX",
+      "kind": "DATA",
+      "dur": {
+       "wifi": {
+        "bytes": "$aggregationBytes",
+        "frame": "AMPDU",
+        "rate": "DATA"
+       }
+      }
+     },
+     {
+      "dir": "TX",
+      "kind": "ACK",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.blockAckBytes",
+        "frame": "BA",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "bitrateMbps": {
+     "label": "Application bitrate",
+     "type": "number",
+     "default": 100,
+     "min": 0.1,
+     "max": 1000,
+     "unit": "Mbps",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Requested payload rate; sets how often bursts are sent."
+    },
+    "aggregationBytes": {
+     "label": "Aggregation size",
+     "type": "number",
+     "default": 65535,
+     "min": 1500,
+     "max": 262143,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "A-MPDU size; capped by the maximum aggregation time."
+    }
+   },
+   "priorityClass": "WIFI_STREAM",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_DATA",
+    "WIFI_STREAM"
+   ],
+   "help": "Sustained downlink bursts at a regular cadence, with a small uplink acknowledgement stream.",
+   "specLabel": "IMPLEMENTATION_VARIES",
+   "buffer": {
+    "enabled": true,
+    "bitrateParam": "bitrateMbps",
+    "criticalThreshold": 4
+   }
+  },
+  {
+   "id": "wifi_video_conf",
+   "name": "Video conferencing",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Sustained bidirectional bursts at a frame cadence.",
+   "introducedIn": "802.11",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "BURST_TRAIN",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "mode": "INTERVAL",
+    "bitrateParam": "bitrateMbps",
+    "intervalUs": {
+     "div": [
+      1000000,
+      "$fps"
+     ]
+    },
+    "aggregationParam": "aggregationBytes",
+    "sequence": [
+     {
+      "dir": "TX",
+      "kind": "DATA",
+      "dur": {
+       "wifi": {
+        "bytes": "$aggregationBytes",
+        "frame": "AMPDU",
+        "rate": "DATA"
+       }
+      }
+     },
+     {
+      "dir": "RX",
+      "kind": "ACK",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.blockAckBytes",
+        "frame": "BA",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     },
+     {
+      "dir": "RX",
+      "kind": "DATA",
+      "dur": {
+       "wifi": {
+        "bytes": "$aggregationBytes",
+        "frame": "AMPDU",
+        "rate": "DATA"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     },
+     {
+      "dir": "TX",
+      "kind": "ACK",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.blockAckBytes",
+        "frame": "BA",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "bitrateMbps": {
+     "label": "Application bitrate",
+     "type": "number",
+     "default": 4,
+     "min": 0.1,
+     "max": 100,
+     "unit": "Mbps",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Requested payload rate; sets how often bursts are sent."
+    },
+    "fps": {
+     "label": "Frame rate",
+     "type": "number",
+     "default": 30,
+     "min": 5,
+     "max": 120,
+     "unit": "fps",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Frames per second; sets the burst cadence."
+    },
+    "aggregationBytes": {
+     "label": "Aggregation size",
+     "type": "number",
+     "default": 32768,
+     "min": 1500,
+     "max": 262143,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "A-MPDU size; capped by the maximum aggregation time."
+    }
+   },
+   "priorityClass": "WIFI_CONF",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_DATA"
+   ],
+   "help": "Sustained bidirectional bursts at a frame cadence.",
+   "specLabel": "IMPLEMENTATION_VARIES"
+  },
+  {
+   "id": "wifi_vowifi",
+   "name": "Voice over Wi-Fi",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Small packets at a fixed interval (typically 20 ms) using the voice access category.",
+   "introducedIn": "802.11e",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "intervalUs": {
+     "mul": [
+      "$packetIntervalMs",
+      1000
+     ]
+    },
+    "jitterUs": 0,
+    "sequence": [
+     {
+      "dir": "TX",
+      "kind": "VOICE",
+      "dur": {
+       "wifi": {
+        "bytes": "$voiceBytes",
+        "frame": "DATA",
+        "rate": "DATA"
+       }
+      }
+     },
+     {
+      "dir": "RX",
+      "kind": "ACK",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.ackBytes",
+        "frame": "ACK",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     },
+     {
+      "dir": "RX",
+      "kind": "VOICE",
+      "dur": {
+       "wifi": {
+        "bytes": "$voiceBytes",
+        "frame": "DATA",
+        "rate": "DATA"
+       }
+      },
+      "gapUs": 200
+     },
+     {
+      "dir": "TX",
+      "kind": "ACK",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.ackBytes",
+        "frame": "ACK",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "packetIntervalMs": {
+     "label": "Packet interval",
+     "type": "number",
+     "default": 20,
+     "min": 10,
+     "max": 60,
+     "unit": "ms",
+     "spec": "STANDARD",
+     "help": "Time between voice packets."
+    },
+    "voiceBytes": {
+     "label": "Voice payload",
+     "type": "number",
+     "default": 200,
+     "min": 60,
+     "max": 400,
+     "unit": "bytes",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Payload per voice packet."
+    }
+   },
+   "priorityClass": "VOICE_LINK",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_VOICE"
+   ],
+   "help": "Small packets at a fixed interval (typically 20 ms) using the voice access category.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "wifi_bulk",
+   "name": "Bulk file transfer",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Back-to-back aggregated bursts, close to full airtime.",
+   "introducedIn": "802.11",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "BURST_TRAIN",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "mode": "DUTY",
+    "dutyParam": "dutyCyclePct",
+    "aggregationParam": "aggregationBytes",
+    "sequence": [
+     {
+      "dir": {
+       "param": "direction",
+       "map": {
+        "UL": "TX",
+        "DL": "RX"
+       }
+      },
+      "kind": "DATA",
+      "dur": {
+       "wifi": {
+        "bytes": "$aggregationBytes",
+        "frame": "AMPDU",
+        "rate": "DATA"
+       }
+      }
+     },
+     {
+      "dir": {
+       "param": "direction",
+       "map": {
+        "UL": "RX",
+        "DL": "TX"
+       }
+      },
+      "kind": "ACK",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.blockAckBytes",
+        "frame": "BA",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "dutyCyclePct": {
+     "label": "Duty cycle",
+     "type": "number",
+     "default": 90,
+     "min": 1,
+     "max": 100,
+     "unit": "%",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Share of airtime the transfer asks for."
+    },
+    "direction": {
+     "label": "Direction",
+     "type": "choice",
+     "default": "UL",
+     "choices": [
+      "UL",
+      "DL"
+     ],
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Upload or download."
+    },
+    "aggregationBytes": {
+     "label": "Aggregation size",
+     "type": "number",
+     "default": 65535,
+     "min": 1500,
+     "max": 262143,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "A-MPDU size."
+    }
+   },
+   "priorityClass": "WIFI_BULK",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_DATA",
+    "WIFI_BULK"
+   ],
+   "help": "Back-to-back aggregated bursts, close to full airtime.",
+   "specLabel": "IMPLEMENTATION_VARIES"
+  },
+  {
+   "id": "wifi_cloud_sync",
+   "name": "Background cloud sync",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Small bursts at long intervals.",
+   "introducedIn": "802.11",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "IRREGULAR_BURSTS",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "ratePerSec": "$burstsPerSec",
+    "burst": [
+     {
+      "dir": "TX",
+      "kind": "DATA",
+      "dur": {
+       "wifi": {
+        "bytes": "$burstBytes",
+        "frame": "AMPDU",
+        "rate": "DATA"
+       }
+      }
+     },
+     {
+      "dir": "RX",
+      "kind": "ACK",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.blockAckBytes",
+        "frame": "BA",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "burstsPerSec": {
+     "label": "Bursts per second",
+     "type": "number",
+     "default": 0.5,
+     "min": 0.01,
+     "max": 20,
+     "unit": "1/s",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Average sync bursts per second."
+    },
+    "burstBytes": {
+     "label": "Burst size",
+     "type": "number",
+     "default": 20000,
+     "min": 500,
+     "max": 200000,
+     "unit": "bytes",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Bytes per burst."
+    }
+   },
+   "priorityClass": "WIFI_BACKGROUND",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_DATA"
+   ],
+   "help": "Small bursts at long intervals.",
+   "specLabel": "IMPLEMENTATION_VARIES"
+  },
+  {
+   "id": "wifi_roaming",
+   "name": "Roaming scan and reassociation",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Off-channel scanning followed by reassociation frames.",
+   "introducedIn": "802.11",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "SCAN_SWEEP",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "channels": "$scanChannels",
+    "dwellUs": {
+     "mul": [
+      "$dwellMs",
+      1000
+     ]
+    },
+    "sweepIntervalUs": {
+     "mul": [
+      "$sweepIntervalMs",
+      1000
+     ]
+    },
+    "startUs": {
+     "mul": [
+      "$startMs",
+      1000
+     ]
+    },
+    "probe": {
+     "dir": "TX",
+     "kind": "MGMT",
+     "dur": {
+      "wifi": {
+       "bytes": "@wifiTiming.probeRequestBytes",
+       "frame": "MGMT",
+       "rate": "BASIC"
+      }
+     }
+    },
+    "listen": {
+     "dir": "RX",
+     "kind": "SCAN",
+     "dur": {
+      "mul": [
+       "$dwellMs",
+       1000
+      ]
+     },
+     "gapUs": "@wifiTiming.sifsUs"
+    },
+    "after": [
+     {
+      "dir": "TX",
+      "kind": "MGMT",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.mgmtFrameBytes",
+        "frame": "MGMT",
+        "rate": "BASIC"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     },
+     {
+      "dir": "RX",
+      "kind": "MGMT",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.mgmtFrameBytes",
+        "frame": "MGMT",
+        "rate": "BASIC"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "scanChannels": {
+     "label": "Channels",
+     "type": "choice",
+     "default": "1,6,11",
+     "choices": [
+      "1,6,11",
+      "1-13"
+     ],
+     "spec": "STANDARD",
+     "help": "2.4 GHz channels swept in turn."
+    },
+    "dwellMs": {
+     "label": "Dwell per channel",
+     "type": "number",
+     "default": 30,
+     "min": 5,
+     "max": 500,
+     "unit": "ms",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Time spent on each channel."
+    },
+    "sweepIntervalMs": {
+     "label": "Sweep interval",
+     "type": "number",
+     "default": 5000,
+     "min": 100,
+     "max": 60000,
+     "unit": "ms",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Time between sweeps."
+    },
+    "startMs": {
+     "label": "Start time",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 60000,
+     "unit": "ms",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "When the first sweep starts."
+    }
+   },
+   "priorityClass": "WIFI_INTERACTIVE",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_SCAN"
+   ],
+   "help": "Off-channel scanning followed by reassociation frames.",
+   "specLabel": "IMPLEMENTATION_VARIES",
+   "sweepsChannels": true
+  },
+  {
+   "id": "wifi_softap",
+   "name": "Soft-AP / hotspot operation",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Beacon transmission at the interval plus client traffic.",
+   "introducedIn": "802.11",
+   "minVersion": 0,
+   "roles": [
+    "AP"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "intervalUs": {
+     "mul": [
+      "$beaconIntervalTU",
+      1024
+     ]
+    },
+    "jitterUs": 0,
+    "sequence": [
+     {
+      "dir": "TX",
+      "kind": "BEACON",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.beaconBytes",
+        "frame": "BEACON",
+        "rate": "BASIC"
+       }
+      }
+     },
+     {
+      "dir": "RX",
+      "kind": "DATA",
+      "dur": {
+       "wifi": {
+        "bytes": "$clientBytes",
+        "frame": "AMPDU",
+        "rate": "DATA"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     },
+     {
+      "dir": "TX",
+      "kind": "ACK",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.blockAckBytes",
+        "frame": "BA",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "AP",
+     "choices": [
+      "AP"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "beaconIntervalTU": {
+     "label": "Beacon interval",
+     "type": "number",
+     "default": 100,
+     "min": 20,
+     "max": 1000,
+     "unit": "TU",
+     "spec": "STANDARD",
+     "help": "Beacon interval in time units."
+    },
+    "clientBytes": {
+     "label": "Client traffic per beacon",
+     "type": "number",
+     "default": 3000,
+     "min": 0,
+     "max": 65535,
+     "unit": "bytes",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Uplink bytes from clients per beacon interval."
+    }
+   },
+   "priorityClass": "WIFI_INTERACTIVE",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_AP"
+   ],
+   "help": "Beacon transmission at the interval plus client traffic.",
+   "specLabel": "IMPLEMENTATION_VARIES"
+  },
+  {
+   "id": "wifi_p2p",
+   "name": "Wi-Fi Direct (peer-to-peer)",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Negotiation and data bursts on a social channel or a negotiated channel.",
+   "introducedIn": "802.11",
+   "minVersion": 0,
+   "roles": [
+    "GO",
+    "client"
+   ],
+   "generator": "BURST_TRAIN",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "mode": "BITRATE",
+    "bitrateParam": "bitrateMbps",
+    "aggregationParam": "aggregationBytes",
+    "sequence": [
+     {
+      "dir": {
+       "role": {
+        "GO": "RX",
+        "client": "TX"
+       }
+      },
+      "kind": "DATA",
+      "dur": {
+       "wifi": {
+        "bytes": "$aggregationBytes",
+        "frame": "AMPDU",
+        "rate": "DATA"
+       }
+      }
+     },
+     {
+      "dir": {
+       "role": {
+        "GO": "TX",
+        "client": "RX"
+       }
+      },
+      "kind": "ACK",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.blockAckBytes",
+        "frame": "BA",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "GO",
+     "choices": [
+      "GO",
+      "client"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "bitrateMbps": {
+     "label": "Application bitrate",
+     "type": "number",
+     "default": 10,
+     "min": 0.1,
+     "max": 2000,
+     "unit": "Mbps",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Requested payload rate; sets how often bursts are sent."
+    },
+    "aggregationBytes": {
+     "label": "Aggregation size",
+     "type": "number",
+     "default": 32768,
+     "min": 1500,
+     "max": 262143,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "A-MPDU size; capped by the maximum aggregation time."
+    }
+   },
+   "priorityClass": "WIFI_INTERACTIVE",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_DATA",
+    "WIFI_P2P"
+   ],
+   "help": "Wi-Fi Direct usually starts on social channel 1, 6 or 11. Set the Channel parameter to one of them.",
+   "specLabel": "IMPLEMENTATION_VARIES"
+  },
+  {
+   "id": "wifi_screencast",
+   "name": "Screen casting",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "Sustained high-rate transmissions to a display.",
+   "introducedIn": "802.11",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "BURST_TRAIN",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "mode": "INTERVAL",
+    "bitrateParam": "bitrateMbps",
+    "intervalUs": {
+     "div": [
+      1000000,
+      "$fps"
+     ]
+    },
+    "aggregationParam": "aggregationBytes",
+    "sequence": [
+     {
+      "dir": "TX",
+      "kind": "DATA",
+      "dur": {
+       "wifi": {
+        "bytes": "$aggregationBytes",
+        "frame": "AMPDU",
+        "rate": "DATA"
+       }
+      }
+     },
+     {
+      "dir": "RX",
+      "kind": "ACK",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.blockAckBytes",
+        "frame": "BA",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "bitrateMbps": {
+     "label": "Application bitrate",
+     "type": "number",
+     "default": 30,
+     "min": 0.1,
+     "max": 500,
+     "unit": "Mbps",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Requested payload rate; sets how often bursts are sent."
+    },
+    "fps": {
+     "label": "Frame rate",
+     "type": "number",
+     "default": 60,
+     "min": 5,
+     "max": 120,
+     "unit": "fps",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Frames per second."
+    },
+    "aggregationBytes": {
+     "label": "Aggregation size",
+     "type": "number",
+     "default": 32768,
+     "min": 1500,
+     "max": 262143,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "A-MPDU size; capped by the maximum aggregation time."
+    }
+   },
+   "priorityClass": "WIFI_STREAM",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_DATA"
+   ],
+   "help": "Sustained high-rate transmissions to a display.",
+   "specLabel": "IMPLEMENTATION_VARIES"
+  },
+  {
+   "id": "wifi_protection",
+   "name": "Protection frames (RTS/CTS)",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "RTS/CTS or CTS-to-self sent before data on mixed-mode networks.",
+   "introducedIn": "802.11g",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "PERIODIC_EVENT",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "intervalUs": {
+     "mul": [
+      "$intervalMs",
+      1000
+     ]
+    },
+    "jitterUs": 0,
+    "sequence": [
+     {
+      "dir": "TX",
+      "kind": "CTRL",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.rtsBytes",
+        "frame": "CTRL",
+        "rate": "BASIC"
+       }
+      },
+      "when": {
+       "param": "mode",
+       "in": [
+        "RTS_CTS"
+       ]
+      }
+     },
+     {
+      "dir": "RX",
+      "kind": "CTRL",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.ctsBytes",
+        "frame": "CTRL",
+        "rate": "BASIC"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs",
+      "when": {
+       "param": "mode",
+       "in": [
+        "RTS_CTS"
+       ]
+      }
+     },
+     {
+      "dir": "TX",
+      "kind": "CTRL",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.ctsBytes",
+        "frame": "CTRL",
+        "rate": "BASIC"
+       }
+      },
+      "when": {
+       "param": "mode",
+       "in": [
+        "CTS_TO_SELF"
+       ]
+      }
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "intervalMs": {
+     "label": "Frame interval",
+     "type": "number",
+     "default": 10,
+     "min": 1,
+     "max": 1000,
+     "unit": "ms",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Time between protected bursts."
+    },
+    "mode": {
+     "label": "Mode",
+     "type": "choice",
+     "default": "CTS_TO_SELF",
+     "choices": [
+      "RTS_CTS",
+      "CTS_TO_SELF"
+     ],
+     "spec": "STANDARD",
+     "help": "Protection method."
+    }
+   },
+   "priorityClass": "WIFI_INTERACTIVE",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_PROTECTION"
+   ],
+   "help": "RTS/CTS or CTS-to-self sent before data on mixed-mode networks.",
+   "specLabel": "STANDARD"
+  },
+  {
+   "id": "wifi_mlo",
+   "name": "Multi-link operation traffic",
+   "tech": "WIFI",
+   "category": "WIFI",
+   "description": "The same bursts spread across two or three bands at once.",
+   "introducedIn": "802.11be",
+   "minVersion": 0,
+   "roles": [
+    "STA"
+   ],
+   "generator": "BURST_TRAIN",
+   "pattern": {
+    "channel": {
+     "mode": "WIFI"
+    },
+    "mode": "BITRATE",
+    "bitrateParam": "bitrateMbps",
+    "aggregationParam": "aggregationBytes",
+    "mloLinksParam": "linkBands",
+    "sequence": [
+     {
+      "dir": "TX",
+      "kind": "DATA",
+      "dur": {
+       "wifi": {
+        "bytes": "$aggregationBytes",
+        "frame": "AMPDU",
+        "rate": "DATA"
+       }
+      }
+     },
+     {
+      "dir": "RX",
+      "kind": "ACK",
+      "dur": {
+       "wifi": {
+        "bytes": "@wifiTiming.blockAckBytes",
+        "frame": "BA",
+        "rate": "CONTROL"
+       }
+      },
+      "gapUs": "@wifiTiming.sifsUs"
+     }
+    ]
+   },
+   "params": {
+    "role": {
+     "label": "Role",
+     "type": "choice",
+     "default": "STA",
+     "choices": [
+      "STA"
+     ],
+     "spec": "STANDARD",
+     "help": "Role the simulated device takes for this task."
+    },
+    "channel": {
+     "label": "Channel",
+     "type": "number",
+     "default": 0,
+     "min": 0,
+     "max": 233,
+     "unit": "",
+     "spec": "STANDARD",
+     "help": "Wi-Fi channel number; 0 uses the platform channel."
+    },
+    "bandwidthMHz": {
+     "label": "Bandwidth",
+     "type": "choice",
+     "default": 0,
+     "choices": [
+      0,
+      20,
+      40,
+      80,
+      160,
+      320
+     ],
+     "spec": "STANDARD",
+     "help": "Channel width in MHz; 0 uses the platform bandwidth."
+    },
+    "linkBands": {
+     "label": "Link bands",
+     "type": "choice",
+     "default": "2.4+5",
+     "choices": [
+      "2.4+5",
+      "2.4+6",
+      "5+6",
+      "2.4+5+6"
+     ],
+     "spec": "STANDARD",
+     "help": "Bands used at the same time."
+    },
+    "bitrateMbps": {
+     "label": "Application bitrate",
+     "type": "number",
+     "default": 200,
+     "min": 0.1,
+     "max": 2000,
+     "unit": "Mbps",
+     "spec": "IMPLEMENTATION_VARIES",
+     "help": "Requested payload rate; sets how often bursts are sent."
+    },
+    "aggregationBytes": {
+     "label": "Aggregation size",
+     "type": "number",
+     "default": 32768,
+     "min": 1500,
+     "max": 262143,
+     "unit": "bytes",
+     "spec": "STANDARD",
+     "help": "A-MPDU size; capped by the maximum aggregation time."
+    }
+   },
+   "priorityClass": "WIFI_STREAM",
+   "anchor": null,
+   "retry": "WIFI_BACKOFF",
+   "delayable": true,
+   "tags": [
+    "WIFI_DATA",
+    "WIFI_MLO"
+   ],
+   "help": "The same bursts spread across two or three bands at once.",
+   "specLabel": "IMPLEMENTATION_VARIES",
+   "requiresFeature": "MLO"
+  }
+ ]
+}

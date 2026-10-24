@@ -1,0 +1,371 @@
+{
+  "_note": "Guided lessons (spec 7B.11). Add a lesson here and it appears in the Learn menu. 'area' is a data-area on the page. 'verify' lists facts that a test checks against the engine so the text cannot drift from the results. Actions: openFirstConflict, freqMode, zoom.",
+  "lessons": [
+    {
+      "id": "shared-antenna",
+      "title": "Why a shared antenna forces taking turns",
+      "example": 1,
+      "preset": "example-1",
+      "level": 1,
+      "goal": "With one antenna and one core, Bluetooth and Wi-Fi cannot use the air together. You will see an audio stream and a Wi-Fi video stream take turns, and see who wins when both want the same moment.",
+      "steps": [
+        {
+          "area": "time-view",
+          "caption": "The blue lane is the Bluetooth audio stream and the orange lane is the Wi-Fi video stream. The red numbered bands are the moments when both wanted the air."
+        },
+        {
+          "area": "time-view",
+          "caption": "Select the first red band. The two blocks overlap, and because the antenna is shared only one of them can go out.",
+          "action": {
+            "type": "openFirstConflict"
+          }
+        },
+        {
+          "area": "explain",
+          "caption": "Read the story from the top. It says which test made this a conflict, which rule decided, and why the winner won. Priority is not fixed: Wi-Fi wins at first, and the audio stream wins once it has waited too long."
+        },
+        {
+          "area": "platform",
+          "caption": "The platform diagram shows what is shared. One core, one switch and one antenna sit between both radios and the air."
+        },
+        {
+          "area": "summary",
+          "caption": "The summary counts the hard conflicts, delayed blocks and the added latency. Delayed audio packets are the cost of sharing."
+        }
+      ],
+      "verify": [
+        {
+          "path": "metrics.conflicts.bySeverity.HARD",
+          "op": "==",
+          "value": 20
+        },
+        {
+          "path": "metrics.conflicts.bySeverity.DEGRADED",
+          "op": "==",
+          "value": 0
+        }
+      ],
+      "check": {
+        "question": "Why can Wi-Fi and Bluetooth not both transmit at the same moment in this example?",
+        "options": [
+          "Their channels are always different.",
+          "They share one antenna and one core, so only one can use it at a time.",
+          "Bluetooth is always stronger than Wi-Fi.",
+          "The window is too short."
+        ],
+        "answer": 1,
+        "explanation": "The two radios share the antenna through a switch and run on one core. Overlapping blocks are therefore a hard conflict: one must wait. Which one waits is decided by priority, and that decision is an implementation choice.",
+        "label": "IMPLEMENTATION_VARIES"
+      },
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "isolation",
+      "title": "How isolation removes the conflict",
+      "example": 2,
+      "preset": "example-2",
+      "level": 2,
+      "goal": "The traffic is the same as in the first lesson, but the radios now have separate antennas, separate cores and 40 dB of isolation. The overlaps still happen, and now they are harmless.",
+      "steps": [
+        {
+          "area": "time-view",
+          "caption": "The same two streams as before. Blocks still overlap in time, so there are still numbered bands."
+        },
+        {
+          "area": "time-view",
+          "caption": "Select the first band. It is marked tolerated: both blocks went out and neither was harmed.",
+          "action": {
+            "type": "openFirstConflict"
+          }
+        },
+        {
+          "area": "platform",
+          "caption": "Here the radios have separate antennas and the isolation label reads 40 dB. That is above the interaction threshold, so a transmit does not deafen the other receiver."
+        },
+        {
+          "area": "summary",
+          "caption": "No hard conflicts, nothing delayed, no throughput impact. Overlap in time is only a problem when something is shared or the isolation is low."
+        }
+      ],
+      "verify": [
+        {
+          "path": "metrics.conflicts.bySeverity.HARD",
+          "op": "==",
+          "value": 0
+        },
+        {
+          "path": "metrics.conflicts.bySeverity.TOLERATED",
+          "op": ">",
+          "value": 0
+        },
+        {
+          "path": "metrics.totals.blocksDelayed",
+          "op": "==",
+          "value": 0
+        }
+      ],
+      "check": {
+        "question": "The two streams still overlap in time. Why is there no harm?",
+        "options": [
+          "The overlapping blocks are tiny.",
+          "Wi-Fi and Bluetooth never transmit together here.",
+          "With separate antennas, concurrent cores and enough isolation the overlap is tolerated.",
+          "The tool does not check overlaps with high isolation."
+        ],
+        "answer": 2,
+        "explanation": "Overlap in time is not enough to hurt. The harm comes from a shared antenna or core, overlapping frequency, or isolation below the threshold. With 40 dB of isolation the receivers are not deafened.",
+        "label": "IMPLEMENTATION_VARIES"
+      },
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "channel-overlap",
+      "title": "How Wi-Fi channel overlap hurts Bluetooth hops",
+      "example": 3,
+      "preset": "example-3",
+      "level": 3,
+      "goal": "Now the radios have separate antennas but only 10 dB of isolation, and Bluetooth hops across all channels. Hops that land inside the Wi-Fi channel are corrupted.",
+      "steps": [
+        {
+          "area": "freq-view",
+          "caption": "The orange band is the Wi-Fi channel with a margin on each side. Blue dots are Bluetooth hops. Hops circled in red landed inside it while Wi-Fi was transmitting."
+        },
+        {
+          "area": "freq-view",
+          "caption": "Switch to the histogram to see how many hops each channel got. Bluetooth uses all 79 channels, so about a quarter of hops fall in the Wi-Fi channel.",
+          "action": {
+            "type": "freqMode",
+            "value": "HISTOGRAM"
+          }
+        },
+        {
+          "area": "time-view",
+          "caption": "Select the first degraded conflict. Both blocks went out, but their frequencies overlapped, so both were probably corrupted.",
+          "action": {
+            "type": "openFirstConflict"
+          }
+        },
+        {
+          "area": "summary",
+          "caption": "Look at the throughput impact. Audio loses about 40 percent of its packets, and Wi-Fi loses some too."
+        }
+      ],
+      "verify": [
+        {
+          "path": "metrics.conflicts.bySeverity.DEGRADED",
+          "op": ">",
+          "value": 0
+        },
+        {
+          "path": "metrics.conflicts.bySeverity.HARD",
+          "op": "==",
+          "value": 0
+        },
+        {
+          "path": "afh.enabled",
+          "op": "==",
+          "value": false
+        }
+      ],
+      "check": {
+        "question": "What makes a hop 'degraded' in this example?",
+        "options": [
+          "It uses a different antenna.",
+          "It lands inside the Wi-Fi channel while Wi-Fi is transmitting, so both are probably corrupted.",
+          "It is the first hop of the window.",
+          "It was delayed by arbitration."
+        ],
+        "answer": 1,
+        "explanation": "Separate antennas stop one radio blocking the other, but they do not stop energy at the same frequency from corrupting a packet. With low isolation a hop inside the Wi-Fi channel is probably lost.",
+        "label": "STANDARD"
+      },
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "afh",
+      "title": "How adaptive hopping fixes it",
+      "example": 4,
+      "preset": "example-4",
+      "level": 4,
+      "goal": "The setup is the same as the last lesson, but adaptive frequency hopping is on. Bluetooth notices the busy channels and stops using them. It takes a little while, so some early hops still suffer.",
+      "steps": [
+        {
+          "area": "freq-view",
+          "caption": "The strip under the frequency view shows the channels Bluetooth still uses. The ones under the Wi-Fi channel are removed."
+        },
+        {
+          "area": "freq-view",
+          "caption": "Switch to the histogram. There are almost no hops inside the Wi-Fi channel any more.",
+          "action": {
+            "type": "freqMode",
+            "value": "HISTOGRAM"
+          }
+        },
+        {
+          "area": "time-view",
+          "caption": "The few degraded conflicts all happen early, before the new map takes effect. Select the first one.",
+          "action": {
+            "type": "openFirstConflict"
+          }
+        },
+        {
+          "area": "summary",
+          "caption": "Compare with the last lesson: the audio throughput impact falls from about 40 percent to under 5 percent. Use Compare to see it side by side."
+        }
+      ],
+      "verify": [
+        {
+          "path": "metrics.conflicts.bySeverity.DEGRADED",
+          "op": "==",
+          "value": 8
+        },
+        {
+          "path": "afh.enabled",
+          "op": "==",
+          "value": true
+        }
+      ],
+      "check": {
+        "question": "Why are there still some degraded conflicts with adaptive hopping on?",
+        "options": [
+          "Adaptive hopping only works for Wi-Fi.",
+          "The channel map needs time to be measured and agreed, so early hops still use the busy channels.",
+          "The isolation became lower.",
+          "Adaptive hopping removes only one channel."
+        ],
+        "answer": 1,
+        "explanation": "The device has to notice the interference and agree a new channel map with the peer. Until the map takes effect, hops still land in the Wi-Fi channel. How long that takes is an implementation choice and is a platform setting.",
+        "label": "IMPLEMENTATION_VARIES"
+      },
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "time-sharing",
+      "title": "How time sharing adds latency to a BLE link",
+      "example": 5,
+      "preset": "example-5",
+      "level": 5,
+      "goal": "A BLE connection and Wi-Fi web browsing share one antenna. Arbitration gives each half of every 5 millisecond slice. Connection events that fall into the Wi-Fi half are denied and have to be retried.",
+      "steps": [
+        {
+          "area": "time-view",
+          "caption": "Look at the BLE connection lane. Some events are missing or drawn dashed: they fell in a Wi-Fi slice and were denied."
+        },
+        {
+          "area": "time-view",
+          "caption": "Zoom to 10 ms to see the slices. Each denied event is tried again at the next connection event.",
+          "action": {
+            "type": "zoom",
+            "value": "10ms"
+          }
+        },
+        {
+          "area": "platform",
+          "caption": "Time sharing is the arbitration policy here. It does not look at priority or need: the slice owner wins."
+        },
+        {
+          "area": "summary",
+          "caption": "The latency of the BLE link rises to about 30 milliseconds, and about 18 percent of the link's packets are affected. A link with a short supervision timeout would be at risk."
+        }
+      ],
+      "verify": [
+        {
+          "path": "metrics.totals.blocksRetried",
+          "op": ">",
+          "value": 0
+        },
+        {
+          "path": "metrics.totals.blocksLost",
+          "op": ">",
+          "value": 0
+        },
+        {
+          "path": "metrics.conflicts.bySeverity.HARD",
+          "op": "==",
+          "value": 0
+        }
+      ],
+      "check": {
+        "question": "Why does time sharing add latency to the BLE link?",
+        "options": [
+          "Wi-Fi packets are longer than BLE packets.",
+          "A connection event that falls in a Wi-Fi slice is denied and can only be retried at a later event.",
+          "BLE needs more channels.",
+          "The antenna is slower than the switch."
+        ],
+        "answer": 1,
+        "explanation": "Time sharing gives the air to one technology at a time, whatever the need. A BLE event that lands in Wi-Fi's slice is denied, and the next chance is the next connection event, one interval later.",
+        "label": "IMPLEMENTATION_VARIES"
+      },
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "le-audio-spare-slots",
+      "title": "How spare slots absorb denied LE Audio events",
+      "example": 6,
+      "preset": "example-6",
+      "level": 6,
+      "goal": "LE Audio earbuds reserve spare subevents in every event for retransmissions. Here the arbitration policy favours Wi-Fi, so some audio events lose the air. You will see the spare slots recover the audio, at the cost of a little delay.",
+      "steps": [
+        {
+          "area": "time-view",
+          "caption": "The audio stream sends an event every 10 ms. Each event has three subevents, but only one carries new audio. The other two are spare and are drawn only when they are needed."
+        },
+        {
+          "area": "time-view",
+          "caption": "Select the first conflict. The policy favours Wi-Fi, so the video burst wins and the audio event is denied.",
+          "action": {
+            "type": "openFirstConflict"
+          }
+        },
+        {
+          "area": "explain",
+          "caption": "The explanation names the policy as the reason. Priority is not used here: with this policy Wi-Fi wins every time, whatever the audio needs."
+        },
+        {
+          "area": "time-view",
+          "caption": "After a denied event, the audio is sent again in the spare slots that follow. The retried blocks are the ones marked as retries."
+        },
+        {
+          "area": "summary",
+          "caption": "No audio is lost and the throughput impact is zero, but 10 of the 100 events were missed first time and the audio arrived up to 10 ms late. A link with less spare capacity, or a longer Wi-Fi burst, would lose audio."
+        }
+      ],
+      "verify": [
+        {
+          "path": "metrics.conflicts.hardWonByBluetooth",
+          "op": "==",
+          "value": 0
+        },
+        {
+          "path": "metrics.conflicts.hardWonByWifi",
+          "op": ">",
+          "value": 0
+        },
+        {
+          "path": "metrics.totals.blocksRetried",
+          "op": ">",
+          "value": 0
+        },
+        {
+          "path": "metrics.totals.blocksLost",
+          "op": "==",
+          "value": 0
+        }
+      ],
+      "check": {
+        "question": "Ten audio events were denied, yet no audio was lost. Why?",
+        "options": [
+          "Wi-Fi gave the air back immediately.",
+          "The stream reserves spare subevents, so the denied audio could be sent again a little later.",
+          "Denied events are never counted.",
+          "The arbitration policy favoured Bluetooth."
+        ],
+        "answer": 1,
+        "explanation": "LE Audio streams reserve retransmission opportunities for exactly this. When an event is denied, the audio goes out in a later spare subevent. The cost is delay, up to one interval here, not loss. If the spare slots were also taken, audio would be lost.",
+        "label": "STANDARD"
+      },
+      "label": "IMPLEMENTATION_VARIES"
+    }
+  ]
+}

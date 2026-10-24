@@ -1,0 +1,30 @@
+{
+  "minWindowUs": 1,
+  "maxWindowUs": 10000000,
+  "recommendedWindowUs": {
+    "min": 10000,
+    "max": 1000000
+  },
+  "blockLimitError": 200000,
+  "blockWarnDensity": 20000,
+  "slotBudgetWarnPct": 80,
+  "slotBudgetErrorPct": 100,
+  "airtimeWarnPct": 80,
+  "airtimeErrorPct": 100,
+  "isolationMinDb": 0,
+  "isolationMaxDb": 100,
+  "maxTasksWarn": {
+    "BT": 8,
+    "WIFI": 8,
+    "TOTAL": 12
+  },
+  "uiValidationBudgetMs": 50,
+  "supervisionTimeoutParamDefaultMs": 2000,
+  "maxDelaysPerBlock": 16,
+  "payloadKinds": [
+    "DATA",
+    "VOICE",
+    "ISO",
+    "ADV"
+  ]
+}

@@ -1,0 +1,173 @@
+{
+  "_note": "Help text for validation rule topics and general topics (spec 7C.5, 7B.11).",
+  "topics": [
+    {
+      "id": "ranges",
+      "title": "Allowed ranges",
+      "body": "Every setting has a lowest and highest value, taken from the Bluetooth or Wi-Fi specifications or from this tool's data. A value outside it cannot be simulated.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "required",
+      "title": "Required values",
+      "body": "Every setting needs a number or a choice. An empty box has no meaning, so it has to be filled in.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "scanning",
+      "title": "Scan window and interval",
+      "body": "The scan window is how long a device listens in each scan interval, so it cannot be longer than the interval.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "packets",
+      "title": "Packet length",
+      "body": "Each packet type has a fixed length in slots. It has to fit inside the time its link reserves.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "window",
+      "title": "Simulation window",
+      "body": "The window is the stretch of time that is simulated. It must be long enough to show several repeats of the slowest task.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "versions",
+      "title": "Bluetooth Core versions",
+      "body": "Newer features need a newer Bluetooth Core version. The device version is a platform setting.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "wifi-generations",
+      "title": "Wi-Fi generations, bands and widths",
+      "body": "Each Wi-Fi generation supports certain bands and channel widths. Wi-Fi 7 can use 320 MHz only in the 6 GHz band, for example.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "phy",
+      "title": "LE PHYs and LE Audio",
+      "body": "The 2M and Coded PHYs and isochronous audio were added in later Core versions.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "wifi-features",
+      "title": "Wi-Fi features",
+      "body": "Some tasks need a feature, such as target wake time or multi-link operation, that only newer generations have.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "frequency-overlap",
+      "title": "Frequency overlap",
+      "body": "Only 2.4 GHz Wi-Fi overlaps Bluetooth in frequency. At 5 and 6 GHz the two interact only through the shared antenna, core and isolation.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "wifi-roles",
+      "title": "Wi-Fi roles",
+      "body": "A device acts as a station or as an access point. Doing both at once needs multi-role support.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "reserved-slots",
+      "title": "Reserved voice slots",
+      "body": "Voice links reserve slots on a fixed pattern. Two links may not claim the same slots.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "exclusive-tasks",
+      "title": "Tasks that exclude each other",
+      "body": "Some activities cannot run at once. A device cannot be scanning and initiating a connection on the same radio window, for example.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "device-limits",
+      "title": "Device limits",
+      "body": "A device supports only so many simultaneous links of each kind. The limits are platform settings.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "a2dp-hfp",
+      "title": "Audio and voice together",
+      "body": "Streaming audio and a voice call at once is legal but the voice link takes priority.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "duplicates",
+      "title": "Duplicate tasks",
+      "body": "Two copies of the same task are allowed, but this is often a mistake.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "readability",
+      "title": "Readability",
+      "body": "With many tasks the diagram becomes hard to read. The tool still runs but shows density bars when zoomed out.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "single-radio",
+      "title": "One radio, one channel",
+      "body": "One Wi-Fi radio can be on one channel at a time. Tasks on different channels cannot be simultaneous unless the device has more radios or links.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "slot-budget",
+      "title": "Slot budget",
+      "body": "Bluetooth Classic has a fixed number of slots. Reserved links and periodic tasks use them, and what is left is for data.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "airtime",
+      "title": "Airtime",
+      "body": "A technology cannot transmit for more than 100 percent of the time. If the tasks ask for more, the stream cannot be carried.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "cores",
+      "title": "Cores serving tasks",
+      "body": "Each core can serve one radio at a time. With too few cores some tasks can never run together.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "platform",
+      "title": "Platform consistency",
+      "body": "The front-end arrangement and the antenna mode must agree. Shared switch means one antenna; separate means two.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "isolation",
+      "title": "Isolation range",
+      "body": "Isolation is measured in decibels. Values outside 0 to 100 are not physical for this model.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "desense",
+      "title": "Concurrency with low isolation",
+      "body": "Running both radios at the same time with little isolation lets the transmitter deafen the receiver.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "afh",
+      "title": "Adaptive hopping settings",
+      "body": "Adaptive hopping removes channels under Wi-Fi. It has no effect without Wi-Fi in 2.4 GHz, and it cannot leave fewer than the minimum number of channels.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "time-share",
+      "title": "Time-share settings",
+      "body": "The Bluetooth share must be between 0 and 100 percent and the slice long enough to hold a useful block.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "performance",
+      "title": "Performance",
+      "body": "Very many blocks make the diagram slow. The tool switches to density bars, and you can shorten the window.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "conflicts",
+      "title": "Conflicts",
+      "body": "A conflict is a moment when a Bluetooth block and a Wi-Fi block overlap in time and also interact: their frequencies overlap, they share an antenna or core, or isolation is below the threshold. The severity says how bad it is: hard, degraded, warning or tolerated.",
+      "label": "IMPLEMENTATION_VARIES"
+    }
+  ]
+}

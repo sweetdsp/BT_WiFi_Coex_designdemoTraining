@@ -1,0 +1,132 @@
+{
+  "_note": "Base priority table (highest first) and escalation rules from spec 7A.8. Editable. Priority is dynamic: escalation rules raise a task's priority as its need becomes urgent.",
+  "classes": {
+    "VOICE_LINK": {
+      "name": "Voice links (SCO, eSCO, VoWiFi)",
+      "base": 100,
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    "ISO_AUDIO": {
+      "name": "Isochronous audio (CIS, BIS)",
+      "base": 90,
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    "BLE_CONN": {
+      "name": "BLE connection events",
+      "base": 80,
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    "WIFI_CONF": {
+      "name": "Wi-Fi video conferencing",
+      "base": 70,
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    "WIFI_STREAM": {
+      "name": "Wi-Fi streaming",
+      "base": 60,
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    "WIFI_INTERACTIVE": {
+      "name": "Wi-Fi interactive data",
+      "base": 50,
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    "A2DP": {
+      "name": "A2DP streaming (low base level)",
+      "base": 40,
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    "BT_ACL_DATA": {
+      "name": "Classic ACL data",
+      "base": 35,
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    "BT_SCAN_ADV": {
+      "name": "BLE and Classic scanning and advertising",
+      "base": 30,
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    "WIFI_BULK": {
+      "name": "Wi-Fi bulk transfer",
+      "base": 20,
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    "WIFI_BACKGROUND": {
+      "name": "Wi-Fi background and scanning",
+      "base": 10,
+      "label": "IMPLEMENTATION_VARIES"
+    }
+  },
+  "anchorTierBase": 1000,
+  "escalation": [
+    {
+      "id": "A2DP_BUFFER",
+      "type": "BUFFER_LEVEL",
+      "classes": [
+        "A2DP"
+      ],
+      "criticalThreshold": 4,
+      "criticalPriority": 90,
+      "text": "A2DP becomes critical at 4 or more packets waiting, above Wi-Fi streaming and video conferencing and equal to isochronous audio.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "BUFFERED_STREAM",
+      "type": "BUFFER_LEVEL",
+      "classes": [
+        "ISO_AUDIO",
+        "WIFI_STREAM"
+      ],
+      "criticalThreshold": 4,
+      "criticalPriority": 95,
+      "criticalPriorityByClass": {
+        "ISO_AUDIO": 95,
+        "WIFI_STREAM": 75
+      },
+      "text": "Any buffered stream (LE Audio unicast, Wi-Fi video streaming) rises when its buffer is nearly empty or full of waiting packets.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "BLE_SUPERVISION",
+      "type": "SUPERVISION_APPROACH",
+      "classes": [
+        "BLE_CONN"
+      ],
+      "raiseFromFraction": 0.5,
+      "raiseToPriority": 99,
+      "maxWhenNextMissDropsLink": 999,
+      "text": "BLE connection events rise as time since the last successful event approaches the supervision timeout, and become the highest when the next miss would drop the link.",
+      "label": "STANDARD"
+    },
+    {
+      "id": "RETRY_INHERIT",
+      "type": "RETRY_INHERIT",
+      "raiseByLevelsNearDeadline": 1,
+      "deadlineNearFraction": 0.25,
+      "text": "Retry blocks inherit the original priority, raised by one level when the deadline is near. Retransmission windows of anchor tasks are a fallback and are not protected.",
+      "label": "IMPLEMENTATION_VARIES"
+    }
+  ],
+  "priorityLevelStep": 10,
+  "anchorRetxPriority": 5,
+  "bufferPacketKinds": [
+    "DATA",
+    "ISO"
+  ],
+  "anchorTiebreakClasses": [
+    "VOICE_LINK",
+    "ISO_AUDIO"
+  ],
+  "missCostRank": {
+    "HIGH": 3,
+    "MEDIUM": 2,
+    "LOW": 1
+  },
+  "anchorGiveUp": {
+    "allowedMissCosts": [
+      "LOW"
+    ],
+    "maxElapsedFractionOfSupervision": 0.5,
+    "text": "A low-cost anchor may give the air to a critical flexible block while consecutive misses are below the tolerated count and well before the supervision timeout."
+  }
+}

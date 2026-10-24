@@ -1,0 +1,184 @@
+{
+ "_note": "Design tokens (spec 7B.3), defined once for both themes and used everywhere. Colour-blind safety and contrast are checked by the automated tests.",
+ "typography": {
+  "ui": "system-ui, 'Segoe UI', Roboto, sans-serif",
+  "mono": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+  "basePx": 14,
+  "diagramMinPx": 12
+ },
+ "spacing": {
+  "gridPx": 8,
+  "radiusPx": 6
+ },
+ "animation": {
+  "maxMs": 400
+ },
+ "laneTint": {
+  "maxDarken": 0.22,
+  "steps": 6
+ },
+ "themes": {
+  "light": {
+   "bg": "#FFFFFF",
+   "panel": "#F6F7F9",
+   "laneBg": "#FFFFFF",
+   "laneAlt": "#FFFFFF",
+   "text": "#1B1F24",
+   "textMuted": "#4A5560",
+   "border": "#C9CFD6",
+   "focus": "#0B57D0",
+   "bt": "#1F6FEB",
+   "btLight": "#DCE8FD",
+   "wifi": "#E8710A",
+   "wifiLight": "#FCE6D3",
+   "conflict": "#D93025",
+   "conflictOpacity": 0.15,
+   "denied": "#D93025",
+   "degraded": "#B06A00",
+   "warning": "#F9AB00",
+   "afhRemoved": "#9AA0A6",
+   "selected": "#111418",
+   "granted": "#1E7A3B",
+   "tolerated": "#1E7A3B",
+   "delayedGhost": "#6B7580",
+   "retry": "#1B1F24",
+   "afhMark": "#5F6368"
+  },
+  "dark": {
+   "bg": "#0F1318",
+   "panel": "#171C22",
+   "laneBg": "#11161B",
+   "laneAlt": "#161B21",
+   "text": "#E8EBEF",
+   "textMuted": "#A8B1BB",
+   "border": "#3A434D",
+   "focus": "#8AB4F8",
+   "bt": "#5B9DFF",
+   "btLight": "#1B2E4D",
+   "wifi": "#FF9A3C",
+   "wifiLight": "#4A2E12",
+   "conflict": "#FF6B5E",
+   "conflictOpacity": 0.22,
+   "denied": "#FF6B5E",
+   "degraded": "#FFB547",
+   "warning": "#FFD166",
+   "afhRemoved": "#8A9199",
+   "selected": "#F4F6F8",
+   "granted": "#5CC27E",
+   "tolerated": "#5CC27E",
+   "delayedGhost": "#9AA5B1",
+   "retry": "#E8EBEF",
+   "afhMark": "#B4BCC5"
+  }
+ },
+ "cues": [
+  {
+   "id": "bluetooth",
+   "meaning": "Bluetooth",
+   "color": "bt",
+   "pattern": "Solid fill for transmit, outlined with light fill for receive",
+   "shape": "Block in the upper half of the lane for TX, lower half for RX",
+   "where": "Bluetooth lane blocks",
+   "example": "An A2DP data packet sent by the device."
+  },
+  {
+   "id": "wifi",
+   "meaning": "Wi-Fi",
+   "color": "wifi",
+   "pattern": "Solid fill for transmit, outlined with light fill for receive",
+   "shape": "Block in the upper half of the lane for TX, lower half for RX",
+   "where": "Wi-Fi lane blocks",
+   "example": "A video burst received from the access point."
+  },
+  {
+   "id": "conflict",
+   "meaning": "Conflict region",
+   "color": "conflict",
+   "pattern": "Diagonal edge lines on the band",
+   "shape": "Numbered marker at the top of the band",
+   "where": "Vertical band over the overlap time",
+   "example": "A Bluetooth packet and a Wi-Fi burst overlap on a shared antenna."
+  },
+  {
+   "id": "granted",
+   "meaning": "Granted",
+   "color": "granted",
+   "pattern": "Normal fill",
+   "shape": "Small filled tick at the top right of the block",
+   "where": "Blocks that won arbitration",
+   "example": "Wi-Fi was granted over A2DP with one packet waiting."
+  },
+  {
+   "id": "denied",
+   "meaning": "Denied or lost",
+   "color": "denied",
+   "pattern": "Diagonal strike line across the block",
+   "shape": "Red outline and a small cross",
+   "where": "Blocks that lost",
+   "example": "A connection event denied outside its time slice."
+  },
+  {
+   "id": "delayed",
+   "meaning": "Delayed",
+   "color": "delayedGhost",
+   "pattern": "Dashed outline at the original time",
+   "shape": "Dashed arrow to the new position",
+   "where": "Blocks moved later",
+   "example": "A2DP packet moved after a Wi-Fi burst."
+  },
+  {
+   "id": "degraded",
+   "meaning": "Degraded",
+   "color": "degraded",
+   "pattern": "Cross-hatch fill",
+   "shape": "Small warning triangle",
+   "where": "Blocks likely corrupted",
+   "example": "A hop inside the Wi-Fi channel with low isolation."
+  },
+  {
+   "id": "tolerated",
+   "meaning": "Tolerated",
+   "color": "tolerated",
+   "pattern": "Block colour unchanged",
+   "shape": "Small open tick at the top right",
+   "where": "Overlaps that were harmless",
+   "example": "Both radios receiving at the same time."
+  },
+  {
+   "id": "retry",
+   "meaning": "Retry",
+   "color": "retry",
+   "pattern": "Block colour unchanged",
+   "shape": "Small circular arrow badge with the attempt number",
+   "where": "Retry blocks",
+   "example": "Second attempt of a denied connection event."
+  },
+  {
+   "id": "warning",
+   "meaning": "Warning",
+   "color": "warning",
+   "pattern": "Yellow tint",
+   "shape": "Small exclamation badge",
+   "where": "Out-of-band risk",
+   "example": "Bluetooth transmits near, but not inside, the Wi-Fi channel."
+  },
+  {
+   "id": "afhRemoved",
+   "meaning": "Adaptive hopping removed channel",
+   "color": "afhRemoved",
+   "pattern": "Dotted fill",
+   "shape": "Grey cell in the channel map strip",
+   "where": "Frequency view",
+   "example": "Channel 40 is not used after the map takes effect."
+  },
+  {
+   "id": "selected",
+   "meaning": "Selected item",
+   "color": "selected",
+   "pattern": "None",
+   "shape": "Dark outline, 2 px, with a soft glow",
+   "where": "Currently selected block or conflict",
+   "example": "The block whose explanation is open."
+  }
+ ]
+}

@@ -1,0 +1,10 @@
+{
+  "_note": "Duration = fixedOverheadUs + (overheadBytes + payloadBytes) * usPerByte. 1M 8 us/byte, 2M 4, Coded S8 64, Coded S2 16 (spec 7A.4). overheadBytes covers the 2 byte header and 3 byte CRC. Coded fixed overhead covers preamble, access address, coding indicator and both terminators.",
+  "phys": {
+    "1M":       { "label": "LE 1M",        "usPerByte": 8,  "fixedOverheadUs": 40,  "overheadBytes": 5, "minCore": 4.0 },
+    "2M":       { "label": "LE 2M",        "usPerByte": 4,  "fixedOverheadUs": 24,  "overheadBytes": 5, "minCore": 5.0 },
+    "CODED_S2": { "label": "LE Coded S=2", "usPerByte": 16, "fixedOverheadUs": 382, "overheadBytes": 5, "minCore": 5.0 },
+    "CODED_S8": { "label": "LE Coded S=8", "usPerByte": 64, "fixedOverheadUs": 400, "overheadBytes": 5, "minCore": 5.0 }
+  },
+  "isoMinCore": 5.2
+}

@@ -1,0 +1,709 @@
+{
+  "_note": "Source of truth for the Assumptions panel and ASSUMPTIONS.md. Run `npm run assumptions` to regenerate ASSUMPTIONS.md.",
+  "assumptions": [
+    {
+      "id": "S-1",
+      "source": "spec 7A.13",
+      "text": "Bluetooth hop selection is pseudo-random and uniform over the allowed set, not the exact specification kernel.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "spec",
+      "area": "Bluetooth"
+    },
+    {
+      "id": "S-2",
+      "source": "spec 7A.13",
+      "text": "Wi-Fi contention is simplified, with no hidden nodes and no other networks.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "spec",
+      "area": "Wi-Fi"
+    },
+    {
+      "id": "S-3",
+      "source": "spec 7A.13",
+      "text": "Receiver desensitisation is a threshold model, not an RF model.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "spec",
+      "area": "Platform"
+    },
+    {
+      "id": "S-4",
+      "source": "spec 7A.13",
+      "text": "Packet durations come from tables, not from bit-level encoding.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "spec",
+      "area": "Timing"
+    },
+    {
+      "id": "S-5",
+      "source": "spec 7A.13",
+      "text": "Behaviour labelled \"Implementations vary\" (arbitration policy, priority table, isolation threshold, AFH delay) uses generic defaults and is configurable.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "spec",
+      "area": "Arbitration"
+    },
+    {
+      "id": "S-6",
+      "source": "spec 7A.13",
+      "text": "No real RF power levels, path loss, or modulation errors are modelled in the prototype.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "spec",
+      "area": "Platform"
+    },
+    {
+      "id": "A-1",
+      "source": "spec 7A.4",
+      "text": "EDR packet types (2-DH, 3-DH, 2-EV, 3-EV) use the same on-air occupancy as the basic-rate packet with the same slot count: 366, 1622 and 2870 us for 1, 3 and 5 slots.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Bluetooth"
+    },
+    {
+      "id": "A-2",
+      "source": "spec 7A.12 Example 1",
+      "text": "The A2DP slave reply defaults to a 5-slot packet, taken literally from Example 1 (\"5-slot slave replies in slot pairs\"). Real devices usually reply with a short acknowledgement; a Reply packet parameter lets the user change it.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Bluetooth"
+    },
+    {
+      "id": "A-3",
+      "source": "spec 7A.8",
+      "text": "The base priority table has no entry for Classic ACL data, so one was added (BT_ACL_DATA, 35, just below A2DP). Channel Sounding and direction finding use this class.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Arbitration"
+    },
+    {
+      "id": "A-4",
+      "source": "spec 7A.8",
+      "text": "The spec gives the critical priority for A2DP only (equal to isochronous audio, 90). For other buffered streams the critical priorities are 95 for LE Audio and 75 for Wi-Fi video streaming. All values are in priorityTable.json.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Arbitration"
+    },
+    {
+      "id": "A-5",
+      "source": "spec 7C P-4",
+      "text": "\"HFP\" is treated as any SCO or eSCO voice link, tagged VOICE_LINK, because the profile has no air footprint of its own.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Validation"
+    },
+    {
+      "id": "A-6",
+      "source": "spec 7A.2, 6.3",
+      "text": "Platform fields were added beyond 7A.2 so that FR-8 to FR-14a and rules F-1, P-3 and T-6 can be evaluated: femArrangement, wifiChains, simultaneousWifiTxBtRx, wifiMultiRole, mloSimultaneousTxRx, btMaxVersion, timeShareBtPercent, timeShareSliceUs, afhDelayUs, guardMHz, interactionThresholdDb, and the device limits maxBleConnections, maxEscoLinks and maxIsoStreams. antennaMode and femArrangement are both stored so that rule F-1 can detect a contradiction.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Platform"
+    },
+    {
+      "id": "A-7",
+      "source": "spec FR-5, FR-7",
+      "text": "Every Wi-Fi task has its own Channel and Bandwidth parameters. The value 0 means use the platform setting. This lets rule P-7 compare tasks, for example a station and a soft-AP.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Wi-Fi"
+    },
+    {
+      "id": "A-8",
+      "source": "spec 7C T-6, P-7",
+      "text": "T-6 fires when access-point and station tasks are selected and the platform does not allow Wi-Fi multi-role. P-7 fires when two non-scanning Wi-Fi tasks use different channels or widths on a single core that is not in concurrent mode. Scans and roaming sweep many channels and are exempt.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Validation"
+    },
+    {
+      "id": "A-9",
+      "source": "spec 7C F-5",
+      "text": "F-5 is read literally: it fires when the AFH minimum is greater than the number of Classic channels outside the Wi-Fi footprint plus guard, plus the protocol minimum of 20.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Validation"
+    },
+    {
+      "id": "A-10",
+      "source": "spec 7C W-1",
+      "text": "W-1 fires when the window is shorter than twice a task's repeat interval (fewer than two events). One-shot and irregular-burst tasks are excluded.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Validation"
+    },
+    {
+      "id": "A-11",
+      "source": "spec 7C P-6",
+      "text": "P-6 fires above 8 Bluetooth tasks, above 8 Wi-Fi tasks, or above 12 tasks in total. The thresholds are in limits.json.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Validation"
+    },
+    {
+      "id": "A-12",
+      "source": "spec 7C R-1, R-2",
+      "text": "The Classic slot budget counts, for each reserved or polling link, 2 times the packet slot count per pair, times the pairs, plus the retransmission window, divided by the interval. Only tasks that declare a slot reservation in the catalogue are counted.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Validation"
+    },
+    {
+      "id": "A-13",
+      "source": "spec 7A.5",
+      "text": "Wi-Fi generations without aggregation (802.11a, b, g) carry one 1500 byte frame per burst. Control and management frames use the legacy preamble and a basic or control rate. Service and tail bits are not modelled. DIFS is SIFS plus two slot times.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Wi-Fi"
+    },
+    {
+      "id": "A-14",
+      "source": "spec 7C W-2",
+      "text": "The block estimate uses the expected number of events for irregular-burst tasks, rounded up, and always counts at least one event for each task.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Validation"
+    },
+    {
+      "id": "A-15",
+      "source": "spec 7A.8",
+      "text": "Anchor flags: SCO, eSCO, sniff and HID are HIGH miss cost; LE Audio is MEDIUM; LE connection, periodic advertising, Classic ACL polling and Wi-Fi beacon or DTIM wake-ups are LOW. Beacon and DTIM protection and Classic ACL polling are labelled Implementations vary.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Arbitration"
+    },
+    {
+      "id": "A-16",
+      "source": "spec 7C T-1, T-4",
+      "text": "Target Wake Time and multi-link operation are gated by the Wi-Fi feature list (rule T-4). Rule T-1 compares a Wi-Fi task's minimum generation, which is empty for these two tasks, so one problem is never reported twice.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Validation"
+    },
+    {
+      "id": "A-17",
+      "source": "spec 7A.4",
+      "text": "BLE packet duration is fixed overhead plus (header, CRC and payload bytes) times microseconds per byte. Coded PHY fixed overhead covers preamble, access address, coding indicator and both terminators (400 us for S=8, 382 us for S=2).",
+      "label": "STANDARD",
+      "milestone": "M1",
+      "area": "Bluetooth"
+    },
+    {
+      "id": "A-18",
+      "source": "spec 7A.5",
+      "text": "Wi-Fi PHY rate is the highest modulation and coding scheme rate for one stream with a short guard interval, multiplied by the stream count. Rate step-down for retries multiplies this by factors in wifiTiming.json.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Wi-Fi"
+    },
+    {
+      "id": "A-19",
+      "source": "spec 6.2",
+      "text": "Wi-Fi scan channel lists are offered as two choices (1, 6, 11 and 1 to 13) and sweep 2.4 GHz channels. Scans on 5 and 6 GHz are not modelled.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Wi-Fi"
+    },
+    {
+      "id": "A-20",
+      "source": "spec 7C P-2",
+      "text": "The exclusive-pair table starts empty, as the spec says. Classic discovery tasks that overlap in time are scheduled one after the other by the engine.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M1",
+      "area": "Validation"
+    },
+    {
+      "id": "A-21",
+      "source": "spec SR-1",
+      "text": "The simulation window is a hard cutoff. A block that would start at or after the end of the window is not created. A block that starts inside the window keeps its full duration even if it ends after the window.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M2",
+      "area": "Timing"
+    },
+    {
+      "id": "A-22",
+      "source": "spec 7A.4",
+      "text": "Random advertising delay (0 to 10 ms) is drawn once per event and accumulates: the next event is the previous one plus the interval plus that event's delay. Each task draws from its own random stream, derived from the seed and the task instance id, so adding a task never changes another task's random numbers.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M2",
+      "area": "Timing"
+    },
+    {
+      "id": "A-23",
+      "source": "spec 7A.4",
+      "text": "In Classic slot schedules the master packet starts in an even slot and the slave reply starts in the slot straight after the master packet ends; the next pair starts at the next even slot after the reply. Every Classic block is its own hop (each slot hops).",
+      "label": "STANDARD",
+      "milestone": "M2",
+      "area": "Bluetooth"
+    },
+    {
+      "id": "A-24",
+      "source": "spec 7A.5",
+      "text": "Wi-Fi medium access before each burst is DIFS plus a random backoff of 0 to 15 slots (the first packet of an event that transmits). Receive-only events such as beacon reception have no backoff. A burst that would overrun the next one pushes it back, so bursts of one task never overlap.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M2",
+      "area": "Wi-Fi"
+    },
+    {
+      "id": "A-25",
+      "source": "spec 7A.3",
+      "text": "Reactive follow-ups of a scan window (SCAN_REQ and SCAN_RSP, CONNECT_IND) are placed straight after the window that triggered them, one set per window, or only after the first window for initiating.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M2",
+      "area": "Bluetooth"
+    },
+    {
+      "id": "A-26",
+      "source": "spec 7A.3",
+      "text": "Irregular bursts use exponentially distributed gaps (a Poisson process) with the requested average rate. A short window can therefore hold fewer bursts than the average suggests.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M2",
+      "area": "Wi-Fi"
+    },
+    {
+      "id": "A-27",
+      "source": "spec 6.2",
+      "text": "Wi-Fi multi-link operation sends bursts alternately on the selected links. The 2.4 GHz link uses the platform channel (width capped at 40 MHz); 5 GHz uses channel 36 and 6 GHz channel 5 unless changed in the data file.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M2",
+      "area": "Wi-Fi"
+    },
+    {
+      "id": "A-28",
+      "source": "spec 7A.7",
+      "text": "The severity table in the spec has no row for Transmit against Transmit with no frequency overlap. It is filled in as HARD on a shared path and TOLERATED on separate paths. All cells are in conflictSeverity.json.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M3",
+      "area": "Conflicts"
+    },
+    {
+      "id": "A-29",
+      "source": "spec 7A.7, SR-20",
+      "text": "Bluetooth and Wi-Fi are forced to take turns (the \"shared\" column) when the antenna is shared, when the core mode is not CONCURRENT (a shared core), or, for Bluetooth receive against Wi-Fi transmit, when simultaneous Wi-Fi TX with Bluetooth RX is switched off. Otherwise isolation against the threshold picks the column.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M3",
+      "area": "Conflicts"
+    },
+    {
+      "id": "A-30",
+      "source": "spec 7A.6",
+      "text": "A Bluetooth channel overlaps Wi-Fi when its footprint intersects the Wi-Fi footprint widened by the guard (open intervals). For Wi-Fi channel 6 at 20 MHz and a 1 MHz guard this is 2426 to 2448 MHz, which is 23 Classic channels. The spec text says \"about 22\".",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M3",
+      "area": "Bluetooth"
+    },
+    {
+      "id": "A-31",
+      "source": "spec 7A.6",
+      "text": "The AFH map avoids the operating channels of selected 2.4 GHz Wi-Fi tasks (including the 2.4 GHz link of multi-link operation). Scans and roaming sweeps are ignored. If fewer than the minimum channels remain, removed channels furthest from the Wi-Fi centre are put back first.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M3",
+      "area": "Bluetooth"
+    },
+    {
+      "id": "A-32",
+      "source": "spec 7A.6",
+      "text": "Each hop is a seeded uniform draw that is stored on the block. When AFH narrows the channel set, the same draw is mapped onto the reduced set, so a run is repeatable and only blocks after the AFH delay change. BLE advertising channels are not changed by AFH.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M3",
+      "area": "Bluetooth"
+    },
+    {
+      "id": "A-33",
+      "source": "spec 7A.7",
+      "text": "Retransmission blocks that were never triggered (eSCO window, spare ISO subevents) are not on the air and cannot conflict. A retry is a new block that does.",
+      "label": "STANDARD",
+      "milestone": "M3",
+      "area": "Conflicts"
+    },
+    {
+      "id": "A-34",
+      "source": "spec 7A.7",
+      "text": "Only a Bluetooth block against a Wi-Fi block is arbitrated. Blocks of the same technology are not arbitrated against each other, but a block that arbitration moves or retries is never placed on top of another block of its own radio.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M4",
+      "area": "Arbitration"
+    },
+    {
+      "id": "A-35",
+      "source": "spec 7A.8",
+      "text": "Blocks that belong together (a master packet and its reply, a Wi-Fi burst and its acknowledgement) move together when the first block is delayed. A later block cannot be delayed on its own: if it loses, it is denied and the whole group is retried. If the first block is denied, the rest of the group is not sent.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M4",
+      "area": "Arbitration"
+    },
+    {
+      "id": "A-36",
+      "source": "spec 7A.8",
+      "text": "Once the first block of a pair has won, the rest of the pair keeps the priority it won with. Without this the buffer level, which drops as soon as the first packet is granted, would let Wi-Fi take the reply slot of a pair that had just won.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M4",
+      "area": "Arbitration"
+    },
+    {
+      "id": "A-37",
+      "source": "spec 7A.8",
+      "text": "A DELAYED block moves to the earliest time after the winner's whole group has ended that is free of already granted blocks, of blocks on its own radio, and of waiting blocks that would beat it. Classic blocks are placed on an even slot, Wi-Fi blocks add DIFS. A block can be moved at most 16 times (limits.json), then it is denied.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M4",
+      "area": "Arbitration"
+    },
+    {
+      "id": "A-38",
+      "source": "spec 7A.8",
+      "text": "A block moved past the end of the window keeps the status DELAYED and starts after the window. It still occupies its radio, so later moves queue behind it.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M4",
+      "area": "Arbitration"
+    },
+    {
+      "id": "A-39",
+      "source": "spec 7A.8",
+      "text": "Packets waiting in a buffered stream are counted as packets planned so far minus packets delivered. Packets are interchangeable, so the oldest waiting packet is not forced to go first, and the delay shown for one block can be larger than the packet's real wait.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M4",
+      "area": "Arbitration"
+    },
+    {
+      "id": "A-40",
+      "source": "spec 7A.8",
+      "text": "A retransmission of an anchor task is a fallback and is not protected: it competes as an ordinary block at priority 5 (priorityTable.json), below every class, so Wi-Fi wins it. Anchors with medium miss cost (LE Audio) are treated like high-cost anchors and are never given up.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M4",
+      "area": "Arbitration"
+    },
+    {
+      "id": "A-41",
+      "source": "spec 7A.9",
+      "text": "Retry placement: Classic ACL at the next even slot after the pair; eSCO and LE Audio in an existing retransmission slot or spare subevent of the same event; other LE traffic after the next event of the same task; Wi-Fi after DIFS plus a new seeded backoff, with the data frame stretched by the next rate step. Retries stop at the retry limit (default 7) and the block is lost.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M4",
+      "area": "Arbitration"
+    },
+    {
+      "id": "A-42",
+      "source": "spec 7A.8",
+      "text": "TIME_SHARE gives each slice to one technology. Ownership follows a low-discrepancy sequence (golden-ratio steps from a seeded phase), so the long-run split equals the configured ratio and periodic traffic does not line up with one owner for ever. A plain alternating pattern would deny either none or all of a 30 ms BLE link in Example 5, because 30 ms is a multiple of 10 ms. The rule applies whenever the path is shared; a block outside its slice is denied (anchors) or delayed to its next slice, and an overlap inside a slice goes to the block that started first.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M4",
+      "area": "Arbitration"
+    },
+    {
+      "id": "A-43",
+      "source": "spec 7A.8",
+      "text": "In a DEGRADED conflict both blocks are marked DEGRADED and corrupted (interference is mutual in this simple model), and their airtime is still drawn. They are not delayed or denied.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M4",
+      "area": "Conflicts"
+    },
+    {
+      "id": "A-44",
+      "source": "spec 7A.8",
+      "text": "A block with no overlap is GRANTED. A block whose only overlaps are TOLERATED is TOLERATED. A block in a WARNING conflict carries a warning flag. A block that was moved stays DELAYED even after it is granted.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M4",
+      "area": "Conflicts"
+    },
+    {
+      "id": "A-45",
+      "source": "spec 7A.7",
+      "text": "The conflict list shows each overlap at its planned time, so a delayed block's original conflict stays listed, plus any overlap that appears only after a block moved. HARD conflicts are linked to the decision that settled them.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M4",
+      "area": "Conflicts"
+    },
+    {
+      "id": "A-46",
+      "source": "spec 7A.10",
+      "text": "A packet is delivered when its whole group went out (a master packet and its reply, a Wi-Fi burst and its acknowledgement) with no block denied, lost or corrupted, and every block started inside the window. Retries count: a packet is delivered if any attempt in its chain was.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M5",
+      "area": "Metrics"
+    },
+    {
+      "id": "A-47",
+      "source": "spec 7A.10, 7A.12 Example 1",
+      "text": "Throughput impact is the share of requested payload that was lost, corrupted, or still queued at the end of the window beyond what the task may hold. A buffered stream may hold up to its critical threshold (4 packets for A2DP) without penalty, because the rule is that no packet waits past the critical point. Packets queued at the end are always reported separately. Delay by itself is a latency effect, not a loss. Decided by the owner: both figures are reported. Throughput impact is the headline (buffered packets up to the critical threshold are not penalised). 'Not delivered by window end' is the strict count (requested minus delivered, including queued packets) and is shown beside it in the summary, the per-task table and the compare view.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M5",
+      "area": "Metrics"
+    },
+    {
+      "id": "A-48",
+      "source": "spec 7A.10",
+      "text": "For a buffered stream, latency matches the i-th delivery with the i-th packet to arrive (a queue), so the figure is the real wait in the buffer and not the distance a single block was moved.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M5",
+      "area": "Metrics"
+    },
+    {
+      "id": "A-49",
+      "source": "spec 7A.10",
+      "text": "Overlap airtime is measured at the planned positions of first-attempt blocks and counts every time overlap of a Bluetooth and a Wi-Fi block, even when the pair cannot interact. The frequency part uses the Wi-Fi footprint plus guard.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M5",
+      "area": "Metrics"
+    },
+    {
+      "id": "A-50",
+      "source": "spec 7A.8",
+      "text": "Anchors hit and missed are counted per planned event: an event is a hit only if all its blocks went out on time and uncorrupted. The time left before the supervision timeout is the timeout minus the longest gap between events that went out, including the start and end of the window.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M5",
+      "area": "Metrics"
+    },
+    {
+      "id": "A-51",
+      "source": "spec 7A.12 Example 1",
+      "text": "The spec does not give the Wi-Fi video bitrate. The Example 1 preset uses 150 Mbps on a 20 MHz, 2x2 Wi-Fi 7 link, which keeps the stream close to continuous. The catalogue default for the Video streaming task stays at 100 Mbps. At 150 Mbps A2DP is delayed while it has fewer than four packets waiting, becomes critical at four and delays Wi-Fi bursts, no A2DP block is lost, A2DP impact is 0 and Wi-Fi impact is about 7 percent.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M6",
+      "area": "Examples"
+    },
+    {
+      "id": "A-52",
+      "source": "spec 7A.12 Example 1",
+      "text": "\"Every Bluetooth block that overlaps in time with a Wi-Fi block is a HARD conflict\" is read together with the severity table in 7A.7: with a shared antenna, a receive against a receive is TOLERATED, and every overlap that involves a transmit is HARD, whatever the frequency.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M6",
+      "area": "Examples"
+    },
+    {
+      "id": "A-53",
+      "source": "spec 7A.12 Example 3",
+      "text": "The DEGRADED share is measured over all Bluetooth blocks that overlap a Wi-Fi block in time over the 1 second window, with Wi-Fi video as the traffic. With the 23 channels inside the footprint plus guard the result is 26.6 percent, inside the 28 percent plus or minus 5 point band. Over blocks whose conflict involves a transmit it is about 29 percent. Decided by the owner: keep this basis (23 channels, all Bluetooth blocks that overlap a Wi-Fi block in time).",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M6",
+      "area": "Examples"
+    },
+    {
+      "id": "A-54",
+      "source": "spec 7A.12 Example 5",
+      "text": "Example 5 uses the TIME_SHARE slice pattern described in A-42. With a 30 ms interval and 2M PHY, 16 of 34 first-attempt events are denied, each retry follows the next event by one interval, and the added latency for the retried packets is about 30.6 ms. Wi-Fi web browsing is sparse, so the denials come from the slice schedule, not from a Wi-Fi block being on the air.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M6",
+      "area": "Examples"
+    },
+    {
+      "id": "A-55",
+      "source": "spec 7B.13, 9",
+      "text": "Dense areas use level of detail: when blocks are too small or too many, the time view draws density bars (one bar per 4 pixels per lane), and individual blocks only when zoomed in. This bounds the number of drawn elements, so SVG is used throughout and no canvas layer was needed. With more than 20,000 blocks, panning measured at the display refresh rate (60 frames per second) in headless Chromium at every zoom level tried. Revisit canvas if a slower machine shows otherwise.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M7",
+      "area": "Views"
+    },
+    {
+      "id": "A-56",
+      "source": "spec 7B.3",
+      "text": "Both light-theme lane backgrounds are white, because the spec orange (#E8710A) only just reaches 3 to 1 on white. The spec grey for removed channels (#9AA0A6) is 2.6 to 1 on white, so removed channels also carry a darker dotted mark (#5F6368). Amber against red and against orange is close for red-green colour blindness; those pairs are told apart by pattern (hatch against strike, hatch over a solid block), as the spec asks for a pattern with every colour.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M7",
+      "area": "Views"
+    },
+    {
+      "id": "A-57",
+      "source": "spec 7B.9",
+      "text": "At 1x speed the whole simulation window plays in 10 seconds. The speeds 0.1x, 0.5x, 1x and 5x scale that. Step to next event stops at every block start and every conflict start.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M7",
+      "area": "Views"
+    },
+    {
+      "id": "A-58",
+      "source": "spec 7B.8",
+      "text": "The suggestions in the explanation panel are chosen from the conflict: separate antennas for a shared-antenna conflict, adaptive hopping for a frequency overlap on 2.4 GHz, more isolation for a low-isolation conflict, and Bluetooth-favoured arbitration for a hard conflict under the priority policy. At most three are shown. Applying one re-runs the scenario and reports the before and after counts.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M7",
+      "area": "Views"
+    },
+    {
+      "id": "A-59",
+      "source": "spec 7B.8",
+      "text": "The sentence \"What it means for the user\" is built from the task tags and the final status of each block: audio, voice, anchor links and Wi-Fi throughput each have their own wording, with a generic fallback.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M7",
+      "area": "Views"
+    },
+    {
+      "id": "A-60",
+      "source": "spec 7B.6",
+      "text": "The waterfall draws hops of blocks that went out (granted, delayed, tolerated or degraded). Blocks that were denied are not drawn there, and the planned position of a delayed block is shown in the time view only.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M7",
+      "area": "Views"
+    },
+    {
+      "id": "A-61",
+      "source": "spec 7B.4",
+      "text": "A delayed block that was moved past the end of the window is shown by its dashed ghost at the planned time with an arrow running to the edge of the view.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M7",
+      "area": "Views"
+    },
+    {
+      "id": "A-62",
+      "source": "spec 7B.13",
+      "text": "At most 300 blocks in view are reachable with the Tab key, to keep keyboard navigation usable; every block still has an accessible description, and the conflict markers and the conflict list reach every conflict.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M7",
+      "area": "Views"
+    },
+    {
+      "id": "A-63",
+      "source": "spec 7B.13",
+      "text": "The browser checks in e2e/ open the page with ?e2e, which exposes a small hook to load a generated scenario. The hook is not used by the application itself.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M7",
+      "area": "Views"
+    },
+    {
+      "id": "A-64",
+      "source": "spec 6.3, FR-13",
+      "text": "The priority table edit changes the base priority of a traffic class (allowed 0 to 1000) and the number of waiting packets at which a buffered stream turns critical (1 to 64, per task). Edits are stored in the scenario as overrides, applied to a copy of the data, checked by rule V-1, and saved in files and share links.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M8",
+      "area": "Platform"
+    },
+    {
+      "id": "A-65",
+      "source": "spec 7C.5, F-1",
+      "text": "Choosing a front-end arrangement also sets the antenna mode to match (separate front end gives separate antennas, anything else gives shared), so the two cannot contradict. The change is announced in a message and can be undone.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M8",
+      "area": "Platform"
+    },
+    {
+      "id": "A-66",
+      "source": "spec 7B.12",
+      "text": "Undo history keeps the last 100 steps. Typing in one box counts as one step (edits to the same box within 1.2 seconds are merged). Loading an example, a file or a link is one step.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M8",
+      "area": "Editing"
+    },
+    {
+      "id": "A-67",
+      "source": "spec 7B.12",
+      "text": "A share link holds the scenario in the page address after #s=, as base64url JSON that lists only the values that differ from the defaults. No server is involved. A link that is damaged or has bad values is reported or flagged by the validator, never trusted.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M8",
+      "area": "Files"
+    },
+    {
+      "id": "A-68",
+      "source": "spec 6.1, 7C.5",
+      "text": "When a file or link is missing a field, the default is used and a message lists each one. Values that are present but wrong are kept as they are so the validator reports them (VAL-6). A file that is not a scenario at all is refused with a plain message.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M8",
+      "area": "Files"
+    },
+    {
+      "id": "A-69",
+      "source": "spec 7C.5, VAL-7",
+      "text": "Pressing Generate with warnings asks for confirmation. The choice 'do not ask again' lasts until the page is reloaded and is not stored anywhere.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M8",
+      "area": "Validation"
+    },
+    {
+      "id": "A-70",
+      "source": "spec 7B.12",
+      "text": "Examples, loaded files and share links that have no errors and no warnings generate the view at once. If they have warnings or errors, the tool stays on the builder and shows the issues, and the user presses Generate.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M8",
+      "area": "Files"
+    },
+    {
+      "id": "A-71",
+      "source": "spec 7B.10",
+      "text": "Compare saves the current run as A, and B is the run on screen when Compare is pressed again. A measure is graded better or worse only when a lower or higher value is clearly better (conflicts, losses, delays, throughput impact, latency, misses, supervision margin, overlap). Airtime and the number of tolerated conflicts are shown but not graded.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M8",
+      "area": "Compare"
+    },
+    {
+      "id": "A-72",
+      "source": "spec 7B.12",
+      "text": "Picture exports show what is on screen, including the current zoom and the lane names. The PDF is one landscape A4 page with the time view, the headline numbers and the five most serious conflicts. jsPDF is bundled with the app and loaded only when a PDF is made.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M8",
+      "area": "Export"
+    },
+    {
+      "id": "A-73",
+      "source": "spec 6.2",
+      "text": "The eight Bluetooth use cases are data in useCases.json. Choosing one replaces the task list. Each one is valid on the default platform (a test checks this).",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M8",
+      "area": "Tasks"
+    },
+    {
+      "id": "A-74",
+      "source": "spec 7B.11",
+      "text": "Each lesson lists facts (in a 'verify' list) that a test checks against the engine, so lesson text cannot drift away from the results. Lesson order follows the six worked examples, easiest first. Lessons are data in lessons.json.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Learn"
+    },
+    {
+      "id": "A-75",
+      "source": "spec 7B.11",
+      "text": "The lesson card sits at the top of the right-hand column. The area a step talks about gets a thick outline and a 'Look here' tag, so the highlight is not colour alone. The question at the end is multiple choice with one correct answer, and the explanation shows after any answer.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Learn"
+    },
+    {
+      "id": "A-76",
+      "source": "spec 7B.11",
+      "text": "Lessons you answered correctly, and whether the tour has been seen, are remembered in the browser's local storage only. If storage is blocked the page works the same but the tour shows every visit.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Learn"
+    },
+    {
+      "id": "A-77",
+      "source": "spec 7B.11",
+      "text": "A glossary term is underlined at its first use in each piece of help, lesson or tour text, not at every use, to keep the text readable. Acronyms such as TX and AFH match only in capitals.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Learn"
+    },
+    {
+      "id": "A-78",
+      "source": "spec 7C.5",
+      "text": "Every validation rule topic has plain-language help in helpTopics.json (a test checks that none is missing). The Learn more link in an issue opens it.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Validation"
+    },
+    {
+      "id": "A-79",
+      "source": "spec 7B.13",
+      "text": "The automated accessibility scan (axe, WCAG 2 A and AA rules) must report no serious or critical problems on the empty state, a conflict open, the platform panel and the dark theme. Other checks by script: every control has a name, and every focused control shows an outline of at least 2 pixels.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Accessibility"
+    },
+    {
+      "id": "A-80",
+      "source": "spec 11 AC-9",
+      "text": "The Assumptions panel shows the six assumptions stated in 7A.13 (S-1 to S-6) on one tab, and every assumption added during the build on the other, each with its source, area and label.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Learn"
+    },
+    {
+      "id": "A-81",
+      "source": "spec 12 open question (decided by the owner)",
+      "text": "A sixth worked example, LE Audio plus Wi-Fi, was added: an isochronous stream (10 ms interval, 2M PHY, three subevents, one carrying new audio) shares one antenna and one core with a 20 Mbps Wi-Fi video stream, the policy favours Wi-Fi, window 1 second, seed 1. Expected: 10 of 100 audio events are denied to Wi-Fi and retried, no audio is lost, added latency is one interval (10 ms), 10 anchors missed with no run longer than one. It has its own exact tests and a sixth lesson, so UX-7 now covers six lessons. The first five are unchanged.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Examples"
+    },
+    {
+      "id": "A-82",
+      "source": "spec 9, NFR-2",
+      "text": "The app is built in separate files: libraries, the data files, the PDF library, the compare view and the glossary and assumptions panels load only when needed. No file is over 500 kB.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "M9",
+      "area": "Release"
+    }
+  ]
+}

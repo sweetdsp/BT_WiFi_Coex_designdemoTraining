@@ -1,0 +1,77 @@
+{
+  "defaults": {
+    "wifiGeneration": "11be",
+    "wifiBand": "2.4",
+    "wifiChannel": 6,
+    "wifiBandwidth": 20,
+    "btMaxVersion": 6.0,
+    "femArrangement": "SHARED_SWITCH",
+    "antennaMode": "SHARED",
+    "isolationDb": 20,
+    "coreCount": 1,
+    "coreMode": "TIME_DIVISION",
+    "txRxStreams": "2x2",
+    "wifiChains": 2,
+    "simultaneousWifiTxBtRx": false,
+    "wifiMultiRole": false,
+    "arbitrationPolicy": "PRIORITY",
+    "timeShareBtPercent": 50,
+    "timeShareSliceUs": 5000,
+    "afhEnabled": false,
+    "afhMinChannelsClassic": 20,
+    "afhMinChannelsBle": 2,
+    "afhDelayUs": 100000,
+    "guardMHz": 1,
+    "interactionThresholdDb": 15,
+    "retryLimit": 7,
+    "seed": 1,
+    "windowUs": 100000,
+    "maxBleConnections": 8,
+    "maxEscoLinks": 1,
+    "maxIsoStreams": 4,
+    "mloSimultaneousTxRx": false
+  },
+  "presets": [
+    {
+      "id": "single-antenna-combo",
+      "name": "Single-antenna combo chip",
+      "description": "One shared antenna and one core, so Wi-Fi and Bluetooth take turns.",
+      "label": "IMPLEMENTATION_VARIES",
+      "overrides": {
+        "femArrangement": "SHARED_SWITCH",
+        "antennaMode": "SHARED",
+        "coreCount": 1,
+        "coreMode": "TIME_DIVISION",
+        "isolationDb": 20
+      }
+    },
+    {
+      "id": "dual-antenna-phone",
+      "name": "Dual-antenna phone",
+      "description": "Separate antennas with moderate isolation and separate cores that can run together.",
+      "label": "IMPLEMENTATION_VARIES",
+      "overrides": {
+        "femArrangement": "SEPARATE",
+        "antennaMode": "SEPARATE",
+        "coreCount": 2,
+        "coreMode": "CONCURRENT",
+        "isolationDb": 25,
+        "simultaneousWifiTxBtRx": true
+      }
+    },
+    {
+      "id": "high-isolation-discrete",
+      "name": "Discrete radios, high isolation",
+      "description": "Separate antennas, separate cores and high isolation: most overlaps are harmless.",
+      "label": "IMPLEMENTATION_VARIES",
+      "overrides": {
+        "femArrangement": "SEPARATE",
+        "antennaMode": "SEPARATE",
+        "coreCount": 2,
+        "coreMode": "CONCURRENT",
+        "isolationDb": 40,
+        "simultaneousWifiTxBtRx": true
+      }
+    }
+  ]
+}

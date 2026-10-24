@@ -1,0 +1,35 @@
+{
+  "_note": "First-visit tour (spec 7B.11): six steps. 'area' names a data-area on the page.",
+  "steps": [
+    {
+      "area": "topbar",
+      "title": "Build or load",
+      "text": "Use the Tasks and Platform tabs on the left to build a scenario, or open Examples. Then press Generate Coex View. The badge beside it says if anything needs fixing."
+    },
+    {
+      "area": "left",
+      "title": "Tasks and platform",
+      "text": "Pick Bluetooth and Wi-Fi activities, then set up the hardware: antennas, isolation, cores and the arbitration policy. Every setting has an info button."
+    },
+    {
+      "area": "time-view",
+      "title": "The time view",
+      "text": "Bluetooth lanes are on top and Wi-Fi lanes below. Red numbered bands are conflicts. Drag to move, use + and − to zoom."
+    },
+    {
+      "area": "freq-view",
+      "title": "The frequency view",
+      "text": "This shows which channels each hop used and where the Wi-Fi channel sits. It follows the time view."
+    },
+    {
+      "area": "explain",
+      "title": "The explanation",
+      "text": "Select a conflict to read what happened, who was involved, why it was a conflict, who won and why, and what would change it."
+    },
+    {
+      "area": "summary",
+      "title": "The summary",
+      "text": "Numbers for the whole run: airtime, overlap, conflicts, delays, throughput impact and anchors. Use Learn for guided lessons and Help for the glossary."
+    }
+  ]
+}

@@ -1,0 +1,319 @@
+{
+  "_note": "Glossary (spec 7B.11). 'match' lists the words that are underlined and open the entry. Add an entry here and it works everywhere.",
+  "terms": [
+    {
+      "id": "tx",
+      "term": "TX (transmit)",
+      "definition": "Sending a radio signal. A device cannot usefully receive on a shared antenna while it transmits.",
+      "label": "STANDARD",
+      "match": [
+        "TX",
+        "transmit",
+        "transmitting",
+        "transmission"
+      ]
+    },
+    {
+      "id": "rx",
+      "term": "RX (receive)",
+      "definition": "Listening for a signal. Receiving is very sensitive, so a nearby transmit can drown it out.",
+      "label": "STANDARD",
+      "match": [
+        "RX",
+        "receive",
+        "receiving"
+      ]
+    },
+    {
+      "id": "slot",
+      "term": "Slot",
+      "definition": "Bluetooth Classic divides time into 625 microsecond slots. Packets start on slot boundaries and last one, three or five slots.",
+      "label": "STANDARD",
+      "match": [
+        "slot",
+        "slots"
+      ]
+    },
+    {
+      "id": "hop",
+      "term": "Hop",
+      "definition": "A Bluetooth radio changes channel again and again, and each change is a hop. Classic hops every slot across 79 channels.",
+      "label": "STANDARD",
+      "match": [
+        "hop",
+        "hops",
+        "hopping"
+      ]
+    },
+    {
+      "id": "footprint",
+      "term": "Footprint",
+      "definition": "The range of frequencies a transmission covers. A Wi-Fi 20 MHz channel has a footprint about 20 MHz wide; a Bluetooth hop covers 1 MHz.",
+      "label": "STANDARD",
+      "match": [
+        "footprint",
+        "footprints"
+      ]
+    },
+    {
+      "id": "isolation",
+      "term": "Isolation",
+      "definition": "How many decibels weaker a transmitter's signal is at the other radio's receiver, thanks to antenna spacing and filtering. More is better.",
+      "label": "STANDARD",
+      "match": [
+        "isolation"
+      ]
+    },
+    {
+      "id": "desense",
+      "term": "Desense",
+      "definition": "Desensitisation: a strong nearby signal makes a receiver deaf to weak ones. It is the main harm when isolation is low.",
+      "label": "STANDARD",
+      "match": [
+        "desense",
+        "desensitisation"
+      ]
+    },
+    {
+      "id": "arbitration",
+      "term": "Arbitration",
+      "definition": "The rule that decides who gets the air when Bluetooth and Wi-Fi both want it. How it decides is an implementation choice.",
+      "label": "IMPLEMENTATION_VARIES",
+      "match": [
+        "arbitration",
+        "arbiter"
+      ]
+    },
+    {
+      "id": "afh",
+      "term": "AFH (adaptive frequency hopping)",
+      "definition": "Bluetooth stops hopping onto channels that are busy, such as those under a Wi-Fi channel. It needs time to notice and to agree the new map with the peer.",
+      "label": "STANDARD",
+      "match": [
+        "AFH",
+        "adaptive hopping",
+        "adaptive frequency hopping"
+      ]
+    },
+    {
+      "id": "esco",
+      "term": "eSCO",
+      "definition": "Extended synchronous connection: a Bluetooth Classic voice link with reserved slots and a limited number of retransmissions.",
+      "label": "STANDARD",
+      "match": [
+        "eSCO",
+        "SCO"
+      ]
+    },
+    {
+      "id": "a2dp",
+      "term": "A2DP",
+      "definition": "Advanced Audio Distribution Profile: streaming stereo music over Bluetooth Classic. It buffers audio, so it tolerates small delays but not long ones.",
+      "label": "STANDARD",
+      "match": [
+        "A2DP"
+      ]
+    },
+    {
+      "id": "ble",
+      "term": "BLE (Bluetooth Low Energy)",
+      "definition": "The low-power Bluetooth. It works in short events at fixed intervals and uses 40 channels of 2 MHz.",
+      "label": "STANDARD",
+      "match": [
+        "BLE",
+        "Low Energy"
+      ]
+    },
+    {
+      "id": "connection-event",
+      "term": "Connection event",
+      "definition": "A scheduled exchange between two BLE devices. If one is missed, the next chance is a whole interval later.",
+      "label": "STANDARD",
+      "match": [
+        "connection event",
+        "connection events"
+      ]
+    },
+    {
+      "id": "anchor",
+      "term": "Anchor",
+      "definition": "A connection event the link depends on. Missing too many in a row breaks the link, so anchors are protected.",
+      "label": "IMPLEMENTATION_VARIES",
+      "match": [
+        "anchor",
+        "anchors"
+      ]
+    },
+    {
+      "id": "supervision-timeout",
+      "term": "Supervision timeout",
+      "definition": "How long a Bluetooth link may go without a good packet before it is declared lost.",
+      "label": "STANDARD",
+      "match": [
+        "supervision timeout"
+      ]
+    },
+    {
+      "id": "priority",
+      "term": "Priority",
+      "definition": "A number that says how much a block deserves the air. It is not fixed: it rises as the need becomes urgent.",
+      "label": "IMPLEMENTATION_VARIES",
+      "match": [
+        "priority",
+        "priorities"
+      ]
+    },
+    {
+      "id": "critical",
+      "term": "Critical",
+      "definition": "A buffered stream is critical when so many packets are waiting that it is close to running dry. Its priority is raised.",
+      "label": "IMPLEMENTATION_VARIES",
+      "match": [
+        "critical"
+      ]
+    },
+    {
+      "id": "retransmission",
+      "term": "Retransmission",
+      "definition": "Sending a packet again after it was lost or corrupted.",
+      "label": "STANDARD",
+      "match": [
+        "retransmission",
+        "retransmissions",
+        "retry",
+        "retries",
+        "retried"
+      ]
+    },
+    {
+      "id": "conflict",
+      "term": "Conflict",
+      "definition": "A moment when a Bluetooth block and a Wi-Fi block overlap and also interact: shared antenna or core, overlapping frequency, or low isolation.",
+      "label": "IMPLEMENTATION_VARIES",
+      "match": [
+        "conflict",
+        "conflicts"
+      ]
+    },
+    {
+      "id": "tolerated",
+      "term": "Tolerated",
+      "definition": "An overlap that does no harm, for example when the radios are well isolated.",
+      "label": "IMPLEMENTATION_VARIES",
+      "match": [
+        "tolerated"
+      ]
+    },
+    {
+      "id": "degraded",
+      "term": "Degraded",
+      "definition": "Both blocks went out but were probably corrupted, because their frequencies overlapped.",
+      "label": "IMPLEMENTATION_VARIES",
+      "match": [
+        "degraded"
+      ]
+    },
+    {
+      "id": "guard",
+      "term": "Guard band",
+      "definition": "A margin added on each side of a Wi-Fi channel to allow for leakage into neighbouring frequencies.",
+      "label": "IMPLEMENTATION_VARIES",
+      "match": [
+        "guard band",
+        "guard"
+      ]
+    },
+    {
+      "id": "antenna",
+      "term": "Shared antenna",
+      "definition": "One antenna serving both radios, usually through a switch. Only one can use it at a time.",
+      "label": "STANDARD",
+      "match": [
+        "shared antenna",
+        "antenna"
+      ]
+    },
+    {
+      "id": "core",
+      "term": "Core",
+      "definition": "A processing core that runs a radio's firmware. Radios on one core cannot act at the same instant.",
+      "label": "IMPLEMENTATION_VARIES",
+      "match": [
+        "core",
+        "cores"
+      ]
+    },
+    {
+      "id": "time-share",
+      "term": "Time sharing",
+      "definition": "An arbitration policy that gives the air to Bluetooth for a fixed share of each slice and to Wi-Fi for the rest.",
+      "label": "IMPLEMENTATION_VARIES",
+      "match": [
+        "time sharing",
+        "time share"
+      ]
+    },
+    {
+      "id": "window",
+      "term": "Simulation window",
+      "definition": "The stretch of time the tool simulates, for example 100 milliseconds. Results are only about that stretch.",
+      "label": "IMPLEMENTATION_VARIES",
+      "match": [
+        "window"
+      ]
+    },
+    {
+      "id": "seed",
+      "term": "Seed",
+      "definition": "A number that fixes the random choices, such as which channel a hop lands on. The same seed always gives the same result.",
+      "label": "IMPLEMENTATION_VARIES",
+      "match": [
+        "seed"
+      ]
+    },
+    {
+      "id": "tdd",
+      "term": "Time division",
+      "definition": "Two radios on one core taking turns in time rather than running at the same moment.",
+      "label": "IMPLEMENTATION_VARIES",
+      "match": [
+        "time division",
+        "time-division"
+      ]
+    },
+    {
+      "id": "fem",
+      "term": "Front end",
+      "definition": "The antenna switch and filters between the radios and the antenna.",
+      "label": "IMPLEMENTATION_VARIES",
+      "match": [
+        "front end",
+        "front-end"
+      ]
+    },
+    {
+      "id": "backoff",
+      "term": "Backoff",
+      "definition": "Wi-Fi waits a random short time before sending, so that devices do not all start together.",
+      "label": "STANDARD",
+      "match": [
+        "backoff"
+      ]
+    },
+    {
+      "id": "iso",
+      "term": "Isochronous stream (CIS)",
+      "definition": "A Bluetooth LE Audio stream sent at fixed intervals. Each event has spare subevents that carry retransmissions.",
+      "label": "STANDARD",
+      "match": [
+        "isochronous",
+        "LE Audio",
+        "CIS",
+        "spare slots",
+        "spare subevents",
+        "subevent",
+        "subevents"
+      ]
+    }
+  ]
+}

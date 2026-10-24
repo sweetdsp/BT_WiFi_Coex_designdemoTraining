@@ -1,0 +1,31 @@
+{
+  "_note": "Classic packet occupancy per slot count is owner-reviewed (spec 7A.4): 1 slot 366 us, 3 slots 1622 us, 5 slots 2870 us. EDR packets use the same occupancy for the same slot count (see ASSUMPTIONS.md).",
+  "packets": {
+    "ID":     { "slots": 1, "durationUs": 68,   "maxPayloadBytes": 0,    "kind": "ID",    "family": "CTRL" },
+    "NULL":   { "slots": 1, "durationUs": 126,  "maxPayloadBytes": 0,    "kind": "POLL",  "family": "CTRL" },
+    "POLL":   { "slots": 1, "durationUs": 126,  "maxPayloadBytes": 0,    "kind": "POLL",  "family": "CTRL" },
+    "FHS":    { "slots": 1, "durationUs": 366,  "maxPayloadBytes": 18,   "kind": "MGMT",  "family": "CTRL" },
+    "DM1":    { "slots": 1, "durationUs": 366,  "maxPayloadBytes": 17,   "kind": "DATA",  "family": "ACL" },
+    "DH1":    { "slots": 1, "durationUs": 366,  "maxPayloadBytes": 27,   "kind": "DATA",  "family": "ACL" },
+    "DM3":    { "slots": 3, "durationUs": 1622, "maxPayloadBytes": 121,  "kind": "DATA",  "family": "ACL" },
+    "DH3":    { "slots": 3, "durationUs": 1622, "maxPayloadBytes": 183,  "kind": "DATA",  "family": "ACL" },
+    "DM5":    { "slots": 5, "durationUs": 2870, "maxPayloadBytes": 224,  "kind": "DATA",  "family": "ACL" },
+    "DH5":    { "slots": 5, "durationUs": 2870, "maxPayloadBytes": 339,  "kind": "DATA",  "family": "ACL" },
+    "2-DH1":  { "slots": 1, "durationUs": 366,  "maxPayloadBytes": 54,   "kind": "DATA",  "family": "ACL" },
+    "2-DH3":  { "slots": 3, "durationUs": 1622, "maxPayloadBytes": 367,  "kind": "DATA",  "family": "ACL" },
+    "2-DH5":  { "slots": 5, "durationUs": 2870, "maxPayloadBytes": 679,  "kind": "DATA",  "family": "ACL" },
+    "3-DH1":  { "slots": 1, "durationUs": 366,  "maxPayloadBytes": 83,   "kind": "DATA",  "family": "ACL" },
+    "3-DH3":  { "slots": 3, "durationUs": 1622, "maxPayloadBytes": 552,  "kind": "DATA",  "family": "ACL" },
+    "3-DH5":  { "slots": 5, "durationUs": 2870, "maxPayloadBytes": 1021, "kind": "DATA",  "family": "ACL" },
+    "HV1":    { "slots": 1, "durationUs": 366,  "maxPayloadBytes": 10,   "kind": "VOICE", "family": "SCO", "scoIntervalSlots": 2 },
+    "HV2":    { "slots": 1, "durationUs": 366,  "maxPayloadBytes": 20,   "kind": "VOICE", "family": "SCO", "scoIntervalSlots": 4 },
+    "HV3":    { "slots": 1, "durationUs": 366,  "maxPayloadBytes": 30,   "kind": "VOICE", "family": "SCO", "scoIntervalSlots": 6 },
+    "EV3":    { "slots": 1, "durationUs": 366,  "maxPayloadBytes": 30,   "kind": "VOICE", "family": "ESCO" },
+    "EV4":    { "slots": 3, "durationUs": 1622, "maxPayloadBytes": 120,  "kind": "VOICE", "family": "ESCO" },
+    "EV5":    { "slots": 3, "durationUs": 1622, "maxPayloadBytes": 180,  "kind": "VOICE", "family": "ESCO" },
+    "2-EV3":  { "slots": 1, "durationUs": 366,  "maxPayloadBytes": 60,   "kind": "VOICE", "family": "ESCO" },
+    "2-EV5":  { "slots": 3, "durationUs": 1622, "maxPayloadBytes": 360,  "kind": "VOICE", "family": "ESCO" },
+    "3-EV3":  { "slots": 1, "durationUs": 366,  "maxPayloadBytes": 90,   "kind": "VOICE", "family": "ESCO" },
+    "3-EV5":  { "slots": 3, "durationUs": 1622, "maxPayloadBytes": 540,  "kind": "VOICE", "family": "ESCO" }
+  }
+}
