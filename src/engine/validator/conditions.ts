@@ -5,6 +5,8 @@ import { classicPacket } from '../timing/bt';
 import { effectiveWifi, isFiniteNumber, nearestAllowed, paramValueValid, wifiFootprint } from '../params';
 import { parseChannelList } from '../estimate';
 import { wifiGen } from '../timing/wifi';
+import { threadCenterMHz } from '../timing/thread';
+import { threadChannelPlan } from '../threadChannels';
 import type { Finding, ParamDef, PlatformConfig, RuleFix } from '../types';
 import { platformItem, taskItem, type Ctx, type RTask } from './context';
 
@@ -197,6 +199,7 @@ const windowBounds: ConditionFn = (ctx) => {
 
 // ------------------------------------------------------------------ Stage 2
 function versionBlocked(ctx: Ctx, t: RTask): boolean {
+  if (t.def.tech === 'THREAD') return t.def.minVersion > ctx.platform.threadVersion;
   if (t.def.tech === 'BT') return !t.def.isoStream && t.def.minVersion > ctx.platform.btMaxVersion;
   return wifiGenOk(ctx) && t.def.minVersion > cmpGen(ctx, ctx.platform.wifiGeneration).rank;
 }
@@ -224,6 +227,14 @@ const versionUnsupported: ConditionFn = (ctx) => {
             fixes: [setPlatform('raiseBt', 'btMaxVersion', g.btCore, { version: g.btCore.toFixed(1) }), restoreDefault(t, name, def)],
           });
         }
+      }
+    } else if (t.def.tech === 'THREAD') {
+      if (versionBlocked(ctx, t)) {
+        out.push({
+          items: [taskItem(t), platformItem('threadVersion', 'Thread version')],
+          vars: { task: t.name, need: `Thread ${t.def.minVersion.toFixed(1)}`, have: `Thread ${ctx.platform.threadVersion.toFixed(1)}` },
+          fixes: [setPlatform('raiseThread', 'threadVersion', t.def.minVersion, { version: t.def.minVersion.toFixed(1) }), removeTask(t)],
+        });
       }
     } else if (versionBlocked(ctx, t)) {
       const target = gens(ctx).find(([, g]) => g.rank >= t.def.minVersion);
@@ -315,7 +326,7 @@ const featureMissing: ConditionFn = (ctx) => {
 };
 
 const highBandNoOverlap: ConditionFn = (ctx) => {
-  if (ctx.bt.length === 0) return [];
+  if (ctx.bt.length + ctx.thread.length === 0) return [];
   const high = ctx.wifi.filter((t) => {
     if (ctx.platform.wifiBand === '2.4') return false;
     const links = String(t.params.linkBands ?? '');
@@ -455,13 +466,13 @@ const duplicates: ConditionFn = (ctx) => {
 };
 
 const tooManyTasks: ConditionFn = (ctx) => {
-  const lim = ctx.data.limits.maxTasksWarn as { BT: number; WIFI: number; TOTAL: number };
+  const lim = ctx.data.limits.maxTasksWarn as { BT: number; WIFI: number; THREAD: number; TOTAL: number };
   const total = ctx.tasks.length;
-  if (ctx.bt.length > lim.BT || ctx.wifi.length > lim.WIFI || total > lim.TOTAL) {
+  if (ctx.bt.length > lim.BT || ctx.wifi.length > lim.WIFI || ctx.thread.length > lim.THREAD || total > lim.TOTAL) {
     const last = ctx.tasks[ctx.tasks.length - 1];
     return [{
       items: ctx.tasks.map((t) => taskItem(t)),
-      vars: { bt: ctx.bt.length, wifi: ctx.wifi.length, total, limBt: lim.BT, limWifi: lim.WIFI, limTotal: lim.TOTAL },
+      vars: { bt: ctx.bt.length, wifi: ctx.wifi.length, thread: ctx.thread.length, total, limBt: lim.BT, limWifi: lim.WIFI, limThread: lim.THREAD, limTotal: lim.TOTAL },
       fixes: [removeTask(last, 'removeLast')],
     }];
   }
@@ -520,7 +531,7 @@ const airtimeLoad: ConditionFn = (ctx, rp) => {
   const above = Number(ctx.data.limits[rp.above]);
   const upTo = rp.upTo ? Number(ctx.data.limits[rp.upTo]) : Infinity;
   const out: Finding[] = [];
-  for (const [tech, list] of [['Bluetooth', ctx.bt], ['Wi-Fi', ctx.wifi]] as const) {
+  for (const [tech, list] of [['Bluetooth', ctx.bt], ['Wi-Fi', ctx.wifi], ['Thread', ctx.thread]] as const) {
     if (list.length === 0) continue;
     const us = list.reduce((a, t) => a + ctx.load(t).airtimeUs, 0);
     const pct = (us / windowUs) * 100;
@@ -598,6 +609,31 @@ const concurrentLowIsolation: ConditionFn = (ctx) => {
     return [{ items: [platformItem('coreMode', 'Core mode'), platformItem('isolationDb', 'Isolation')], vars: { isolation: p.isolationDb, threshold: p.interactionThresholdDb }, fixes: [setPlatform('raiseIsolation', 'isolationDb', p.interactionThresholdDb, { threshold: p.interactionThresholdDb })] }];
   }
   return [];
+};
+
+/** Bluetooth and Thread together: each is checked against Wi-Fi, but their effect on each other is not simulated (P-8). */
+const bluetoothWithThread: ConditionFn = (ctx) => {
+  if (ctx.bt.length === 0 || ctx.thread.length === 0) return [];
+  return [{
+    items: [...ctx.bt, ...ctx.thread].map((t) => taskItem(t)),
+    vars: { bt: ctx.bt.length, thread: ctx.thread.length },
+    fixes: [removeTask(ctx.thread[ctx.thread.length - 1], 'removeThread'), removeTask(ctx.bt[ctx.bt.length - 1], 'removeBt')],
+  }];
+};
+
+/** The Thread channel sits under a 2.4 GHz Wi-Fi channel (F-7). It is a teaching hint, not an error: this overlap may be the point of the demo. */
+const threadUnderWifi: ConditionFn = (ctx) => {
+  if (ctx.thread.length === 0 || ctx.wifi.length === 0) return [];
+  const ch = ctx.platform.threadChannel;
+  if (!isFiniteNum(ch)) return [];
+  const plan = threadChannelPlan(ctx.cfg, ctx.data);
+  if (!plan.hit) return [];
+  const near = plan.nearestClear;
+  return [{
+    items: [platformItem('threadChannel', 'Thread channel')],
+    vars: { channel: ch, mhz: threadCenterMHz(ctx.data, ch), low: plan.hit[0], high: plan.hit[1], suggest: near ?? ch },
+    fixes: near !== undefined ? [setPlatform('moveThread', 'threadChannel', near, { channel: near, mhz: threadCenterMHz(ctx.data, near) })] : [],
+  }];
 };
 
 const afhNoWifi: ConditionFn = (ctx) => {
@@ -689,7 +725,7 @@ export const conditions: Record<string, ConditionFn> = {
   versionUnsupported, bandwidthBandNotAllowed, phyOrIsoUnsupported, featureMissing, highBandNoOverlap, roleConflict,
   slotCollision, exclusivePairs, groupLimits, a2dpWithVoice, duplicates, tooManyTasks, channelMismatchSingleRadio,
   slotBudget, airtimeLoad, coresCannotServe,
-  platformContradiction, isolationRange, concurrentLowIsolation, afhNoWifi, afhMinTooHigh, timeShareInvalid,
+  platformContradiction, isolationRange, concurrentLowIsolation, bluetoothWithThread, threadUnderWifi, afhNoWifi, afhMinTooHigh, timeShareInvalid,
   windowShort, blockCount,
 };
 

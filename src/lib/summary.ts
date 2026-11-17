@@ -6,6 +6,24 @@ export interface SummaryItem { key: string; label: string; value: string; bar?: 
 const pct = (x: number) => `${x.toFixed(x >= 10 || x === 0 ? 0 : 1)}%`;
 const ms = (us: number) => `${(us / 1000).toFixed(us >= 100000 ? 0 : 1)} ms`;
 
+const present = (m: Metrics, t: 'BT' | 'THREAD') => m.requestedAirtimePct[t] > 0 || m.airtime[t].totalUs > 0;
+/** Airtime of each technology in use. Bluetooth is shown when it is used or when Thread is not (a Wi-Fi-only scenario keeps its Bluetooth figure). */
+function airtimeText(m: Metrics): string {
+  const parts: string[] = [];
+  if (present(m, 'BT') || !present(m, 'THREAD')) parts.push(`BT ${pct(m.airtime.BT.totalPct)}`);
+  if (present(m, 'THREAD')) parts.push(`Thread ${pct(m.airtime.THREAD.totalPct)}`);
+  parts.push(`Wi-Fi ${pct(m.airtime.WIFI.totalPct)}`);
+  return parts.join(' · ');
+}
+function airtimeDetail(m: Metrics): string {
+  const d = (n: string, t: 'BT' | 'THREAD' | 'WIFI') => `${n} TX ${pct(m.airtime[t].txPct)}, RX ${pct(m.airtime[t].rxPct)}`;
+  const parts: string[] = [];
+  if (present(m, 'BT') || !present(m, 'THREAD')) parts.push(d('BT', 'BT'));
+  if (present(m, 'THREAD')) parts.push(d('Thread', 'THREAD'));
+  parts.push(d('Wi-Fi', 'WIFI'));
+  return parts.join('; ');
+}
+
 export function summaryItems(m: Metrics): SummaryItem[] {
   const c = m.conflicts;
   const anchors = Object.values(m.perTask).filter((t) => t.anchor);
@@ -16,7 +34,7 @@ export function summaryItems(m: Metrics): SummaryItem[] {
   const worstUndelivered = Object.values(m.perTask).reduce((a, t) => Math.max(a, t.undeliveredPct), 0);
   const lat = Object.values(m.perTask).reduce((a, t) => ({ max: Math.max(a.max, t.latency.maxUs), n: a.n + t.latency.delayedPackets }), { max: 0, n: 0 });
   return [
-    { key: 'airtime', label: 'Airtime', value: `BT ${pct(m.airtime.BT.totalPct)} · Wi-Fi ${pct(m.airtime.WIFI.totalPct)}`, bar: { fraction: Math.min(1, m.airtime.WIFI.totalPct / 100), tone: 'wifi' }, detail: `BT TX ${pct(m.airtime.BT.txPct)}, RX ${pct(m.airtime.BT.rxPct)}; Wi-Fi TX ${pct(m.airtime.WIFI.txPct)}, RX ${pct(m.airtime.WIFI.rxPct)}` },
+    { key: 'airtime', label: 'Airtime', value: airtimeText(m), bar: { fraction: Math.min(1, m.airtime.WIFI.totalPct / 100), tone: 'wifi' }, detail: airtimeDetail(m) },
     { key: 'overlap', label: 'Overlap', value: `${ms(m.overlap.timeUs)} (${ms(m.overlap.freqUs)} in frequency)`, bar: { fraction: Math.min(1, m.overlap.timePct / 100), tone: 'conflict' } },
     { key: 'conflicts', label: 'Conflicts', value: `${c.total}: ${c.bySeverity.HARD} hard, ${c.bySeverity.DEGRADED} degraded, ${c.bySeverity.WARNING} warning, ${c.bySeverity.TOLERATED} tolerated`, bar: { fraction: c.total ? c.bySeverity.HARD / c.total : 0, tone: 'conflict' } },
     { key: 'blocksDelayed', label: 'Delayed', value: String(m.totals.blocksDelayed) },
@@ -36,7 +54,7 @@ export interface TaskRow { id: string; name: string; tech: string; counts: strin
 
 export function taskRows(m: Metrics): TaskRow[] {
   return Object.values(m.perTask).map((t: TaskMetrics) => ({
-    id: t.instanceId, name: t.name, tech: t.tech === 'BT' ? 'Bluetooth' : 'Wi-Fi',
+    id: t.instanceId, name: t.name, tech: t.tech === 'BT' ? 'Bluetooth' : t.tech === 'THREAD' ? 'Thread' : 'Wi-Fi',
     counts: `${t.counts.delayed} delayed, ${t.counts.retried} retried, ${t.counts.lost} lost, ${t.counts.tolerated} tolerated`,
     impact: pct(t.throughputImpactPct), undelivered: pct(t.undeliveredPct), queued: String(t.queuedAtEnd),
     latency: t.latency.delayedPackets ? `mean ${ms(t.latency.meanUs)}, max ${ms(t.latency.maxUs)}` : 'none',

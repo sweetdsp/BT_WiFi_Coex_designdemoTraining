@@ -1,6 +1,6 @@
 # Coex Learning Tool
 
-An interactive, browser-only tool that teaches test engineers how Bluetooth and Wi-Fi packets share the 2.4 GHz medium: time, frequency, arbitration, and what the platform changes. It is a learning aid, not an RF simulator. It is vendor-neutral and uses only public-standard concepts.
+An interactive, browser-only tool that teaches test engineers how Bluetooth, Thread and Wi-Fi packets share the 2.4 GHz medium: time, frequency, arbitration, and what the platform changes. It is a learning aid, not an RF simulator. It is vendor-neutral and uses only public-standard concepts.
 
 **Status:** complete. See `ACCEPTANCE.md` for every acceptance criterion and the test that proves it, and `ASSUMPTIONS.md` for every assumption.
 
@@ -17,7 +17,8 @@ An interactive, browser-only tool that teaches test engineers how Bluetooth and 
 | M6 | The five worked examples as automated tests and presets | done |
 | M7 | Time and frequency views, platform diagram, explanation panel, summary strip, tooltips, playback, tokens and themes | done |
 | M8 | Task selection, platform controls, live validation, undo, save/load/share, compare, export | done |
-| M9 | Six lessons, first-visit tour, glossary, assumptions panel, help texts, accessibility pass, Pages deploy, acceptance check | done |
+| Thread | Thread (IEEE 802.15.4) as a third technology: eight tasks, a channel setting, three worked examples and lessons | done |
+| M9 | Nine lessons, first-visit tour, glossary, assumptions panel, help texts, accessibility pass, Pages deploy, acceptance check | done |
 
 ## Layout
 
@@ -39,10 +40,14 @@ npm run build       # static build for GitHub Pages
 
 ## Using the tool
 
-- **Learn** opens six guided lessons (the six worked examples, easiest first). Each loads its scenario, highlights the part of the page it talks about, and ends with one question.
+- **Learn** opens nine guided lessons (the nine worked examples, easiest first). Lessons 7 to 9 are about Wi-Fi and Thread. Each loads its scenario, highlights the part of the page it talks about, and ends with one question.
 - **Help** replays the six-step tour, opens the glossary and the assumptions, and lists the keyboard shortcuts (`?`).
 - Build your own scenario in the **Tasks** and **Platform** tabs. The badge at the top says whether it can be generated; **Issues** lists every problem with a fix button.
 - Everything you see is labelled **Standard says** (fixed by a public specification) or **Implementations vary** (a choice real products make differently).
+
+## Thread with Wi-Fi
+
+Thread is the low-power mesh used by smart-home devices. It runs on IEEE 802.15.4 in the same 2.4 GHz band as Wi-Fi and Bluetooth, on one fixed channel (11 to 26) that does not hop. The **Thread Tasks** tab has eight tasks: data polls from a sleepy device, scheduled listening, router advertisements, joining, sensor reports, forwarding, firmware update and a channel scan. The **Platform** tab has the Thread channel and version. Thread frames are checked against Wi-Fi with the same antenna, core and isolation rules as Bluetooth, and the Issues tab tells you when Thread sits under a Wi-Fi channel and which clear channel is nearest. Bluetooth and Thread together are allowed, but their interference with each other is not simulated. See assumptions A-84 to A-94.
 
 ## Visitor statistics (optional)
 

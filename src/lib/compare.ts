@@ -25,6 +25,7 @@ const SPECS: Spec[] = [
   { key: 'missed', label: 'Anchor events missed', unit: '', lowerIsBetter: true, get: (m) => anchors(m).reduce((a, t) => a + t.anchor!.misses, 0) },
   { key: 'run', label: 'Longest miss run', unit: '', lowerIsBetter: true, get: (m) => Math.max(0, ...anchors(m).map((t) => t.anchor!.longestRun)) },
   { key: 'margin', label: 'Time before supervision timeout', unit: 'µs', lowerIsBetter: false, get: (m) => { const x = anchors(m).map((t) => t.anchor!.marginUs).filter((v): v is number => v !== undefined); return x.length ? Math.min(...x) : 0; } },
+  { key: 'threadAir', label: 'Thread airtime', unit: '%', lowerIsBetter: null, get: (m) => m.airtime.THREAD.totalPct },
   { key: 'btAir', label: 'Bluetooth airtime', unit: '%', lowerIsBetter: null, get: (m) => m.airtime.BT.totalPct },
   { key: 'wifiAir', label: 'Wi-Fi airtime', unit: '%', lowerIsBetter: null, get: (m) => m.airtime.WIFI.totalPct },
 ];

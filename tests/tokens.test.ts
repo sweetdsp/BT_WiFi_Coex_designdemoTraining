@@ -26,7 +26,7 @@ describe.each(themes)('%s theme tokens (7B.3, UX-4)', (theme) => {
     for (const fg of ['text', 'textMuted']) for (const bg of ['bg', 'panel', 'laneBg', 'laneAlt']) expect(contrast(c(fg), c(bg)), `${fg} on ${bg}`).toBeGreaterThanOrEqual(4.5);
   });
   it('technology blocks and status marks meet 3 to 1 against the lane background', () => {
-    for (const k of ['bt', 'wifi', 'denied', 'degraded', 'delayedGhost', 'granted', 'selected']) {
+    for (const k of ['bt', 'wifi', 'thread', 'denied', 'degraded', 'delayedGhost', 'granted', 'selected']) {
       for (const bg of ['laneBg', 'laneAlt']) expect(contrast(c(k), c(bg)), `${k} on ${bg}`).toBeGreaterThanOrEqual(3);
     }
   });
@@ -34,7 +34,7 @@ describe.each(themes)('%s theme tokens (7B.3, UX-4)', (theme) => {
     for (const bg of ['bg', 'panel']) expect(contrast(c('afhMark'), c(bg))).toBeGreaterThanOrEqual(3);
   });
   it('every lane tint of a technology still meets 3 to 1 against the lane background', () => {
-    for (const tech of ['BT', 'WIFI'] as const) {
+    for (const tech of ['BT', 'WIFI', 'THREAD'] as const) {
       for (let i = 0; i < 12; i++) for (const bg of ['laneBg', 'laneAlt']) expect(contrast(laneTint(theme, tech, i), c(bg)), `${tech} lane ${i} on ${bg}`).toBeGreaterThanOrEqual(3);
     }
   });
@@ -51,7 +51,7 @@ describe.each(themes)('%s theme tokens (7B.3, UX-4)', (theme) => {
     for (const t of cvd) expect(deltaE(simulate(c('bt'), t), simulate(c('wifi'), t)), t).toBeGreaterThanOrEqual(25);
   });
   it('the other cue colours stay different from the technology colours and from each other under all three simulations', () => {
-    const keys = ['bt', 'wifi', 'denied', 'degraded', 'afhRemoved'];
+    const keys = ['bt', 'wifi', 'thread', 'denied', 'degraded', 'afhRemoved'];
     for (const t of cvd) {
       for (let i = 0; i < keys.length; i++) for (let j = i + 1; j < keys.length; j++) {
         const d = deltaE(simulate(c(keys[i]), t), simulate(c(keys[j]), t));
@@ -75,7 +75,7 @@ describe.each(themes)('%s theme tokens (7B.3, UX-4)', (theme) => {
 
 describe('UX-3: every colour cue has a matching pattern or shape (works in greyscale)', () => {
   it('lists every cue of the 7B.3 table', () => {
-    expect(tokens.cues.map((c) => c.id).sort()).toEqual(['afhRemoved', 'bluetooth', 'conflict', 'degraded', 'delayed', 'denied', 'granted', 'retry', 'selected', 'tolerated', 'warning', 'wifi'].sort());
+    expect(tokens.cues.map((c) => c.id).sort()).toEqual(['afhRemoved', 'bluetooth', 'conflict', 'degraded', 'delayed', 'denied', 'granted', 'retry', 'selected', 'thread', 'tolerated', 'warning', 'wifi'].sort());
   });
   it('each cue has a pattern, a shape, a place and an example, and its colour is a token', () => {
     for (const cue of tokens.cues) {

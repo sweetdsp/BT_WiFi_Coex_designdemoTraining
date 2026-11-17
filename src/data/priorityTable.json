@@ -55,6 +55,21 @@
       "name": "Wi-Fi background and scanning",
       "base": 10,
       "label": "IMPLEMENTATION_VARIES"
+    },
+    "THREAD_CONTROL": {
+      "name": "Thread control (polls, scheduled listening, advertisements, attach)",
+      "base": 65,
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    "THREAD_DATA": {
+      "name": "Thread data (reports, forwarding)",
+      "base": 45,
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    "THREAD_BULK": {
+      "name": "Thread background and bulk (scans, firmware update)",
+      "base": 15,
+      "label": "IMPLEMENTATION_VARIES"
     }
   },
   "anchorTierBase": 1000,

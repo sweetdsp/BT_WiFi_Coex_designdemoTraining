@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { AirBlock, Tech } from '../engine/types';
 import { readoutAt, readoutText } from '../lib/cursor';
-import { bandsFor, buildLanes, densityBars, inView, labelFor, lodMode, lookOf, minimapTicks, partnersOf, type Lane } from '../lib/layout';
+import { bandsFor, buildLanes, densityBars, inView, labelFor, laneGroups, lodMode, lookOf, minimapTicks, partnersOf, type Lane } from '../lib/layout';
 import { blockTip, conflictTip } from '../lib/tooltips';
-import { colorOf, laneTint, type ThemeName } from '../lib/tokens';
+import { colorOf, laneTint, techColorKey, type ThemeName } from '../lib/tokens';
+import { techWord } from '../lib/context';
 import { pan, slotLines, span, timeTicks, tOf, xOf, zoomAt, type Viewport } from '../lib/viewport';
 import type { ViewCtx } from '../lib/context';
 import { Mark, PatternDefs } from './Marks';
@@ -45,11 +46,11 @@ export interface TimeViewProps {
 
 interface Geometry { laneY: Map<string, number>; groupY: Record<Tech, number>; height: number }
 
-function geometry(lanes: { bt: Lane[]; wifi: Lane[] }, collapsed: Record<Tech, boolean>): Geometry {
+function geometry(lanes: { bt: Lane[]; thread: Lane[]; wifi: Lane[] }, collapsed: Record<Tech, boolean>): Geometry {
   let y = RULER_H;
   const laneY = new Map<string, number>();
-  const groupY = { BT: 0, WIFI: 0 } as Record<Tech, number>;
-  for (const [tech, list] of [['BT', lanes.bt], ['WIFI', lanes.wifi]] as const) {
+  const groupY = { BT: 0, WIFI: 0, THREAD: 0 } as Record<Tech, number>;
+  for (const { tech, lanes: list } of laneGroups(lanes)) {
     groupY[tech] = y; y += GROUP_H;
     if (!collapsed[tech]) for (const l of list) { laneY.set(l.id, y); y += LANE_H; }
   }
@@ -63,7 +64,7 @@ function BlockShape({ b, ctx, theme, x, w, laneIdx, laneY, selected, dim, hot, f
   const tip = useTip(() => blockTip(b, ctx));
   const look = lookOf(b);
   const tint = laneTint(theme, b.tech, laneIdx);
-  const lightFill = colorOf(theme, b.tech === 'BT' ? 'btLight' : 'wifiLight');
+  const lightFill = colorOf(theme, techColorKey(b.tech).light);
   const denied = colorOf(theme, 'denied');
   const y = laneY + (look.half === 'TOP' ? TX_Y : RX_Y);
   const solid = look.fill === 'SOLID';
@@ -84,7 +85,8 @@ function BlockShape({ b, ctx, theme, x, w, laneIdx, laneY, selected, dim, hot, f
       {look.hatch && <rect x={x} y={y} width={w} height={BAR_H} rx="2" fill="url(#tv-hatch)" />}
       {look.strike && <line x1={x} y1={y + BAR_H} x2={x + w} y2={y} stroke={denied} strokeWidth="2" />}
       {selected && <rect x={x - 1} y={y - 1} width={w + 2} height={BAR_H + 2} rx="3" fill="none" stroke={colorOf(theme, 'selected')} strokeWidth="2" />}
-      {label && <text x={x + 4} y={y + 12} fontSize="12" className="mono" fill={solid ? '#fff' : colorOf(theme, 'text')} pointerEvents="none">{label}</text>}
+      {b.tech === 'THREAD' && w >= 12 && <path d={`M${x + 2},${y + BAR_H / 2} L${x + 6},${y + 3} L${x + 10},${y + BAR_H / 2} L${x + 6},${y + BAR_H - 3} Z`} fill={solid ? '#fff' : tint} stroke={solid ? '#fff' : tint} strokeWidth="0.5" pointerEvents="none" />}
+      {label && <text x={b.tech === 'THREAD' && w >= 12 ? x + 13 : x + 4} y={y + 12} fontSize="12" className="mono" fill={solid ? '#fff' : colorOf(theme, 'text')} pointerEvents="none">{label}</text>}
       {look.marks.map((m, i) => (
         <Mark key={m} kind={m} x={w >= 18 ? marksX - i * 12 : x + w + 7 + i * 12} y={markY} size={9} attempt={b.attempt}
           color={m === 'CROSS' ? denied : m === 'TRIANGLE' ? colorOf(theme, 'degraded') : m === 'EXCLAMATION' ? colorOf(theme, 'warning') : m === 'RETRY' ? colorOf(theme, 'retry') : colorOf(theme, 'granted')} />
@@ -210,13 +212,12 @@ export function TimeView(p: TimeViewProps) {
       <div className="tv-body">
         <div className="tv-labels" style={{ width: 180 }}>
           <div style={{ height: RULER_H }} className="tv-ruler-label muted">Time</div>
-          {(['BT', 'WIFI'] as const).map((tech) => {
-            const list = tech === 'BT' ? lanes.bt : lanes.wifi;
+          {laneGroups(lanes).map(({ tech, lanes: list }) => {
             return (
               <div key={tech}>
                 <div className="tv-group" style={{ height: GROUP_H }}>
-                  <button type="button" onClick={() => p.onToggleGroup(tech)} aria-expanded={!p.collapsed[tech]} aria-label={`${p.collapsed[tech] ? 'Expand' : 'Collapse'} ${tech === 'BT' ? 'Bluetooth' : 'Wi-Fi'} lanes`}>
-                    <span aria-hidden="true">{p.collapsed[tech] ? '▸' : '▾'}</span> {tech === 'BT' ? 'Bluetooth' : 'Wi-Fi'}
+                  <button type="button" onClick={() => p.onToggleGroup(tech)} aria-expanded={!p.collapsed[tech]} aria-label={`${p.collapsed[tech] ? 'Expand' : 'Collapse'} ${techWord(tech)} lanes`}>
+                    <span aria-hidden="true">{p.collapsed[tech] ? '▸' : '▾'}</span> {tech === 'THREAD' ? '◆ ' : ''}{techWord(tech)}
                   </button>
                 </div>
                 {!p.collapsed[tech] && list.map((l) => (
@@ -231,7 +232,7 @@ export function TimeView(p: TimeViewProps) {
           })}
         </div>
         <div className="tv-plot">
-          <svg ref={svgRef} width={W} height={geo.height} role="group" aria-label="Time axis diagram of Bluetooth and Wi-Fi blocks" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onClick={() => undefined}>
+          <svg ref={svgRef} width={W} height={geo.height} role="group" aria-label="Time axis diagram of Bluetooth, Thread and Wi-Fi blocks" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onClick={() => undefined}>
             <PatternDefs prefix="tv" hatch={colorOf(theme, 'degraded')} conflict={colorOf(theme, 'conflict')} dots={colorOf(theme, 'afhMark')} bg={colorOf(theme, 'bg')} />
             <rect x="0" y="0" width={W} height={geo.height} fill={colorOf(theme, 'laneBg')} />
             {/* ruler */}
@@ -244,11 +245,11 @@ export function TimeView(p: TimeViewProps) {
               {bands.map((b) => (<BandShape key={b.conflict.id} band={b} number={b.number} ctx={ctx} theme={theme} height={geo.height} selected={b.conflict.id === p.selectedConflictId} flash={!!p.flashBand && b.conflict.id === p.selectedConflictId} onSelect={() => p.onSelectConflict(b.conflict.id)} />))}
             </g>
             {/* group headers and lanes */}
-            {(['BT', 'WIFI'] as const).map((tech) => (
+            {laneGroups(lanes).map(({ tech, lanes: groupLanes }) => (
               <g key={tech}>
                 <rect x="0" y={geo.groupY[tech]} width={W} height={GROUP_H} fill={colorOf(theme, 'panel')} opacity="0.9" />
                 {p.collapsed[tech] && <text x="8" y={geo.groupY[tech] + 17} fontSize="12" fill={colorOf(theme, 'textMuted')}>collapsed</text>}
-                {!p.collapsed[tech] && (tech === 'BT' ? lanes.bt : lanes.wifi).map((l) => {
+                {!p.collapsed[tech] && groupLanes.map((l) => {
                   const ly = geo.laneY.get(l.id)!;
                   const all = laneBlocks.get(l.id) ?? [];
                   const vis = p.muted.has(l.id) ? [] : inView(all, v);
@@ -302,7 +303,7 @@ export function TimeView(p: TimeViewProps) {
         <span className="mono readout" data-testid="cursor-readout" aria-live="off">{p.cursor === null ? 'Move the pointer over the diagram to read the time and channels.' : readoutText(ro)}</span>
         <span className="lod" data-testid="lod-label">{anyDensity ? 'Density view: zoom in to see individual blocks' : 'Individual blocks'}</span>
       </div>
-      <p className="caption">Look for the numbered red bands: each one is a moment when Bluetooth and Wi-Fi wanted the air together. Select one to read what happened.</p>
+      <p className="caption">Look for the numbered red bands: each one is a moment when Wi-Fi and Bluetooth or Thread wanted the air together. Select one to read what happened.</p>
     </section>
   );
 }

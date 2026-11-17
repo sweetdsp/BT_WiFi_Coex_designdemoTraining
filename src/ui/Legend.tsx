@@ -14,6 +14,7 @@ function Swatch({ id, theme }: { id: string; theme: ThemeName }) {
   switch (id) {
     case 'bluetooth': body = (<>{base(c('bt'), c('bt'))}<rect x="3" y={H - 8} width={W - 6} height="5" fill={c('btLight')} stroke={c('bt')} strokeWidth="1.5" /></>); break;
     case 'wifi': body = (<>{base(c('wifi'), c('wifi'))}<rect x="3" y={H - 8} width={W - 6} height="5" fill={c('wifiLight')} stroke={c('wifi')} strokeWidth="1.5" /></>); break;
+    case 'thread': body = (<>{base(c('thread'), c('thread'))}<rect x="3" y={H - 8} width={W - 6} height="5" fill={c('threadLight')} stroke={c('thread')} strokeWidth="1.5" /><path d={`M6,${(H - 8) / 2 + 1} L10,4 L14,${(H - 8) / 2 + 1} L10,${H - 12} Z`} fill="#fff" /></>); break;
     case 'conflict': body = (<><rect width={W} height={H} fill={c('conflict')} opacity={Number(c('conflictOpacity'))} /><rect width={W} height={H} fill={`url(#${prefix}-conflict)`} /><rect x="0" y="0" width="2" height={H} fill={c('conflict')} /><rect x={W - 2} y="0" width="2" height={H} fill={c('conflict')} /></>); break;
     case 'granted': body = base(c('bt'), c('bt')); mark = 'GRANTED_TICK'; break;
     case 'denied': body = (<>{base(c('btLight'), c('denied'))}<line x1="3" y1={H - 3} x2={W - 3} y2="3" stroke={c('denied')} strokeWidth="2" /></>); mark = 'CROSS'; break;

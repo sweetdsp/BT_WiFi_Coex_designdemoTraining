@@ -68,9 +68,9 @@ export function FrequencyView(p: Props) {
           <button type="button" aria-pressed={p.mode === 'HISTOGRAM'} onClick={() => p.onMode('HISTOGRAM')}>Histogram</button>
         </div>
         <label className="check"><input type="checkbox" checked={p.linked} onChange={(e) => p.onLinked(e.target.checked)} /> Follow the time view</label>
-        <span className="muted" data-testid="circled-count">{model.circled} hop{model.circled === 1 ? '' : 's'} circled in red</span>
+        <span className="muted" data-testid="circled-count">{model.circled} {model.hasThread && model.hops.every((h) => h.tech === 'THREAD') ? 'frame' : 'hop'}{model.circled === 1 ? '' : 's'} circled in red</span>
       </header>
-      <svg width={W} height={p.mode === 'WATERFALL' ? H : histH + 90} role="group" aria-label={`Bluetooth hops across the 2.4 GHz band, ${p.mode === 'WATERFALL' ? 'time on the vertical axis' : 'hops per channel'}`}>
+      <svg width={W} height={p.mode === 'WATERFALL' ? H : histH + 90} role="group" aria-label={`${model.hasThread ? 'Bluetooth hops and Thread frames' : 'Bluetooth hops'} across the 2.4 GHz band, ${p.mode === 'WATERFALL' ? 'time on the vertical axis' : 'hops per channel'}`}>
         <PatternDefs prefix="fv" hatch={c('degraded')} conflict={c('conflict')} dots={c('afhMark')} bg={c('bg')} />
         <rect x={LEFT} y={TOP} width={plotW} height={(p.mode === 'WATERFALL' ? H : histH + 90) - TOP - 36} fill={c('laneBg')} stroke={c('border')} />
         {/* Wi-Fi footprint: translucent orange band, dashed edges, lighter guard margin */}
@@ -90,7 +90,7 @@ export function FrequencyView(p: Props) {
           <g data-mode="waterfall">
             <text x="4" y={TOP + 38} fontSize="12" fill={c('textMuted')}>time</text>
             {p.cursor !== null && p.cursor >= t0 && p.cursor <= t1 && <line data-testid="freq-cursor" x1={LEFT} y1={ty(p.cursor)} x2={LEFT + plotW} y2={ty(p.cursor)} stroke={c('text')} strokeWidth="1" opacity="0.8" />}
-            {model.hops.length === 0 && <text x={LEFT + plotW / 2} y={TOP + 70} textAnchor="middle" fontSize="12" fill={c('textMuted')}>No Bluetooth block went out in this time range.</text>}
+            {model.hops.length === 0 && <text x={LEFT + plotW / 2} y={TOP + 70} textAnchor="middle" fontSize="12" fill={c('textMuted')}>No Bluetooth or Thread block went out in this time range.</text>}
             {model.hops.map((h) => (<HopDot key={h.blockId} h={h} x={fx(h.freq)} y={ty(h.t)} theme={theme} ctx={ctx} selected={h.blockId === p.selectedBlockId || h.blockId === p.hoverBlockId} onHover={p.onHoverBlock} onSelect={p.onSelectBlock} />))}
           </g>
         ) : (
@@ -105,6 +105,18 @@ export function FrequencyView(p: Props) {
                   {hb.inFootprint && <rect x={fx(hb.freq) - 2.2} y={TOP + 20 + histH - h} width="4.4" height={Math.max(h, hb.count ? 1.5 : 0)} fill="url(#fv-hatch)" />}
                   {hb.removed && <rect x={fx(hb.freq) - 2.2} y={TOP + 20} width="4.4" height={histH} fill="url(#fv-dots)" opacity="0.8" />}
                 </Cell>
+              );
+            })}
+            {model.threadMarks.map((tm) => {
+              const h = Math.max(14, (tm.count / Math.max(1, ...model.threadMarks.map((m) => m.count))) * (histH - 10));
+              const x0 = fx(tm.freq - tm.widthMHz / 2), w = fx(tm.freq + tm.widthMHz / 2) - x0;
+              return (
+                <g key={`t${tm.channel}`} data-thread-channel={tm.channel} role="img" aria-label={`Thread channel ${tm.channel}, ${tm.freq} MHz, ${tm.count} frames${tm.inFootprint ? ', inside the Wi-Fi channel' : ''}`}>
+                  <rect x={x0} y={TOP + 20 + histH - h} width={w} height={h} fill={c('thread')} opacity="0.85" stroke={tm.inFootprint ? c('conflict') : c('thread')} strokeWidth="1.5" />
+                  {tm.inFootprint && <rect x={x0} y={TOP + 20 + histH - h} width={w} height={h} fill="url(#fv-hatch)" />}
+                  <path d={`M${x0 + w / 2},${TOP + 20 + histH - h - 9} l5,5 l-5,5 l-5,-5 Z`} fill={c('thread')} />
+                  <text x={x0 + w / 2} y={TOP + 20 + histH - h - 12} textAnchor="middle" fontSize="12" fill={c('text')}>Thread ch {tm.channel} · {tm.count}</text>
+                </g>
               );
             })}
           </g>
@@ -139,10 +151,12 @@ function HopDot({ h, x, y, theme, ctx, selected, onHover, onSelect }: { h: Hop; 
     const b = ctx.blockById.get(h.blockId)!;
     return { title: `Channel ${h.channelIndex}, ${h.freq} MHz`, fields: [{ label: 'Block', value: `${ctx.nameOf(b.taskId)} ${b.kind}, ${b.status.toLowerCase()}` }, { label: 'Time', value: `${b.start} µs` }, { label: 'Landed in the Wi-Fi channel during an overlap', value: h.inOverlap ? 'yes' : 'no' }], sentence: h.inOverlap ? 'This hop landed inside the Wi-Fi channel while a Wi-Fi block was on the air.' : 'This hop did not meet Wi-Fi in frequency.', label: 'Implementations vary' };
   });
-  const bt = colorOf(theme, 'bt');
+  const bt = colorOf(theme, h.tech === 'THREAD' ? 'thread' : 'bt');
   return (
     <g tabIndex={-1} className="hop" data-inoverlap={h.inOverlap} onPointerEnter={() => onHover(h.blockId)} onPointerLeave={() => onHover(undefined)} onClick={() => onSelect(h.blockId)} {...tip}>
-      <rect x={x - Math.max(1, h.width * 0.5)} y={y - 1.5} width={Math.max(2, h.width)} height="3" fill={bt} />
+      {h.tech === 'THREAD'
+        ? <path d={`M${x - 4},${y} L${x},${y - 3.5} L${x + 4},${y} L${x},${y + 3.5} Z`} fill={bt} data-thread-frame="true" />
+        : <rect x={x - Math.max(1, h.width * 0.5)} y={y - 1.5} width={Math.max(2, h.width)} height="3" fill={bt} />}
       {h.inOverlap && <circle cx={x} cy={y} r="5.5" fill="none" stroke={colorOf(theme, 'conflict')} strokeWidth="1.6" />}
       {selected && <circle cx={x} cy={y} r="8" fill="none" stroke={colorOf(theme, 'selected')} strokeWidth="2" />}
     </g>

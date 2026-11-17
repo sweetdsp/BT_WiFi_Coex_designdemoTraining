@@ -29,7 +29,9 @@
     "maxBleConnections": 8,
     "maxEscoLinks": 1,
     "maxIsoStreams": 4,
-    "mloSimultaneousTxRx": false
+    "mloSimultaneousTxRx": false,
+    "threadChannel": 15,
+    "threadVersion": 1.4
   },
   "presets": [
     {

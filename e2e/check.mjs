@@ -169,7 +169,7 @@ check('adaptive hopping strip shows removed channels in Example 4', (await page.
 
 // ---- legend ----
 await page.getByRole('button', { name: 'Legend', exact: true }).click();
-check('legend lists every cue', (await page.locator('[data-testid="legend"] li').count()) === 12);
+check('legend lists every cue', (await page.locator('[data-testid="legend"] li').count()) === 13);
 await page.screenshot({ path: `${SHOTS}/legend.png` });
 await page.getByRole('button', { name: 'Close legend' }).click();
 
@@ -419,7 +419,7 @@ await page.screenshot({ path: `${SHOTS}/dense.png`, fullPage: true });
     await page.getByTestId('lesson-finish').click();
   }
   await page.getByTestId('learn-btn').click();
-  check('completed lessons show a done mark', (await page.locator('.lessons .badge').count()) === 6);
+  check('completed lessons show a done mark', (await page.locator('.lessons .badge').count()) === 9);
   await page.keyboard.press('Escape');
 
   // Lesson actions: lesson 3 switches the frequency view to the histogram.
@@ -538,6 +538,76 @@ await page.screenshot({ path: `${SHOTS}/dense.png`, fullPage: true });
   check('no statistics script is loaded in the browser checks', (await page.locator('script[data-goatcounter]').count()) === 0);
   await page.keyboard.press('Escape');
   check('Escape closes the dialog', (await page.getByTestId('visitor-stats').count()) === 0);
+}
+
+
+// ---- Thread (IEEE 802.15.4) as a third technology ----
+{
+  await page.goto(`${URL}?e2e`);
+  await page.getByTestId('tab-THREAD').click();
+  const threadTasks = await page.locator('[data-task^="thread_"]').count();
+  check('Thread Tasks tab lists the eight Thread tasks', threadTasks === 8, `${threadTasks}`);
+  check('Thread tasks are grouped under their own heading', /Thread \(IEEE 802\.15\.4\)/.test(await page.getByTestId('task-picker').innerText()));
+  await page.getByTestId('use-case').selectOption('thread-sleepy-sensor');
+  check('a Thread use case adds its tasks', (await page.getByTestId('selected-tasks').locator('li.sel-thread').count()) === 2);
+  await page.getByTestId('tab-WIFI').click();
+  await page.locator('[data-task="wifi_video_stream"]').click();
+  check('a Thread use case keeps the Wi-Fi tasks, and the tab counts show Thread 2 and Wi-Fi 1', /Thread Tasks\s*2/.test(await page.getByTestId('tab-THREAD').innerText()) && /Wi-Fi Tasks\s*1/.test(await page.getByTestId('tab-WIFI').innerText()));
+  await page.getByTestId('use-case').count().catch(() => 0);
+  check('Thread and Wi-Fi together are valid and can be generated', (await page.getByTestId('generate').isEnabled()));
+  await page.getByTestId('generate').click(); await settled();
+  await page.waitForSelector('g.block');
+  check('the time view has a Thread group with magenta diamond blocks', (await page.getByRole('button', { name: /Collapse Thread lanes/ }).count()) === 1 && (await page.locator('[data-lane-id] g.block path[fill]').count()) > 0);
+  check('Thread lanes are named after the tasks', /Data poll/.test(await page.locator('.tv-labels').innerText()) && /Sensor report/.test(await page.locator('.tv-labels').innerText()));
+  check('the frequency view shows Thread frames as diamonds on one channel', (await page.locator('[data-thread-frame="true"]').count()) > 0);
+  await page.getByRole('button', { name: 'Histogram' }).click();
+  check('the histogram shows the Thread channel with its frame count', (await page.locator('[data-thread-channel="15"]').count()) === 1 && /Thread ch 15/.test(await page.locator('[data-thread-channel="15"]').textContent()));
+  await page.getByRole('button', { name: 'Waterfall' }).click();
+  check('the platform diagram names the Thread radio', /Thread core|Combo core/.test(await page.getByTestId('platform-diagram').innerText()));
+  check('the summary shows Thread airtime', /Thread \d/.test(await page.getByTestId('summary-strip').innerText()));
+  await page.getByTestId('open-first-conflict').click();
+  const story = await page.getByTestId('story').innerText();
+  check('the explanation names Thread, not Bluetooth', /Thread/.test(story) && !/Bluetooth/.test(story.replace(/Standard says|Implementations vary/g, '')), story.slice(0, 160));
+  await page.screenshot({ path: `${SHOTS}/thread-builder.png`, fullPage: true });
+
+  // Platform: Thread channel and version, with the hint when Thread sits under Wi-Fi.
+  await page.getByTestId('ltab-platform').click();
+  check('the Platform tab has a Thread group with channel and version', (await page.locator('[data-field="threadChannel"]').count()) === 1 && (await page.locator('[data-field="threadVersion"]').count()) === 1);
+  await page.locator('#pf-threadChannel').fill('18');
+  await page.getByTestId('ltab-issues').click();
+  check('Thread under the Wi-Fi channel gives an information note with a fix (F-7)', (await page.locator('[data-issue="F-7"]').count()) === 1 && (await page.locator('[data-issue="F-7"] [data-fix^="F-7:moveThread"]').count()) === 1);
+  await page.locator('[data-issue="F-7"] [data-fix^="F-7:moveThread"]').click();
+  await page.getByTestId('ltab-platform').click();
+  const moved = Number(await page.locator('#pf-threadChannel').inputValue());
+  check('the fix moves Thread to a clear channel', [15, 20].includes(moved), `${moved}`);
+  await page.locator('#pf-threadChannel').fill('30');
+  check('a Thread channel above 26 is an error and blocks Generate', (await page.getByTestId('validation-badge').getAttribute('data-state')) === 'ERRORS' && await page.getByTestId('generate').isDisabled());
+  await page.locator('#pf-threadChannel').fill('15');
+  await page.locator('#pf-threadVersion').selectOption('1.1');
+  await page.getByTestId('ltab-build').click(); await page.getByTestId('tab-THREAD').click();
+  check('scheduled listening is greyed out on a Thread 1.1 device, with the reason', await page.locator('[data-task="thread_csl"]').isDisabled() && /needs Thread 1\.2/.test(await page.getByTestId('task-picker').innerText()));
+  await page.getByTestId('ltab-platform').click(); await page.locator('#pf-threadVersion').selectOption('1.4');
+
+  // Bluetooth together with Thread is allowed with a warning that their mutual interference is not simulated.
+  await page.getByTestId('ltab-build').click(); await page.getByTestId('tab-BT').click(); await page.locator('[data-task="bt_a2dp"]').click();
+  await page.getByTestId('ltab-issues').click();
+  check('Bluetooth with Thread warns that their interaction is not simulated (P-8)', (await page.locator('[data-issue="P-8"]').count()) === 1 && /does not simulate/.test(await page.locator('[data-issue="P-8"]').innerText()));
+
+  // The three Thread worked examples load and show the numbers the lessons describe.
+  await page.getByTestId('ltab-examples').click();
+  for (const [id, re] of [['example-7', /Thread/], ['example-8', /Thread/], ['example-9', /Thread/]]) {
+    await page.locator(`[data-preset="${id}"]`).click(); await settled();
+    await page.waitForSelector('[data-testid="time-view"]');
+    check(`${id} loads with Thread blocks on screen`, (await page.locator('.tv-labels').innerText()).match(re) !== null && (await page.locator('g.block, [data-lod="density"]').count()) > 0);
+    await page.screenshot({ path: `${SHOTS}/${id}.png`, fullPage: true });
+  }
+  await page.getByTestId('open-first-conflict').click();
+  check('Example 9 shows tolerated or warning conflicts only (nothing degraded)', (await page.locator('.crow .sev-degraded, .crow .sev-hard').count()) === 0);
+  // Exports carry the Thread lanes.
+  await page.getByTestId('export').click();
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.locator('[data-export="time-svg"]').click()]);
+  const svg = readFileSync(await dl.path(), 'utf8');
+  check('the exported time view names the Thread lanes', /Thread/.test(svg) && /Sensor report/.test(svg));
 }
 
 check('no page errors', errors.length === 0, errors.join(' | '));

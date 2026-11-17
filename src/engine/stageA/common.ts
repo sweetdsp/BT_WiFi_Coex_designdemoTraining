@@ -36,6 +36,7 @@ export function payloadOfPacket(g: GenContext, p: PacketSpec): number {
       return Math.max(0, Math.min(want, pk.maxPayloadBytes));
     }
     if ('wifi' in d) return d.wifi.frame === 'DATA' || d.wifi.frame === 'AMPDU' ? Math.max(0, resolveRef(d.wifi.bytes, g)) : 0;
+    if ('thread' in d) return d.thread.frame === 'DATA' ? Math.max(0, resolveRef(d.thread.bytes, g)) : 0;
   }
   return 0;
 }
@@ -52,6 +53,8 @@ export interface EmitOptions {
   arrivalUs?: number;
   /** Override the Wi-Fi channel and band (scan steps, MLO links). */
   wifi?: { band: string; channel: number; width: number };
+  /** Override the Thread channel (channel scans). */
+  thread?: { channel: number };
   /** Gap in microseconds between advertising channels. */
   advGapUs?: number;
   groupId?: string;
@@ -78,7 +81,7 @@ function pushBlock(g: GenContext, partial: Pick<AirBlock, 'dir' | 'start' | 'dur
     start: Math.round(start),
     duration: Math.max(1, Math.round(duration)),
     freqCenter: 0,
-    freqWidth: isWifi ? w.bandwidth : g.data.constants[g.task.category === 'CLASSIC' ? 'classicChannelWidthMHz' : 'bleChannelWidthMHz'],
+    freqWidth: isWifi ? w.bandwidth : g.task.tech === 'THREAD' ? g.data.threadTiming.channelWidthMHz : g.data.constants[g.task.category === 'CLASSIC' ? 'classicChannelWidthMHz' : 'bleChannelWidthMHz'],
     channelIndex: -1,
     priority: priorityBase(g),
     kind,
@@ -135,6 +138,7 @@ export function emitSequence(g: GenContext, packets: PacketSpec[], t0: number, o
         pushBlock(g, {
           dir, start, duration: dur, kind: p.kind, chanMode: mode, eventId: evId, optional: p.optional || o.optional, arrivalUs: o.arrivalUs, groupId: o.groupId ?? o.eventId, eventKey: o.eventKey ?? o.eventId, payloadBytes: payloadOfPacket(g, p),
           ...(o.wifi ? { wifiBand: o.wifi.band, wifiChannel: o.wifi.channel, wifiWidth: o.wifi.width, freqWidth: o.wifi.width } : {}),
+          ...(o.thread ? { threadChannel: o.thread.channel } : {}),
         });
         cursor = start + dur;
       }
@@ -143,8 +147,15 @@ export function emitSequence(g: GenContext, packets: PacketSpec[], t0: number, o
   return cursor;
 }
 
-/** Wi-Fi medium access before a burst: DIFS plus a random backoff from the seeded generator (SR-15). */
+/**
+ * Medium access before a burst, from the seeded generator (SR-15). Wi-Fi waits DIFS plus a random backoff.
+ * Thread (802.15.4 CSMA/CA) waits a random number of 320 us backoff periods, then one clear-channel check.
+ */
 export function accessDelayUs(g: GenContext): number {
+  if (g.task.tech === 'THREAD') {
+    const t = g.data.threadTiming;
+    return g.rng.int(0, 2 ** t.macMinBE - 1) * t.unitBackoffUs + t.ccaUs;
+  }
   if (g.task.tech !== 'WIFI') return 0;
   const t = g.data.wifiTiming;
   const slot = wifiGen(g.data, g.platform.wifiGeneration).slotUs;

@@ -8,17 +8,30 @@ export interface PlatformNode { id: NodeId; label: string; x: number; y: number;
 export interface PlatformEdge { from: NodeId; to: NodeId; tech: 'BT' | 'WIFI' | 'SHARED'; label?: string }
 export interface PlatformModel { nodes: PlatformNode[]; edges: PlatformEdge[]; isolationLabel?: { x: number; y: number; text: string } }
 
-const HELP: Record<string, string> = {
-  wifiCore: 'The Wi-Fi radio core. Standard says: Wi-Fi and Bluetooth can share one core (a combo chip) or use separate cores.',
-  btCore: 'The Bluetooth radio core. Implementations vary: how it is connected to the Wi-Fi core depends on the product.',
-  comboCore: 'One core serving both Wi-Fi and Bluetooth. It can only do one at a time unless the hardware allows concurrent operation.',
-  switch: 'A front-end switch connects one antenna to either Wi-Fi or Bluetooth, one at a time. Implementations vary.',
-  diplexer: 'A diplexer or combiner lets Wi-Fi and Bluetooth share one antenna at the same time by splitting the signal by frequency. Implementations vary.',
-  antenna: 'The antenna. When Wi-Fi and Bluetooth share it, only one can transmit at a time, and a transmit blocks a receive.',
-  separate: 'Separate antennas. How much one radio leaks into the other is set by the isolation value in dB.',
+/** Which narrowband radios the scenario uses: Bluetooth, Thread, or both. With neither, the diagram shows Bluetooth. */
+export interface NarrowSet { bt: boolean; thread: boolean }
+export const narrowName = (n: NarrowSet): string => (n.bt && n.thread ? 'Bluetooth and Thread' : n.thread ? 'Thread' : 'Bluetooth');
+export const narrowOf = (result: EngineResult): NarrowSet => {
+  const bt = result.blocks.some((b) => b.tech === 'BT'), thread = result.blocks.some((b) => b.tech === 'THREAD');
+  return { bt: bt || !thread, thread };
 };
 
-export function platformModel(p: PlatformConfig): PlatformModel {
+const help = (n: NarrowSet): Record<string, string> => {
+  const nn = narrowName(n);
+  return {
+    wifiCore: `The Wi-Fi radio core. Standard says: Wi-Fi and ${nn} can share one core (a combo chip) or use separate cores.`,
+    btCore: `The ${nn} radio core. Implementations vary: how it is connected to the Wi-Fi core depends on the product.`,
+    comboCore: `One core serving both Wi-Fi and ${nn}. It can only do one at a time unless the hardware allows concurrent operation.`,
+    switch: `A front-end switch connects one antenna to either Wi-Fi or ${nn}, one at a time. Implementations vary.`,
+    diplexer: `A diplexer or combiner lets Wi-Fi and ${nn} share one antenna at the same time by splitting the signal by frequency. Implementations vary.`,
+    antenna: `The antenna. When Wi-Fi and ${nn} share it, only one can transmit at a time, and a transmit blocks a receive.`,
+    separate: 'Separate antennas. How much one radio leaks into the other is set by the isolation value in dB.',
+  };
+};
+
+export function platformModel(p: PlatformConfig, narrow: NarrowSet = { bt: true, thread: false }): PlatformModel {
+  const HELP = help(narrow);
+  const nn = narrowName(narrow);
   const shared = p.antennaMode === 'SHARED';
   const combo = p.coreCount <= 1;
   const nodes: PlatformNode[] = [];
@@ -26,7 +39,7 @@ export function platformModel(p: PlatformConfig): PlatformModel {
   if (combo) nodes.push({ id: 'comboCore', label: 'Combo core', x: 20, y: 80, w: 100, h: 60, help: HELP.comboCore });
   else {
     nodes.push({ id: 'wifiCore', label: 'Wi-Fi core', x: 20, y: 30, w: 100, h: 50, help: HELP.wifiCore });
-    nodes.push({ id: 'btCore', label: 'Bluetooth core', x: 20, y: 140, w: 100, h: 50, help: HELP.btCore });
+    nodes.push({ id: 'btCore', label: `${nn} core`, x: 20, y: 140, w: 100, h: 50, help: HELP.btCore });
   }
   const wf: NodeId = combo ? 'comboCore' : 'wifiCore';
   const bt: NodeId = combo ? 'comboCore' : 'btCore';
@@ -38,12 +51,12 @@ export function platformModel(p: PlatformConfig): PlatformModel {
     return { nodes, edges };
   }
   nodes.push({ id: 'wifiAntenna', label: 'Wi-Fi antenna', x: 350, y: 30, w: 100, h: 50, help: HELP.separate });
-  nodes.push({ id: 'btAntenna', label: 'Bluetooth antenna', x: 350, y: 140, w: 100, h: 50, help: HELP.separate });
+  nodes.push({ id: 'btAntenna', label: `${nn} antenna`, x: 350, y: 140, w: 100, h: 50, help: HELP.separate });
   edges.push({ from: wf, to: 'wifiAntenna', tech: 'WIFI' }, { from: bt, to: 'btAntenna', tech: 'BT' });
   return { nodes, edges, isolationLabel: { x: 400, y: 112, text: `isolation ${p.isolationDb} dB` } };
 }
 
-export interface PlatformActivity { active: Set<NodeId>; activeTech: { BT: boolean; WIFI: boolean }; sharedElement?: NodeId | 'isolation' | 'air'; conflictId?: string }
+export interface PlatformActivity { active: Set<NodeId>; /** BT is true when a Bluetooth or Thread block is on the air: the narrowband side. */ activeTech: { BT: boolean; WIFI: boolean }; sharedElement?: NodeId | 'isolation' | 'air'; conflictId?: string }
 
 /** Which element caused a conflict: the shared antenna, shared core, the isolation between paths, or the air. */
 export function sharedElementFor(c: Conflict, p: PlatformConfig): NodeId | 'isolation' | 'air' {
@@ -59,9 +72,9 @@ export function sharedElementFor(c: Conflict, p: PlatformConfig): NodeId | 'isol
 /** What is happening at time t: which paths carry a block, and which element a selected conflict stresses. */
 export function activityAt(result: EngineResult, t: number, selectedConflict?: Conflict): PlatformActivity {
   const p = result.config.platform;
-  const model = platformModel(p);
+  const model = platformModel(p, narrowOf(result));
   const act = activeAt(result, t);
-  const tech = { BT: act.some((b) => b.tech === 'BT'), WIFI: act.some((b) => b.tech === 'WIFI') };
+  const tech = { BT: act.some((b) => b.tech !== 'WIFI'), WIFI: act.some((b) => b.tech === 'WIFI') };
   const active = new Set<NodeId>();
   for (const e of model.edges) {
     if (e.tech === 'SHARED' ? tech.BT || tech.WIFI : tech[e.tech]) { active.add(e.from); active.add(e.to); }

@@ -15,10 +15,11 @@ function walk(v: unknown, fn: (key: string, value: unknown) => void, key = ''): 
 }
 
 describe('task catalogue data', () => {
-  it('has the Bluetooth and Wi-Fi tasks listed in spec 6.2', () => {
+  it('has the Bluetooth and Wi-Fi tasks listed in spec 6.2, and the Thread tasks added later', () => {
     expect(data.tasks.filter((t) => t.category === 'CLASSIC')).toHaveLength(11);
     expect(data.tasks.filter((t) => t.category === 'LE')).toHaveLength(15);
     expect(data.tasks.filter((t) => t.category === 'WIFI')).toHaveLength(20);
+    expect(data.tasks.filter((t) => t.category === 'THREAD')).toHaveLength(8);
     expect(new Set(data.tasks.map((t) => t.id)).size).toBe(data.tasks.length);
   });
 
@@ -26,7 +27,7 @@ describe('task catalogue data', () => {
     it('uses a known pattern generator, priority class and retry rule', () => {
       expect(GENERATORS).toContain(t.generator);
       expect(data.priorityTable.classes[t.priorityClass]).toBeDefined();
-      expect(['NONE', 'NEXT_SLOT_PAIR', 'ESCO_WINDOW', 'BLE_NEXT_PACKET_OR_EVENT', 'WIFI_BACKOFF']).toContain(t.retry);
+      expect(['NONE', 'NEXT_SLOT_PAIR', 'ESCO_WINDOW', 'BLE_NEXT_PACKET_OR_EVENT', 'WIFI_BACKOFF', 'THREAD_BACKOFF']).toContain(t.retry);
       expect(t.roles.length).toBeGreaterThan(0);
     });
 

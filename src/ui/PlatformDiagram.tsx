@@ -3,14 +3,17 @@
 // and a mark are used as well, so it does not depend on colour or motion).
 import { useMemo, useState } from 'react';
 import type { EngineResult } from '../engine';
-import { activityAt, platformModel, type NodeId } from '../lib/platform';
+import { activityAt, narrowName, narrowOf, platformModel, type NodeId } from '../lib/platform';
 import { colorOf, type ThemeName } from '../lib/tokens';
 
 interface Props { result: EngineResult; theme: ThemeName; cursor: number | null; selectedConflictId?: string }
 
 export function PlatformDiagram({ result, theme, cursor, selectedConflictId }: Props) {
   const p = result.config.platform;
-  const model = useMemo(() => platformModel(p), [p]);
+  const narrow = useMemo(() => narrowOf(result), [result]);
+  const model = useMemo(() => platformModel(p, narrow), [p, narrow]);
+  // The narrowband path is drawn in the Thread colour when Thread is the only narrowband radio in use.
+  const nbKey = narrow.thread && !narrow.bt ? 'thread' : 'bt';
   const conflict = result.conflicts.find((c) => c.id === selectedConflictId);
   const act = activityAt(result, cursor ?? -1, conflict);
   const [help, setHelp] = useState<NodeId | null>(null);
@@ -20,11 +23,11 @@ export function PlatformDiagram({ result, theme, cursor, selectedConflictId }: P
   return (
     <section className="platform" aria-label="Platform diagram" data-testid="platform-diagram" data-area="platform">
       <h2>Platform</h2>
-      <svg viewBox="0 0 560 220" width="560" height="220" role="group" aria-label="Wi-Fi and Bluetooth cores, front end and antennas">
+      <svg viewBox="0 0 560 220" width="560" height="220" role="group" aria-label={`Wi-Fi and ${narrowName(narrow)} cores, front end and antennas`}>
         {model.edges.map((e, i) => {
           const a = byId.get(e.from)!, b = byId.get(e.to)!;
           const on = e.tech === 'SHARED' ? act.activeTech.BT || act.activeTech.WIFI : act.activeTech[e.tech];
-          const col = e.tech === 'BT' ? c('bt') : e.tech === 'WIFI' ? c('wifi') : (act.activeTech.BT && act.activeTech.WIFI ? c('conflict') : act.activeTech.WIFI ? c('wifi') : c('bt'));
+          const col = e.tech === 'BT' ? c(nbKey) : e.tech === 'WIFI' ? c('wifi') : (act.activeTech.BT && act.activeTech.WIFI ? c('conflict') : act.activeTech.WIFI ? c('wifi') : c(nbKey));
           return (<line key={i} data-edge={`${e.from}-${e.to}`} data-active={on} x1={a.x + a.w} y1={a.y + a.h / 2} x2={b.x} y2={b.y + b.h / 2} stroke={on ? col : c('border')} strokeWidth={on ? 4 : 2} strokeDasharray={e.tech === 'BT' ? '6 3' : undefined} />);
         })}
         {model.isolationLabel && (
@@ -36,8 +39,8 @@ export function PlatformDiagram({ result, theme, cursor, selectedConflictId }: P
         {model.nodes.map((n) => {
           const on = act.active.has(n.id);
           const hot = stressed === n.id;
-          const tech = n.id === 'wifiCore' || n.id === 'wifiAntenna' ? 'wifi' : n.id === 'btCore' || n.id === 'btAntenna' ? 'bt' : null;
-          const glow = on ? (tech ? c(tech) : act.activeTech.BT && act.activeTech.WIFI ? c('conflict') : act.activeTech.WIFI ? c('wifi') : c('bt')) : c('border');
+          const tech = n.id === 'wifiCore' || n.id === 'wifiAntenna' ? 'wifi' : n.id === 'btCore' || n.id === 'btAntenna' ? nbKey : null;
+          const glow = on ? (tech ? c(tech) : act.activeTech.BT && act.activeTech.WIFI ? c('conflict') : act.activeTech.WIFI ? c('wifi') : c(nbKey)) : c('border');
           return (
             <g key={n.id} data-node={n.id} data-active={on} data-stressed={hot} tabIndex={0} role="button" aria-label={`${n.label}. ${hot ? 'Shared element of the selected conflict. ' : ''}Open help.`} className={`pnode${hot ? ' pulse' : ''}`} onClick={() => setHelp(help === n.id ? null : n.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setHelp(help === n.id ? null : n.id); } }}>
               <rect x={n.x} y={n.y} width={n.w} height={n.h} rx="6" fill={c('panel')} stroke={hot ? c('conflict') : glow} strokeWidth={hot ? 4 : on ? 3.5 : 1.5} strokeDasharray={hot ? '6 3' : undefined} />

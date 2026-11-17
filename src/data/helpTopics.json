@@ -58,7 +58,7 @@
     {
       "id": "frequency-overlap",
       "title": "Frequency overlap",
-      "body": "Only 2.4 GHz Wi-Fi overlaps Bluetooth in frequency. At 5 and 6 GHz the two interact only through the shared antenna, core and isolation.",
+      "body": "Only 2.4 GHz Wi-Fi overlaps Bluetooth and Thread in frequency. At 5 and 6 GHz they interact only through the shared antenna, core and isolation.",
       "label": "STANDARD"
     },
     {
@@ -168,6 +168,18 @@
       "title": "Conflicts",
       "body": "A conflict is a moment when a Bluetooth block and a Wi-Fi block overlap in time and also interact: their frequencies overlap, they share an antenna or core, or isolation is below the threshold. The severity says how bad it is: hard, degraded, warning or tolerated.",
       "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "bt-with-thread",
+      "title": "Bluetooth and Thread together",
+      "body": "Bluetooth and Thread are both short-range radios on 2.4 GHz, and on a combo chip they often share an antenna. This tool checks each against Wi-Fi, which is the interaction these lessons teach, but it does not simulate Bluetooth and Thread interfering with each other.",
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "thread-channel",
+      "title": "Choosing a Thread channel",
+      "body": "A Thread network uses one fixed channel from 11 to 26. Each is 2 MHz wide, 5 MHz apart, from 2405 to 2480 MHz. A 20 MHz Wi-Fi channel covers about four of them. Channels 15, 20, 25 and 26 sit clear of Wi-Fi channels 1, 6 and 11, which is why they are the usual choice. Thread does not hop, so it cannot get out of the way by itself.",
+      "label": "STANDARD"
     }
   ]
 }

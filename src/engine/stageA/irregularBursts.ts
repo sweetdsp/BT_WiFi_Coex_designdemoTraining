@@ -9,9 +9,13 @@ export function irregularBursts(g: GenContext): void {
   if (!(rate > 0)) return;
   const meanGap = 1e6 / rate;
   const advGap = pat.advChannelGapUs === undefined ? 0 : num(g, pat.advChannelGapUs);
+  const burst = pat.burst as PacketSpec[];
+  // A Thread burst that starts by receiving does not contend for the channel first.
+  const initiates = burst.length === 0 || typeof burst[0].dir !== 'string' || burst[0].dir === 'TX';
   let t = g.rng.exp(meanGap);
   for (let k = 0; t < g.windowUs; k++) {
-    const end = emitSequence(g, pat.burst as PacketSpec[], t + accessDelayUs(g), { eventId: `${g.instanceId}.b${k}`, advGapUs: advGap });
+    const access = g.task.tech === 'THREAD' && !initiates ? 0 : accessDelayUs(g);
+    const end = emitSequence(g, burst, t + access, { eventId: `${g.instanceId}.b${k}`, advGapUs: advGap });
     t = Math.max(end, t) + g.rng.exp(meanGap);
   }
 }

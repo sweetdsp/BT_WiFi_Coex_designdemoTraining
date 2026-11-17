@@ -26,7 +26,7 @@ const wrap = (el: React.ReactElement) => renderToStaticMarkup(<TooltipProvider o
 
 function timeView(r: EngineResult, over: Partial<React.ComponentProps<typeof TimeView>> = {}, theme: 'light' | 'dark' = 'light') {
   return wrap(<TimeView ctx={makeCtx(r, data)} theme={theme} viewport={{ start: 0, end: r.config.platform.windowUs }} onViewport={noop} cursor={null} onCursor={noop} onHoverBlock={noop} onSelectBlock={noop} onSelectConflict={noop}
-    muted={new Set()} onToggleMute={noop} collapsed={{ BT: false, WIFI: false }} onToggleGroup={noop} reveal={false} onHelp={noop} width={900} {...over} />);
+    muted={new Set()} onToggleMute={noop} collapsed={{ BT: false, WIFI: false, THREAD: false }} onToggleGroup={noop} reveal={false} onHelp={noop} width={900} {...over} />);
 }
 
 /** Every button needs text or an aria-label. */
@@ -41,13 +41,13 @@ function unnamedButtons(html: string): string[] {
 
 describe('UX-3: the legend gives every colour cue a pattern or shape', () => {
   const html = wrap(<Legend theme="light" open onClose={noop} />);
-  it('lists the 12 cues of the 7B.3 table, each with a drawn swatch and its pattern and shape in words', () => {
+  it('lists the 13 cues (the 12 of the 7B.3 table and Thread), each with a drawn swatch and its pattern and shape in words', () => {
     for (const c of tokens.cues) {
       expect(html, c.id).toContain(`data-cue="${c.id}"`);
       expect(html).toContain(c.meaning);
       expect(html).toContain(c.shape);
     }
-    expect((html.match(/<li class="legend-row"/g) ?? []).length).toBe(12);
+    expect((html.match(/<li class="legend-row"/g) ?? []).length).toBe(13);
     expect((html.match(/<svg/g) ?? []).length).toBeGreaterThanOrEqual(12);
   });
   it('uses patterns for degraded (hatch), conflict (diagonal lines), and AFH removed (dots), and marks for the statuses', () => {
@@ -117,7 +117,7 @@ describe('time view (7B.3, 7B.4)', () => {
     expect(timeView(dense, { viewport: { start: 0, end: 5000 } })).toContain('data-lod="blocks"');
   });
   it('collapsed groups hide their lanes, and muted lanes are marked hidden', () => {
-    expect(timeView(r, { collapsed: { BT: true, WIFI: false } })).not.toContain('data-lane-id="t1"');
+    expect(timeView(r, { collapsed: { BT: true, WIFI: false, THREAD: false } })).not.toContain('data-lane-id="t1"');
     expect(timeView(r, { muted: new Set(['t1']) })).toContain('hidden</text>');
   });
   it('is readable in the dark theme: dark lane background and the dark palette', () => {

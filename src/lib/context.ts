@@ -1,5 +1,6 @@
 // Lookups shared by the view-model modules.
 import type { EngineResult } from '../engine';
+import { TECH_NAME } from '../engine/techNames';
 import type { DataBundle } from '../engine/data';
 import type { AirBlock, Conflict, Decision, SpecLabel, TaskDef } from '../engine/types';
 
@@ -27,4 +28,4 @@ export function makeCtx(result: EngineResult, data: DataBundle): ViewCtx {
 
 export const labelText = (l: SpecLabel) => (l === 'STANDARD' ? 'Standard says' : 'Implementations vary');
 export const firstSentence = (s: string) => (s.match(/^.*?[.!?](\s|$)/)?.[0] ?? s).trim();
-export const techWord = (t: 'BT' | 'WIFI') => (t === 'BT' ? 'Bluetooth' : 'Wi-Fi');
+export const techWord = (t: 'BT' | 'WIFI' | 'THREAD') => TECH_NAME[t];

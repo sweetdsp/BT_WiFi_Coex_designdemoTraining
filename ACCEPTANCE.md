@@ -27,7 +27,7 @@ Every acceptance criterion from the requirements (section 11, 7B.14 and 7C.8) an
 | UX-4 colour-blind simulation and 4.5:1 text contrast | `tests/tokens.test.ts`; axe contrast scans in e2e |
 | UX-5 time view, frequency view and platform diagram stay in sync | e2e UX-5 checks |
 | UX-6 applying a suggestion updates the view; compare shows the difference | e2e "UX-6" checks (suggestion, compare) |
-| UX-7 all lessons (six, including the LE Audio one added at the owner's request) run start to finish with checks, data-driven | `tests/learn.test.ts` (structure, facts checked against the engine, state machine); e2e runs every lesson in the page |
+| UX-7 all lessons (nine: the five of 7B.11, LE Audio, and three for Thread with Wi-Fi, added at the owner's request) run start to finish with checks, data-driven | `tests/learn.test.ts` (structure, facts checked against the engine, state machine); e2e runs every lesson in the page |
 | UX-8 exports open and match the screen | e2e "UX-8" checks (SVG block count equals screen, PNG signature, CSV rows, JSON, PDF signature) |
 
 ## Validation tests
@@ -44,3 +44,15 @@ Every acceptance criterion from the requirements (section 11, 7B.14 and 7C.8) an
 | VAL-8 the engine refuses an ERROR configuration | `tests/arbitration.test.ts` |
 | VAL-9 every worked example validates | `tests/examples.test.ts` |
 | VAL-10 every rule has a failing and a passing test | `tests/validator.test.ts` |
+
+## Thread (added after release)
+
+| What | Proved by |
+|---|---|
+| 802.15.4 frame timing and the channel plan | `tests/thread.test.ts` ("Thread timing and channel plan") |
+| All eight Thread tasks expand through the existing pattern generators, deterministically | `tests/thread.test.ts`, `tests/dataIntegrity.test.ts` |
+| Thread against Wi-Fi follows the platform rules; channels 15, 20, 25 and 26 are clear of Wi-Fi channel 6 | `tests/thread.test.ts` ("Thread against Wi-Fi") |
+| Retry after the acknowledgement timeout plus backoff | `tests/thread.test.ts` |
+| Rules T-1 (Thread version), V-1 (channel range), T-5, P-6, P-8, F-7 and R-3 for Thread; VAL-10 covers P-8 and F-7 | `tests/thread.test.ts`, `tests/validator.test.ts` |
+| Examples 7 to 9 and their lessons | `tests/examples.test.ts`, `tests/learn.test.ts` (facts checked against the engine), e2e lesson run |
+| Thread in the interface: tab, lanes, diamonds, frequency view, platform, exports, colour and legend | e2e "Thread" block, `tests/tokens.test.ts`, `tests/components.test.tsx` |

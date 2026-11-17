@@ -10,6 +10,7 @@ import { isHard } from '../stageD';
 import type { AfhMap } from '../stageC';
 import { setBleDataChannel, setClassicChannel } from '../stageB';
 import { makeRng, type Rng } from '../util/rng';
+import { sideOf, TECH_NAME } from '../techNames';
 import type { AirBlock, ArbitrationPolicy, Decision, ScenarioConfig, SpecLabel } from '../types';
 import { PriorityModel, type PriorityInfo } from './priority';
 import { buildRuntime, type TaskRuntime } from './runtime';
@@ -70,14 +71,14 @@ export function arbitrate(input: AirBlock[], config: ScenarioConfig, data: DataB
   const groupEnd = (b: AirBlock) => Math.max(...members(b).map(endOf));
 
   const insertPending = (b: AirBlock) => {
-    const list = pending[b.tech];
-    let lo = heads[b.tech], hi = list.length;
+    const list = pending[sideOf(b)];
+    let lo = heads[sideOf(b)], hi = list.length;
     while (lo < hi) { const mid = (lo + hi) >> 1; if (cmp(list[mid], b) < 0) lo = mid + 1; else hi = mid; }
     list.splice(lo, 0, b);
   };
   const removePending = (b: AirBlock) => {
-    const list = pending[b.tech];
-    let lo = heads[b.tech], hi = list.length;
+    const list = pending[sideOf(b)];
+    let lo = heads[sideOf(b)], hi = list.length;
     while (lo < hi) { const mid = (lo + hi) >> 1; if (cmp(list[mid], b) < 0) lo = mid + 1; else hi = mid; }
     if (list[lo]?.id === b.id) list.splice(lo, 1);
   };
@@ -95,21 +96,23 @@ export function arbitrate(input: AirBlock[], config: ScenarioConfig, data: DataB
 
   // ---- granted blocks, for "is this time free?" ---------------------------------------------------
   const insertGranted = (b: AirBlock) => {
-    const list = granted[b.tech];
+    const list = granted[sideOf(b)];
     let lo = 0, hi = list.length;
     while (lo < hi) { const mid = (lo + hi) >> 1; if (cmp(list[mid], b) < 0) lo = mid + 1; else hi = mid; }
     list.splice(lo, 0, b);
   };
-  const maxDur = { BT: Math.max(1, ...blocks.filter((b) => b.tech === 'BT').map((b) => b.duration)) * 2, WIFI: Math.max(1, ...blocks.filter((b) => b.tech === 'WIFI').map((b) => b.duration)) * 2 };
+  const maxDur = { BT: Math.max(1, ...blocks.filter((b) => sideOf(b) === 'BT').map((b) => b.duration)) * 2, WIFI: Math.max(1, ...blocks.filter((b) => sideOf(b) === 'WIFI').map((b) => b.duration)) * 2 };
+  // Bluetooth and Thread share the narrowband side: one radio path, so they also keep out of each other's way when a block moves.
+  const narrowNames = [...new Set(blocks.filter((b) => sideOf(b) === 'BT').map((b) => TECH_NAME[b.tech]))].join(' and ') || TECH_NAME.BT;
   const findOccupant = (probe: AirBlock): AirBlock | undefined => {
-    const other = probe.tech === 'BT' ? 'WIFI' : 'BT';
+    const other = sideOf(probe) === 'BT' ? 'WIFI' : 'BT';
     const list = granted[other];
     const s = probe.start, e = probe.start + probe.duration;
     let lo = 0, hi = list.length;
     while (lo < hi) { const mid = (lo + hi) >> 1; if (list[mid].start < e) lo = mid + 1; else hi = mid; }
     for (let i = lo - 1; i >= 0 && list[i].start >= s - maxDur[other]; i--) {
       const o = list[i];
-      if (endOf(o) > s && o.start < e && (probe.tech === 'BT' ? isHard(probe, o, p, data) : isHard(o, probe, p, data))) return o;
+      if (endOf(o) > s && o.start < e && (sideOf(probe) === 'BT' ? isHard(probe, o, p, data) : isHard(o, probe, p, data))) return o;
     }
     return undefined;
   };
@@ -118,13 +121,14 @@ export function arbitrate(input: AirBlock[], config: ScenarioConfig, data: DataB
   const sameTechBlockers = (probe: AirBlock, ignore: Set<string>): AirBlock[] => {
     const out: AirBlock[] = [];
     const s0 = probe.start, e0 = probe.start + probe.duration;
-    const gl = granted[probe.tech];
+    const ps = sideOf(probe);
+    const gl = granted[ps];
     let lo = 0, hi = gl.length;
     while (lo < hi) { const mid = (lo + hi) >> 1; if (gl[mid].start < e0) lo = mid + 1; else hi = mid; }
-    for (let i = lo - 1; i >= 0 && gl[i].start >= s0 - maxDur[probe.tech]; i--) if (endOf(gl[i]) > s0 && !ignore.has(gl[i].id)) out.push(gl[i]);
-    const pl = pending[probe.tech];
-    let a = heads[probe.tech], z = pl.length;
-    const from = s0 - maxDur[probe.tech];
+    for (let i = lo - 1; i >= 0 && gl[i].start >= s0 - maxDur[ps]; i--) if (endOf(gl[i]) > s0 && !ignore.has(gl[i].id)) out.push(gl[i]);
+    const pl = pending[ps];
+    let a = heads[ps], z = pl.length;
+    const from = s0 - maxDur[ps];
     while (a < z) { const mid = (a + z) >> 1; if (pl[mid].start < from) a = mid + 1; else z = mid; }
     for (let i = a; i < pl.length && pl[i].start < e0; i++) {
       const c = pl[i];
@@ -134,7 +138,7 @@ export function arbitrate(input: AirBlock[], config: ScenarioConfig, data: DataB
   };
 
   const hardNeighbors = (b: AirBlock): AirBlock[] => {
-    const other = b.tech === 'BT' ? 'WIFI' : 'BT';
+    const other = sideOf(b) === 'BT' ? 'WIFI' : 'BT';
     const list = pending[other];
     const out: AirBlock[] = [];
     const e = endOf(b);
@@ -145,7 +149,7 @@ export function arbitrate(input: AirBlock[], config: ScenarioConfig, data: DataB
     for (let i = lo; i < list.length && list[i].start < e; i++) {
       const c = list[i];
       if (resolved.has(c.id) || endOf(c) <= b.start) continue;
-      if (b.tech === 'BT' ? isHard(b, c, p, data) : isHard(c, b, p, data)) out.push(c);
+      if (sideOf(b) === 'BT' ? isHard(b, c, p, data) : isHard(c, b, p, data)) out.push(c);
     }
     return out;
   };
@@ -224,7 +228,7 @@ export function arbitrate(input: AirBlock[], config: ScenarioConfig, data: DataB
     if (pa.critical && pa.waiting !== undefined) text = `${wn} had ${plural(pa.waiting, 'packet')} waiting, so it became critical (priority ${pa.value}) and won against ${nn} (priority ${pn(pb)}).`;
     else if (pb.waiting !== undefined && !pb.critical) text = `${nn} had ${plural(pb.waiting, 'packet')} waiting, so ${wn} was granted.`;
     else text = `${wn} (priority ${pa.value}) was granted over ${nn} (priority ${pb.value}).`;
-    if (pa.value === pb.value) text += ` Priorities were equal, so the block that started first${w.tech === 'BT' && n.start === w.start ? ', then Bluetooth,' : ''} won.`;
+    if (pa.value === pb.value) text += ` Priorities were equal, so the block that started first${sideOf(w) === 'BT' && n.start === w.start ? `, then ${TECH_NAME[w.tech]},` : ''} won.`;
     if (pb.note) text += ` ${nn}: ${pb.note}.`;
     return { winner: w, rule: 'PRIORITY_DYNAMIC', label: 'IMPLEMENTATION_VARIES', priorities: map, text };
   };
@@ -246,10 +250,10 @@ export function arbitrate(input: AirBlock[], config: ScenarioConfig, data: DataB
 
   /** True if a beats b under the policy. */
   const beats = (a: AirBlock, b: AirBlock, t: number): boolean => {
-    if (policy === 'FIRST_COME') return a.start !== b.start ? a.start < b.start : a.tech === 'BT' && b.tech !== 'BT' || (a.tech === b.tech && cmp(a, b) < 0);
+    if (policy === 'FIRST_COME') return a.start !== b.start ? a.start < b.start : sideOf(a) === 'BT' && sideOf(b) !== 'BT' || (sideOf(a) === sideOf(b) && cmp(a, b) < 0);
     if (policy === 'BT_FAVOURED' || policy === 'WIFI_FAVOURED') {
       const fav = policy === 'BT_FAVOURED' ? 'BT' : 'WIFI';
-      if (a.tech !== b.tech) return a.tech === fav;
+      if (sideOf(a) !== sideOf(b)) return sideOf(a) === fav;
       return cmp(a, b) < 0;
     }
     if (policy === 'TIME_SHARE') return cmp(a, b) < 0;
@@ -267,7 +271,7 @@ export function arbitrate(input: AirBlock[], config: ScenarioConfig, data: DataB
     if (pb.anchor) return giveUpAllowed(b, pa, t);
     if (pa.value !== pb.value) return pa.value > pb.value;
     if (a.start !== b.start) return a.start < b.start;
-    return a.tech === 'BT' && b.tech !== 'BT' ? true : a.tech === b.tech ? cmp(a, b) < 0 : false;
+    return sideOf(a) === 'BT' && sideOf(b) !== 'BT' ? true : sideOf(a) === sideOf(b) ? cmp(a, b) < 0 : false;
   };
 
   const cause = (w: AirBlock, n: AirBlock, t: number): Cause => {
@@ -278,8 +282,8 @@ export function arbitrate(input: AirBlock[], config: ScenarioConfig, data: DataB
         return { winner: w, rule: 'FIRST_COME', label: 'IMPLEMENTATION_VARIES', priorities: map, text: `${wn} started first (${w.start} us), so it was granted and ${nn} was denied.` };
       case 'BT_FAVOURED':
       case 'WIFI_FAVOURED': {
-        const fav = policy === 'BT_FAVOURED' ? 'Bluetooth' : 'Wi-Fi';
-        return { winner: w, rule: 'FAVOURED', label: 'IMPLEMENTATION_VARIES', priorities: map, text: w.tech !== n.tech ? `The policy favours ${fav}, so ${wn} was granted over ${nn} regardless of priority.` : `${wn} started first, so it was granted over ${nn}.` };
+        const fav = policy === 'BT_FAVOURED' ? narrowNames : 'Wi-Fi';
+        return { winner: w, rule: 'FAVOURED', label: 'IMPLEMENTATION_VARIES', priorities: map, text: sideOf(w) !== sideOf(n) ? `The policy favours ${fav}, so ${wn} was granted over ${nn} regardless of priority.` : `${wn} started first, so it was granted over ${nn}.` };
       }
       case 'TIME_SHARE':
         return { winner: w, rule: 'TIME_SHARE_SPILLOVER', label: 'IMPLEMENTATION_VARIES', priorities: map, text: `${wn} and ${nn} overlapped inside the same time slice, so the one that started first, ${wn}, was granted.` };
@@ -412,6 +416,12 @@ export function arbitrate(input: AirBlock[], config: ScenarioConfig, data: DataB
       shift = groupEnd(n) + wt.sifsUs + 2 * slot + rng.int(0, wt.contentionWindowSlots) * slot - grp[0].start;
       const f = wt.rateStepFactors as number[];
       scale = 1 / f[Math.min(attempt - 1, f.length - 1)];
+    } else if (rule === 'THREAD_BACKOFF') {
+      // 802.15.4: wait for the acknowledgement timeout, then back off a random number of 320 us periods. The window doubles with each retry up to the maximum.
+      const rng = retryRng.get(n.taskId) ?? retryRng.set(n.taskId, makeRng(p.seed, `${n.taskId}:retry`)).get(n.taskId)!;
+      const tt = data.threadTiming;
+      const be = Math.min(tt.macMinBE + (attempt - 2), tt.macMaxBE);
+      shift = groupEnd(n) + tt.ackWaitUs + rng.int(0, 2 ** be - 1) * tt.unitBackoffUs + tt.ccaUs - grp[0].start;
     } else {
       // BLE_NEXT_PACKET_OR_EVENT: send it again after the next event of the same task.
       const events = eventTable(n.taskId);
@@ -504,7 +514,7 @@ export function arbitrate(input: AirBlock[], config: ScenarioConfig, data: DataB
     const canDelay = !model.isAnchor(n) && rt.def.delayable && isLeader(n) && (n.delayCount ?? 0) < maxDelays;
     if (canDelay) {
       const w = c.winner;
-      const target = delayTo ?? (w ? Math.max(groupEnd(w), endOf(w)) + (n.tech === 'WIFI' ? data.wifiTiming.difsUs : 0) : t);
+      const target = delayTo ?? (w ? Math.max(groupEnd(w), endOf(w)) + (sideOf(n) === 'WIFI' ? data.wifiTiming.difsUs : 0) : t);
       const dec = record(c.winner, n, c, t);
       if (delayGroup(n, target, c.text)) { n.decisionId = dec.id; return; }
       decisions.pop();
@@ -548,11 +558,11 @@ export function arbitrate(input: AirBlock[], config: ScenarioConfig, data: DataB
     if (tsActive) {
       const i = sliceIndex(t);
       const owner = sliceOwner(i);
-      if (owner !== b.tech) {
-        const ownerName = owner === 'BT' ? 'Bluetooth' : 'Wi-Fi';
+      if (owner !== sideOf(b)) {
+        const ownerName = owner === 'BT' ? narrowNames : 'Wi-Fi';
         const text = `Time slice ${i} (${i * p.timeShareSliceUs} to ${(i + 1) * p.timeShareSliceUs} us) belongs to ${ownerName} in the ${p.timeShareBtPercent}/${100 - p.timeShareBtPercent} share, so ${nameOf(b)} was outside its slice.`;
         const c: Cause = { rule: 'TIME_SHARE_SLICE', label: 'IMPLEMENTATION_VARIES', text };
-        lose(b, c, t, nextOwnedSlice(b.tech, t));
+        lose(b, c, t, nextOwnedSlice(sideOf(b), t));
         continue;
       }
     }

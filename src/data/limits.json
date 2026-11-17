@@ -16,7 +16,8 @@
   "maxTasksWarn": {
     "BT": 8,
     "WIFI": 8,
-    "TOTAL": 12
+    "TOTAL": 12,
+    "THREAD": 6
   },
   "uiValidationBudgetMs": 50,
   "supervisionTimeoutParamDefaultMs": 2000,

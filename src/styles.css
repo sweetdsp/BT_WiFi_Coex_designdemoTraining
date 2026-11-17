@@ -167,3 +167,5 @@ table.diff { width: 100%; border-collapse: collapse; font-size: 13px; } table.di
 /* Visitor stats: a small button fixed in the bottom-left corner. */
 .stats-corner { position: fixed; left: 8px; bottom: 8px; z-index: 40; font-size: 12px; padding: 2px 10px; border-radius: 12px; background: var(--c-panel); box-shadow: 0 1px 6px rgba(0,0,0,0.25); }
 .modal a { color: var(--c-focus); font-weight: 600; }
+
+.sel-thread { border-left-color: var(--c-thread); }

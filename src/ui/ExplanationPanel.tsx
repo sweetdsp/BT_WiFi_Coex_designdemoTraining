@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import type { Change } from '../engine/types';
 import type { ViewCtx } from '../lib/context';
 import { conflictList, explainConflict, neighbour, type Explanation, type SortKey } from '../lib/explanation';
-import { colorOf, type ThemeName } from '../lib/tokens';
+import { colorOf, techColorKey, type ThemeName } from '../lib/tokens';
 import { conflictTip } from '../lib/tooltips';
 import { useTip } from './Tooltip';
 
@@ -46,15 +46,15 @@ function MiniDiagram({ e, theme }: { e: Explanation; theme: ThemeName }) {
   return (
     <svg width="440" height="86" viewBox="0 0 440 86" role="img" aria-label="Small diagram of the overlap in time on the left and in frequency on the right" className="mini">
       <text x="6" y="10" fontSize="12" fill={c('textMuted')} transform="translate(0,72)">time →</text>
-      <rect x={X(d.time.bt[0])} y="8" width={Math.max(2, X(d.time.bt[1]) - X(d.time.bt[0]))} height="22" fill={ob.dir === 'TX' ? c('bt') : c('btLight')} stroke={c('bt')} strokeWidth="1.5" rx="2" />
+      <rect x={X(d.time.bt[0])} y="8" width={Math.max(2, X(d.time.bt[1]) - X(d.time.bt[0]))} height="22" fill={ob.dir === 'TX' ? c(techColorKey(ob.tech).solid) : c(techColorKey(ob.tech).light)} stroke={c(techColorKey(ob.tech).solid)} strokeWidth="1.5" rx="2" />
       <rect x={X(d.time.wifi[0])} y="38" width={Math.max(2, X(d.time.wifi[1]) - X(d.time.wifi[0]))} height="22" fill={e.involved[1].dir === 'TX' ? c('wifi') : c('wifiLight')} stroke={c('wifi')} strokeWidth="1.5" rx="2" />
       <rect x={Math.max(X(d.time.bt[0]), X(d.time.wifi[0]))} y="6" width={Math.max(2, Math.min(X(d.time.bt[1]), X(d.time.wifi[1])) - Math.max(X(d.time.bt[0]), X(d.time.wifi[0])))} height="56" fill={c('conflict')} opacity="0.18" stroke={c('conflict')} strokeDasharray="3 2" />
       <g transform="translate(226,0)">
         <text x="6" y="80" fontSize="12" fill={c('textMuted')}>frequency →</text>
         <rect x="6" y={Y(d.freq.wifi[0] - d.freq.guard)} width="200" height={Math.max(2, Y(d.freq.wifi[1] + d.freq.guard) - Y(d.freq.wifi[0] - d.freq.guard))} fill={c('wifi')} opacity="0.15" />
         <rect x="6" y={Y(d.freq.wifi[0])} width="200" height={Math.max(2, Y(d.freq.wifi[1]) - Y(d.freq.wifi[0]))} fill={c('wifi')} opacity="0.3" stroke={c('wifi')} strokeDasharray="4 3" />
-        <rect x="6" y={Y(d.freq.bt[0])} width="200" height={Math.max(3, Y(d.freq.bt[1]) - Y(d.freq.bt[0]))} fill={c('bt')} />
-        <text x="10" y={Y(d.freq.bt[0]) - 2} fontSize="12" fill={c('text')}>BT {ob.freq} MHz</text>
+        <rect x="6" y={Y(d.freq.bt[0])} width="200" height={Math.max(3, Y(d.freq.bt[1]) - Y(d.freq.bt[0]))} fill={c(techColorKey(ob.tech).solid)} />
+        <text x="10" y={Y(d.freq.bt[0]) - 2} fontSize="12" fill={c('text')}>{ob.tech === 'THREAD' ? 'Thread' : 'BT'} {ob.freq} MHz</text>
       </g>
     </svg>
   );
@@ -77,7 +77,7 @@ export function ExplanationPanel({ ctx, theme, selectedId, onSelect, onApply, ha
           <button type="button" onClick={() => { const id = neighbour(list, selectedId, 1); if (id) onSelect(id); }} aria-label="Next conflict" disabled={list.length === 0}>Next ›</button>
         </div>
       </header>
-      {list.length === 0 ? <p className="muted">No conflicts to show. Either the traffic never meets, or the settings keep Bluetooth and Wi-Fi apart.</p> : (
+      {list.length === 0 ? <p className="muted">No conflicts to show. Either the traffic never meets, or the settings keep Wi-Fi and Bluetooth or Thread apart.</p> : (
         <ul className="clist" aria-label="Conflict list">{list.map((x) => (<Row key={x.conflict.id} ctx={ctx} c={x.conflict} number={x.number} selected={x.conflict.id === selectedId} onSelect={() => onSelect(x.conflict.id)} />))}</ul>
       )}
       {!e ? <p className="empty-note">Select a conflict in the list or click a numbered band in the time view to read what happened and why.</p> : (
@@ -86,7 +86,7 @@ export function ExplanationPanel({ ctx, theme, selectedId, onSelect, onApply, ha
           <section><h4>1. What happened</h4><p>{e.what.text} <span className="spec-label">{e.what.label}</span></p></section>
           <section><h4>2. Who was involved</h4>
             <ul className="involved">{e.involved.map((i) => (
-              <li key={i.blockId}><span className="chip" style={{ background: colorOf(theme, i.tech === 'BT' ? (i.dir === 'TX' ? 'bt' : 'btLight') : (i.dir === 'TX' ? 'wifi' : 'wifiLight')), borderColor: colorOf(theme, i.tech === 'BT' ? 'bt' : 'wifi') }} aria-hidden="true" />
+              <li key={i.blockId}><span className="chip" style={{ background: colorOf(theme, i.dir === 'TX' ? techColorKey(i.tech).solid : techColorKey(i.tech).light), borderColor: colorOf(theme, techColorKey(i.tech).solid) }} aria-hidden="true" />
                 <strong>{i.role}:</strong> {i.name}, {i.kind} {i.dir}, <span className="mono">{i.start}–{i.end} µs, {i.freq} MHz ({i.width} MHz wide)</span>, final status {i.status.toLowerCase()}</li>))}</ul></section>
           <section><h4>3. Why it was a conflict</h4><MiniDiagram e={e} theme={theme} /><p>{e.why.text} <span className="spec-label">{e.why.label}</span></p></section>
           <section><h4>4. Who won, and why</h4>

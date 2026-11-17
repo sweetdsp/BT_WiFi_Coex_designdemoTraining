@@ -1,9 +1,11 @@
 // Explanation of a conflict as a short story in a fixed order (spec 7B.8).
-import type { Change, Conflict, SpecLabel } from '../engine/types';
+import type { Change, Conflict, SpecLabel, Tech } from '../engine/types';
+import { threadChannelPlan } from '../engine/threadChannels';
+import { threadCenterMHz } from '../engine/timing/thread';
 import { firstSentence, labelText, techWord, type ViewCtx } from './context';
 
 export interface Statement { text: string; label: string }
-export interface Involved { role: string; blockId: string; name: string; kind: string; dir: string; start: number; end: number; freq: number; width: number; channel: number; tech: 'BT' | 'WIFI'; status: string }
+export interface Involved { role: string; blockId: string; name: string; kind: string; dir: string; start: number; end: number; freq: number; width: number; channel: number; tech: Tech; status: string }
 export interface Suggestion { id: string; label: string; why: string; changes: Change[]; spec: string }
 export interface Explanation {
   conflictId: string;
@@ -25,17 +27,20 @@ export function explainConflict(c: Conflict, ctx: ViewCtx): Explanation {
   const number = result.conflicts.indexOf(c) + 1;
   const bt = ctx.blockById.get(c.btBlockId)!, wf = ctx.blockById.get(c.wifiBlockId)!;
   const btName = ctx.nameOf(bt.taskId), wfName = ctx.nameOf(wf.taskId);
+  // The narrowband block is Bluetooth or Thread.
+  const nb = techWord(bt.tech);
   const dec = c.decisionId ? ctx.decisionById.get(c.decisionId) : undefined;
   const lab = (l: SpecLabel) => labelText(l);
 
   const mk = (role: string, b: typeof bt): Involved => ({ role, blockId: b.id, name: ctx.nameOf(b.taskId), kind: String(b.kind), dir: b.dir, start: b.start, end: b.start + b.duration, freq: b.freqCenter, width: b.freqWidth, channel: b.channelIndex, tech: b.tech, status: b.status });
 
-  const via = c.tests.includes('ANTENNA') ? 'both share one antenna' : c.tests.includes('CORE') ? 'both share one core' : c.tests.includes('SIMULTANEOUS') ? 'the platform cannot send Wi-Fi while receiving Bluetooth' : c.freqOverlap ? 'their frequencies overlap' : `isolation is only ${p.isolationDb} dB`;
+  const via = c.tests.includes('ANTENNA') ? 'both share one antenna' : c.tests.includes('CORE') ? 'both share one core' : c.tests.includes('SIMULTANEOUS') ? `the platform cannot send Wi-Fi while receiving ${nb}` : c.freqOverlap ? 'their frequencies overlap' : `isolation is only ${p.isolationDb} dB`;
   const verb = (d: string) => (d === 'TX' ? 'sending' : 'receiving');
   const what: Statement = { text: `${wfName} was ${verb(wf.dir)} while ${btName} was ${verb(bt.dir)} a ${String(bt.kind).toLowerCase()} packet, and ${via}.`, label: lab(c.label) };
 
   const diag = { time: { bt: [bt.start, bt.start + bt.duration] as [number, number], wifi: [wf.start, wf.start + wf.duration] as [number, number] }, freq: { bt: [bt.freqCenter - bt.freqWidth / 2, bt.freqCenter + bt.freqWidth / 2] as [number, number], wifi: [wf.freqCenter - wf.freqWidth / 2, wf.freqCenter + wf.freqWidth / 2] as [number, number], guard: p.guardMHz } };
-  const why = { text: `The test that fired: ${c.tests.filter((t) => t !== 'TIME').map((t) => TEST[t]).join(' and ') || 'time overlap'}. The blocks overlapped for ${c.overlapUs} µs (from ${c.overlapStart} to ${c.overlapEnd} µs). ${c.reason}`, label: lab(c.label), tests: c.tests.map((t) => TEST[t]), overlapUs: c.overlapUs, freqOverlap: c.freqOverlap, diagram: diag };
+  const tw = (t: string) => TEST[t].replace('Bluetooth', nb);
+  const why = { text: `The test that fired: ${c.tests.filter((t) => t !== 'TIME').map(tw).join(' and ') || 'time overlap'}. The blocks overlapped for ${c.overlapUs} µs (from ${c.overlapStart} to ${c.overlapEnd} µs). ${c.reason}`, label: lab(c.label), tests: c.tests.map(tw), overlapUs: c.overlapUs, freqOverlap: c.freqOverlap, diagram: diag };
 
   let who: Explanation['who'] = null;
   if (dec) {
@@ -59,6 +64,7 @@ export function explainConflict(c: Conflict, ctx: ViewCtx): Explanation {
     }
     if (tags.includes('VOICE_LINK')) return lost || b.status === 'DEGRADED' ? 'A voice packet was lost: an audible glitch.' : 'The voice packet went out on time.';
     if (m?.anchor && (lost || b.status === 'DEGRADED')) return `${name} missed an event (${m.anchor.misses} missed in total, ${m.anchor.tolerated} tolerated before the link is at risk).`;
+    if (b.tech === 'THREAD' && (lost || b.status === 'DELAYED' || b.status === 'DEGRADED')) return `${name} ${b.status === 'DELAYED' ? `sent a frame ${b.start - b.plannedStart} µs late because it had to wait for the channel` : b.status === 'DEGRADED' ? 'sent a frame that was probably corrupted' : `lost a frame${b.status === 'RETRIED' ? ' and sent it again after the acknowledgement timeout' : ''}`}; its throughput impact is ${(m?.throughputImpactPct ?? 0).toFixed(1)} percent over the window.`;
     if (b.tech === 'WIFI' && (lost || b.status === 'DELAYED' || b.status === 'DEGRADED')) return `Wi-Fi throughput dropped by ${(m?.throughputImpactPct ?? 0).toFixed(1)} percent over the window${b.status === 'DELAYED' ? `, and a ${name} block was sent ${b.start - b.plannedStart} µs late` : ''}.`;
     if (lost) return `${name} lost a block${b.status === 'RETRIED' ? ' and sent it again' : ''}.`;
     return `${name} was not affected.`;
@@ -68,14 +74,18 @@ export function explainConflict(c: Conflict, ctx: ViewCtx): Explanation {
   const sug: Suggestion[] = [];
   const spec = labelText('IMPLEMENTATION_VARIES');
   if (c.tests.includes('ANTENNA')) sug.push({ id: 'separate-antennas', label: 'Use separate antennas with 40 dB isolation and concurrent cores', why: 'Removes the shared path, so overlapping blocks no longer have to take turns.', spec, changes: [{ op: 'setPlatform', field: 'femArrangement', value: 'SEPARATE' }, { op: 'setPlatform', field: 'antennaMode', value: 'SEPARATE' }, { op: 'setPlatform', field: 'coreCount', value: 2 }, { op: 'setPlatform', field: 'coreMode', value: 'CONCURRENT' }, { op: 'setPlatform', field: 'simultaneousWifiTxBtRx', value: true }, { op: 'setPlatform', field: 'isolationDb', value: 40 }] });
-  if (c.freqOverlap && !p.afhEnabled && p.wifiBand === '2.4') sug.push({ id: 'afh-on', label: 'Turn on adaptive frequency hopping', why: 'Bluetooth stops hopping into the Wi-Fi channel once the channel map takes effect.', spec, changes: [{ op: 'setPlatform', field: 'afhEnabled', value: true }] });
+  if (c.freqOverlap && bt.tech === 'THREAD') {
+    const plan = threadChannelPlan(result.config, ctx.data);
+    if (plan.nearestClear !== undefined && plan.nearestClear !== p.threadChannel) sug.push({ id: 'move-thread', label: `Move Thread to channel ${plan.nearestClear} (${threadCenterMHz(ctx.data, plan.nearestClear)} MHz), clear of Wi-Fi`, why: 'Thread does not hop, so it cannot move out of the way by itself. A channel outside the Wi-Fi channel and its guard margin removes the frequency overlap.', spec: labelText('STANDARD'), changes: [{ op: 'setPlatform', field: 'threadChannel', value: plan.nearestClear }] });
+  }
+  if (c.freqOverlap && bt.tech === 'BT' && !p.afhEnabled && p.wifiBand === '2.4') sug.push({ id: 'afh-on', label: 'Turn on adaptive frequency hopping', why: 'Bluetooth stops hopping into the Wi-Fi channel once the channel map takes effect.', spec, changes: [{ op: 'setPlatform', field: 'afhEnabled', value: true }] });
   if (c.column === 'SEP_LOW' || (!c.tests.includes('ANTENNA') && p.isolationDb < 40)) sug.push({ id: 'raise-isolation', label: `Raise isolation from ${p.isolationDb} dB to 40 dB`, why: 'Above the interaction threshold, a transmit no longer disturbs a nearby receive.', spec, changes: [{ op: 'setPlatform', field: 'isolationDb', value: 40 }] });
-  if (c.severity === 'HARD' && p.arbitrationPolicy === 'PRIORITY' && sug.length < 3) sug.push({ id: 'bt-favoured', label: 'Favour Bluetooth in arbitration', why: 'Bluetooth always wins a hard conflict, whatever the priorities.', spec, changes: [{ op: 'setPlatform', field: 'arbitrationPolicy', value: 'BT_FAVOURED' }] });
-  if (sug.length === 0 && p.wifiBand === '2.4') sug.push({ id: 'afh-on', label: 'Turn on adaptive frequency hopping', why: 'Keeps Bluetooth out of the Wi-Fi channel.', spec, changes: [{ op: 'setPlatform', field: 'afhEnabled', value: true }] });
+  if (c.severity === 'HARD' && p.arbitrationPolicy === 'PRIORITY' && sug.length < 3) sug.push({ id: 'bt-favoured', label: `Favour ${nb} in arbitration`, why: `${nb} always wins a hard conflict, whatever the priorities.`, spec, changes: [{ op: 'setPlatform', field: 'arbitrationPolicy', value: 'BT_FAVOURED' }] });
+  if (sug.length === 0 && p.wifiBand === '2.4' && bt.tech === 'BT') sug.push({ id: 'afh-on', label: 'Turn on adaptive frequency hopping', why: 'Keeps Bluetooth out of the Wi-Fi channel.', spec, changes: [{ op: 'setPlatform', field: 'afhEnabled', value: true }] });
 
   return {
     conflictId: c.id, number, severity: c.severity,
-    what, involved: [mk('Bluetooth', bt), mk('Wi-Fi', wf)], why, who, means, changes: sug.slice(0, 3),
+    what, involved: [mk(nb, bt), mk('Wi-Fi', wf)], why, who, means, changes: sug.slice(0, 3),
   };
 }
 

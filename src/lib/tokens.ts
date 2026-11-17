@@ -19,8 +19,11 @@ export const tokens = raw as unknown as {
 export const colorOf = (theme: ThemeName, key: string): string => String(tokens.themes[theme][key]);
 
 /** A slightly different tint of the technology colour for each task lane, so the technology stays obvious (7B.3). */
-export function laneTint(theme: ThemeName, tech: 'BT' | 'WIFI', index: number): string {
-  const base = colorOf(theme, tech === 'BT' ? 'bt' : 'wifi');
+/** Token names of a technology's solid and light colours. */
+export const techColorKey = (tech: 'BT' | 'WIFI' | 'THREAD'): { solid: string; light: string } => (tech === 'BT' ? { solid: 'bt', light: 'btLight' } : tech === 'THREAD' ? { solid: 'thread', light: 'threadLight' } : { solid: 'wifi', light: 'wifiLight' });
+
+export function laneTint(theme: ThemeName, tech: 'BT' | 'WIFI' | 'THREAD', index: number): string {
+  const base = colorOf(theme, techColorKey(tech).solid);
   const t = tokens.laneTint;
   const step = (index % t.steps) / Math.max(1, t.steps - 1);
   // Light theme darkens, dark theme lightens, so contrast with the lane background never drops.
