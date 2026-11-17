@@ -610,6 +610,42 @@ await page.screenshot({ path: `${SHOTS}/dense.png`, fullPage: true });
   check('the exported time view names the Thread lanes', /Thread/.test(svg) && /Sensor report/.test(svg));
 }
 
+
+// ---- Tooltips are opaque and readable in both themes (regression: they were drawn outside the themed container and came out transparent) ----
+{
+  await page.goto(`${URL}?e2e`);
+  await page.getByTestId('load-first-example').click(); await settled();
+  await page.waitForSelector('g.block');
+  const legible = () => page.evaluate(() => {
+    const el = document.querySelector('[data-testid="tooltip"]');
+    if (!el) return null;
+    const cs = getComputedStyle(el);
+    const parse = (c) => { const m = c.match(/[\d.]+/g).map(Number); return { r: m[0], g: m[1], b: m[2], a: m[3] ?? 1 }; };
+    const lum = ({ r, g, b }) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+    const bg = parse(cs.backgroundColor), fg = parse(cs.color);
+    const hi = Math.max(lum(bg), lum(fg)), lo = Math.min(lum(bg), lum(fg));
+    return { alpha: bg.a, contrast: (hi + 0.05) / (lo + 0.05), bg: cs.backgroundColor, rootVar: getComputedStyle(document.documentElement).getPropertyValue('--c-bg').trim() };
+  });
+  for (const theme of ['light', 'dark']) {
+    if (theme === 'dark') await page.getByRole('button', { name: 'Dark theme' }).click();
+    await page.locator('g.block').first().focus();
+    await page.waitForSelector('[data-testid="tooltip"]');
+    const r = await legible();
+    check(`${theme} theme: the block tooltip has an opaque background`, r && r.alpha === 1, JSON.stringify(r));
+    check(`${theme} theme: tooltip text has at least 4.5 to 1 contrast against its background`, r && r.contrast >= 4.5, r ? r.contrast.toFixed(1) : '');
+    check(`${theme} theme: the theme colours are defined on the page root`, r && r.rootVar.length > 0);
+    await page.keyboard.press('Escape');
+    // An information button in the builder uses the same tooltip.
+    await page.getByTestId('ltab-platform').click();
+    await page.getByRole('button', { name: 'About Isolation' }).first().focus();
+    await page.waitForSelector('[data-testid="tooltip"]');
+    const r2 = await legible();
+    check(`${theme} theme: the settings tooltip is opaque and readable`, r2 && r2.alpha === 1 && r2.contrast >= 4.5, JSON.stringify(r2));
+    await page.keyboard.press('Escape');
+    await page.getByTestId('ltab-build').click();
+  }
+}
+
 check('no page errors', errors.length === 0, errors.join(' | '));
 await browser.close();
 const failed = results.filter((r) => !r.ok);

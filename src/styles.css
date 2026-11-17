@@ -105,9 +105,9 @@ table.tasks { width: 100%; border-collapse: collapse; font-size: 13px; } table.t
 .legend-row { display: flex; gap: 8px; align-items: center; padding: 2px 4px; border-radius: 6px; } .legend-text { font-size: 13px; }
 .help-panel { position: fixed; right: 16px; bottom: 16px; width: 360px; background: var(--c-bg); border: 1px solid var(--c-border); border-radius: 6px; padding: 8px 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.25); z-index: 50; }
 .help-panel header { display: flex; justify-content: space-between; align-items: center; }
-.tooltip { position: fixed; z-index: 100; max-width: 380px; background: var(--c-bg); color: var(--c-text); border: 1px solid var(--c-border); border-radius: 6px; padding: 8px 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.25); font-size: 13px; }
+.tooltip { position: fixed; z-index: 100; max-width: 380px; background: var(--c-bg, #ffffff); color: var(--c-text, #1b1f24); border: 1px solid var(--c-border, #c9cfd6); border-radius: 6px; padding: 8px 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.25); font-size: 13px; }
 .tooltip-title { font-weight: 700; margin-bottom: 4px; }
-.tooltip-fields { margin: 0 0 4px; display: grid; gap: 1px; } .tooltip-fields div { display: grid; grid-template-columns: 112px 1fr; gap: 6px; } .tooltip-fields dt { color: var(--c-text-muted); } .tooltip-fields dd { margin: 0; }
+.tooltip-fields { margin: 0 0 4px; display: grid; gap: 1px; } .tooltip-fields div { display: grid; grid-template-columns: 112px 1fr; gap: 6px; } .tooltip-fields dt { color: var(--c-text-muted, #4a5560); } .tooltip-fields dd { margin: 0; }
 .tooltip-sentence { margin: 4px 0; font-style: italic; } .tooltip-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 
 /* Motion: nothing longer than 400 ms outside playback, and none at all when Reduce motion is on (7B.1). */

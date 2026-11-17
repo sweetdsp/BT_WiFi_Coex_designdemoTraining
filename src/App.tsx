@@ -367,6 +367,12 @@ export default function App() {
   const focusIds = replayStep && conflict ? new Set([conflict.btBlockId, conflict.wifiBlockId]) : undefined;
 
   const vars = cssVariables(theme);
+  // Floating elements such as tooltips are drawn outside the app container, so the theme colours are also set on the page root.
+  useEffect(() => {
+    const root = document.documentElement;
+    for (const [k, v] of Object.entries(cssVariables(theme))) root.style.setProperty(k, v);
+    root.dataset.theme = theme;
+  }, [theme]);
 
   // ---- Learn mode: highlight the area a step talks about, run the step's action once the lesson's scenario is on screen ----
   const area = lesson ? (lessonOf(lesson)?.steps[lesson.step]?.area ?? null) : tour !== null ? tourSteps[tour].area : null;
