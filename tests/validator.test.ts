@@ -212,6 +212,8 @@ const cases: Record<string, Case> = {
   'F-3': { fail: () => makeConfig(['bt_a2dp', 'wifi_video_stream'], { ...sepConcurrent, isolationDb: 10 }), pass: () => makeConfig(['bt_a2dp', 'wifi_video_stream'], sepConcurrent) },
   'F-4': { fail: () => makeConfig(['bt_a2dp'], { afhEnabled: true }), pass: () => makeConfig(['bt_a2dp', 'wifi_video_stream'], { afhEnabled: true }) },
   'F-5': { fail: () => makeConfig(['bt_a2dp', 'wifi_video_stream'], { afhEnabled: true, afhMinChannelsClassic: 79 }), pass: () => makeConfig(['bt_a2dp', 'wifi_video_stream'], { afhEnabled: true }) },
+  'P-8': { fail: () => makeConfig(['bt_a2dp', 'thread_report', 'wifi_video_stream']), pass: () => makeConfig(['thread_report', 'wifi_video_stream']) },
+  'F-7': { fail: () => makeConfig(['thread_report', 'wifi_video_stream'], { threadChannel: 18 }), pass: () => makeConfig(['thread_report', 'wifi_video_stream'], { threadChannel: 15 }) },
   'F-6': { fail: () => makeConfig(['bt_a2dp'], { arbitrationPolicy: 'TIME_SHARE', timeShareBtPercent: 0 }), pass: () => makeConfig(['bt_a2dp'], { arbitrationPolicy: 'TIME_SHARE' }) },
   'W-1': { fail: () => makeConfig(['bt_inquiry_scan']), pass: () => base() },
   'W-2': { fail: () => makeConfig([['wifi_ul_burst', { bitrateMbps: 2000, aggregationBytes: 1500 }]], { windowUs: 10_000_000 }), pass: () => base() },

@@ -6,6 +6,7 @@ export interface Support { ok: boolean; reason?: string }
 const OK: Support = { ok: true };
 
 export function taskSupport(def: TaskDef, p: PlatformConfig, data: DataBundle): Support {
+  if (def.tech === 'THREAD') return def.minVersion > p.threadVersion ? { ok: false, reason: `needs Thread ${def.minVersion.toFixed(1)}; the device supports ${p.threadVersion.toFixed(1)}` } : OK;
   if (def.tech === 'BT') {
     if (def.isoStream) return data.blePhy.isoMinCore > p.btMaxVersion ? { ok: false, reason: `needs Core ${data.blePhy.isoMinCore.toFixed(1)}; the device supports ${p.btMaxVersion.toFixed(1)}` } : OK;
     return def.minVersion > p.btMaxVersion ? { ok: false, reason: `needs Core ${def.minVersion.toFixed(1)}; the device supports ${p.btMaxVersion.toFixed(1)}` } : OK;

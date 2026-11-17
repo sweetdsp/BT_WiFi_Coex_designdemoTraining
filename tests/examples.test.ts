@@ -19,7 +19,7 @@ const overlapsWifi = (r: EngineResult, b: AirBlock) => wifi(r).some((w) => w.sta
 const decisionWaiting = (r: EngineResult, id: string, taskPrefix: string) => Object.entries(r.decisions.find((d) => d.id === id)!.priorities).find(([k]) => k.startsWith(taskPrefix))?.[1];
 
 describe('VAL-9: every worked example passes validation with no ERROR', () => {
-  for (const n of [1, 2, 3, 4, 5, 6]) {
+  for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
     it(`Example ${n}`, () => {
       const issues = validate(presetConfig(`example-${n}`, data), data);
       expect(hasErrors(issues), issues.filter((i) => i.severity === 'ERROR').map((i) => i.id).join(',')).toBe(false);
@@ -33,7 +33,7 @@ describe('VAL-9: every worked example passes validation with no ERROR', () => {
     expect(ids(2)).toEqual([]);
   });
   it('the presets are data: six records (the five of 7A.12 and the LE Audio example added later), in order, each naming known tasks', () => {
-    expect(data.presets.map((p) => p.example)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(data.presets.map((p) => p.example)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
     for (const p of data.presets) for (const t of p.tasks) expect(data.taskIndex.has(t.taskId)).toBe(true);
   });
 });
@@ -223,10 +223,10 @@ describe('Example 5: BLE connection plus Wi-Fi 6 on 2.4 GHz, shared antenna, TIM
 });
 
 describe('all examples: determinism, speed and the gate (AC-7, AC-10, NFR-2)', () => {
-  it.each([1, 2, 3, 4, 5, 6])('Example %i gives identical output for the same configuration and seed', (n) => {
+  it.each([1, 2, 3, 4, 5, 6, 7, 8, 9])('Example %i gives identical output for the same configuration and seed', (n) => {
     expect(runEngine(presetConfig(`example-${n}`, data), data)).toEqual(ex(n));
   });
-  it.each([1, 2, 3, 4, 5, 6])('Example %i runs in under 2 seconds', (n) => {
+  it.each([1, 2, 3, 4, 5, 6, 7, 8, 9])('Example %i runs in under 2 seconds', (n) => {
     const t0 = performance.now();
     runEngine(presetConfig(`example-${n}`, data), data);
     expect(performance.now() - t0).toBeLessThan(2000);
@@ -267,5 +267,78 @@ describe('Example 6: LE Audio and Wi-Fi video, shared antenna, policy favours Wi
   it('Wi-Fi is never held back and wins every hard conflict', () => {
     expect(r.metrics.conflicts.hardWonByBluetooth).toBe(0);
     expect(r.metrics.perTask.t2.counts.delayed).toBe(0);
+  });
+});
+
+describe('Examples 7 to 9: Thread with Wi-Fi (added when Thread was added)', () => {
+  const nameOf = (r: EngineResult, id: string) => r.taskNames[r.blocks.find((b) => b.id === id)!.taskId];
+  const perTask = (r: EngineResult, tech: 'THREAD' | 'WIFI') => Object.values(r.metrics.perTask).find((t) => t.tech === tech)!;
+
+  describe('Example 7: Thread polls and Wi-Fi video on a shared antenna', () => {
+    const r = ex(7);
+    it('setup: a sleepy poll with data pending, a sensor report, 30 Mbps video, shared antenna, Thread channel 15, 1 second', () => {
+      expect(r.config.tasks.map((t) => t.taskId)).toEqual(['thread_poll', 'thread_report', 'wifi_video_stream']);
+      expect(r.config.platform).toMatchObject({ antennaMode: 'SHARED', coreMode: 'TIME_DIVISION', threadChannel: 15, windowUs: 1_000_000, arbitrationPolicy: 'PRIORITY' });
+    });
+    it('Thread is on channel 15 at 2425 MHz, clear of Wi-Fi channel 6, so every conflict comes from the shared path', () => {
+      for (const b of r.blocks.filter((x) => x.tech === 'THREAD' && !x.optional)) { expect(b.freqCenter).toBe(2425); expect(b.freqWidth).toBe(2); }
+      expect(r.conflicts.filter((c) => c.freqOverlap)).toHaveLength(0);
+      expect(r.metrics.conflicts.bySeverity).toEqual({ HARD: 24, DEGRADED: 0, WARNING: 0, TOLERATED: 13 });
+    });
+    it('the poll outranks the video (65 against 60) and the video waits: it is delayed, never lost', () => {
+      const polls = r.decisions.filter((d) => /Data poll/.test(d.text) && /was granted/.test(d.text));
+      expect(polls.length).toBeGreaterThanOrEqual(8);
+      const v = perTask(r, 'WIFI');
+      expect(v.counts.delayed).toBe(17);
+      expect(v.counts.lost).toBe(0);
+      expect(v.latency.maxUs).toBe(6433);
+    });
+    it('no Thread frame is delayed or lost, and no block is corrupted', () => {
+      const t = Object.values(r.metrics.perTask).filter((x) => x.tech === 'THREAD');
+      for (const x of t) { expect(x.counts.delayed).toBe(0); expect(x.counts.lost).toBe(0); expect(x.throughputImpactPct).toBe(0); }
+      expect(r.metrics.totals.blocksDegraded).toBe(0);
+    });
+    it('every priority decision names the Thread task by its display name', () => {
+      expect(r.decisions.some((d) => nameOf(r, d.winnerId) === 'Data poll (sleepy end device)')).toBe(true);
+    });
+  });
+
+  describe('Example 8: Thread under Wi-Fi channel 6, separate antennas, 10 dB isolation', () => {
+    const r = ex(8);
+    it('Thread channel 18 (2435 MHz) is inside Wi-Fi channel 6, so overlapping frames are degraded, not hard', () => {
+      expect(r.config.platform).toMatchObject({ threadChannel: 18, isolationDb: 10, antennaMode: 'SEPARATE', coreMode: 'CONCURRENT' });
+      expect(r.metrics.conflicts.bySeverity).toEqual({ HARD: 0, DEGRADED: 16, WARNING: 0, TOLERATED: 7 });
+      expect(r.conflicts.filter((c) => c.severity === 'DEGRADED').every((c) => c.freqOverlap)).toBe(true);
+    });
+    it('both technologies lose data: Thread about 27.5 percent, the video about 19 percent', () => {
+      expect(perTask(r, 'THREAD').throughputImpactPct).toBeCloseTo(27.5, 1);
+      expect(perTask(r, 'WIFI').throughputImpactPct).toBeCloseTo(19.0, 1);
+      expect(r.metrics.totals.blocksDegraded).toBeGreaterThan(0);
+    });
+    it('the validator points at the channel (F-7, INFO) and the explanation suggests the nearest clear one', () => {
+      const f7 = validate(r.config, data).find((i) => i.id === 'F-7')!;
+      expect(f7.severity).toBe('INFO');
+      expect([15, 20]).toContain((f7.fixes[0].changes[0] as { value: number }).value);
+    });
+  });
+
+  describe('Example 9: the same with Thread on channel 25', () => {
+    const r = ex(9);
+    it('channel 25 (2475 MHz) is outside Wi-Fi channel 6 and its guard, so nothing is degraded', () => {
+      expect(r.config.platform.threadChannel).toBe(25);
+      expect(r.metrics.conflicts.bySeverity).toEqual({ HARD: 0, DEGRADED: 0, WARNING: 12, TOLERATED: 11 });
+      expect(r.conflicts.some((c) => c.freqOverlap)).toBe(false);
+    });
+    it('no Thread frame and no video packet is affected', () => {
+      expect(perTask(r, 'THREAD').throughputImpactPct).toBe(0);
+      expect(perTask(r, 'WIFI').throughputImpactPct).toBe(0);
+      expect(r.metrics.totals.blocksDegraded).toBe(0);
+    });
+    it('only the Thread channel differs from Example 8', () => {
+      const a = ex(8).config, b = r.config;
+      const diff = Object.keys(a.platform).filter((k) => (a.platform as unknown as Record<string, unknown>)[k] !== (b.platform as unknown as Record<string, unknown>)[k]);
+      expect(diff).toEqual(['threadChannel']);
+      expect(a.tasks).toEqual(b.tasks);
+    });
   });
 });

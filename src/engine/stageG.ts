@@ -10,6 +10,7 @@ import type { TaskRuntime } from './arbitration/runtime';
 import type { DataBundle } from './data';
 import { overlappingPairs } from './stageD';
 import { footprint, footprintsOverlap } from './stageB';
+import { sideOf, TECH_NAME } from './techNames';
 import type { AirBlock, Conflict, ConflictSeverity, Decision, DirClass, ScenarioConfig, Tech } from './types';
 
 export interface DirAirtime { txUs: number; rxUs: number; totalUs: number; txPct: number; rxPct: number; totalPct: number }
@@ -80,8 +81,8 @@ export function computeMetrics(
   const pct = (us: number) => (W > 0 ? (us / W) * 100 : 0);
 
   // ---- airtime ------------------------------------------------------------------------------
-  const airtime: Record<Tech, DirAirtime> = { BT: empty(), WIFI: empty() };
-  const requested: Record<Tech, number> = { BT: 0, WIFI: 0 };
+  const airtime: Record<Tech, DirAirtime> = { BT: empty(), WIFI: empty(), THREAD: empty() };
+  const requested: Record<Tech, number> = { BT: 0, WIFI: 0, THREAD: 0 };
   for (const b of blocks) {
     if (b.optional) continue;
     if (b.attempt === 1 && b.plannedStart < W) requested[b.tech] += Math.max(0, Math.min(W, b.plannedStart + b.duration) - b.plannedStart);
@@ -90,7 +91,7 @@ export function computeMetrics(
     if (e <= s) continue;
     airtime[b.tech][b.dir === 'TX' ? 'txUs' : 'rxUs'] += e - s;
   }
-  for (const t of ['BT', 'WIFI'] as const) {
+  for (const t of ['BT', 'WIFI', 'THREAD'] as const) {
     const a = airtime[t];
     a.totalUs = a.txUs + a.rxUs;
     a.txPct = pct(a.txUs); a.rxPct = pct(a.rxUs); a.totalPct = pct(a.totalUs);
@@ -99,7 +100,7 @@ export function computeMetrics(
   // ---- overlap at the planned positions -----------------------------------------------------
   const planned = blocks.filter((b) => !b.optional && b.attempt === 1).map((b) => ({ ...b, start: b.plannedStart, freqCenter: b.plannedFreqCenter ?? b.freqCenter }));
   const timeIv: [number, number][] = [], freqIv: [number, number][] = [];
-  for (const [bt, wf] of overlappingPairs(planned.filter((b) => b.tech === 'BT'), planned.filter((b) => b.tech === 'WIFI'))) {
+  for (const [bt, wf] of overlappingPairs(planned.filter((b) => sideOf(b) === 'BT'), planned.filter((b) => b.tech === 'WIFI'))) {
     const iv: [number, number] = [Math.max(bt.start, wf.start), Math.min(bt.start + bt.duration, wf.start + wf.duration)];
     if (iv[0] >= W) continue;
     iv[1] = Math.min(iv[1], W);
@@ -232,11 +233,12 @@ export function computeMetrics(
   }
   void anchorStats; void byId; void decisions;
 
-  const summary = `${conflicts.length} conflict${conflicts.length === 1 ? '' : 's'}: ${bySeverity.HARD} hard (${wonBt} resolved in favour of Bluetooth, ${wonWf} in favour of Wi-Fi), ${bySeverity.DEGRADED} degraded, ${bySeverity.WARNING} warning, ${bySeverity.TOLERATED} tolerated. ${totals.blocksDelayed} block${totals.blocksDelayed === 1 ? '' : 's'} delayed, ${totals.blocksLost} lost, ${totals.blocksRetried} retried.`;
+  const narrow = [...new Set(blocks.filter((b) => sideOf(b) === 'BT').map((b) => TECH_NAME[b.tech]))].join(' and ') || TECH_NAME.BT;
+  const summary = `${conflicts.length} conflict${conflicts.length === 1 ? '' : 's'}: ${bySeverity.HARD} hard (${wonBt} resolved in favour of ${narrow}, ${wonWf} in favour of Wi-Fi), ${bySeverity.DEGRADED} degraded, ${bySeverity.WARNING} warning, ${bySeverity.TOLERATED} tolerated. ${totals.blocksDelayed} block${totals.blocksDelayed === 1 ? '' : 's'} delayed, ${totals.blocksLost} lost, ${totals.blocksRetried} retried.`;
 
   return {
     windowUs: W, airtime,
-    requestedAirtimePct: { BT: pct(requested.BT), WIFI: pct(requested.WIFI) },
+    requestedAirtimePct: { BT: pct(requested.BT), WIFI: pct(requested.WIFI), THREAD: pct(requested.THREAD) },
     overlap,
     conflicts: { total: conflicts.length, bySeverity, byDirClass, hardWonByBluetooth: wonBt, hardWonByWifi: wonWf },
     totals, perTask, summary,

@@ -1,7 +1,8 @@
 // Data model (spec 7A.2) plus the configuration and validation types (7C.6).
 // Pure TypeScript: no DOM, no Node. All times are integer microseconds, all frequencies MHz.
 
-export type Tech = 'BT' | 'WIFI';
+/** Bluetooth, Wi-Fi, or Thread (IEEE 802.15.4). Bluetooth and Thread are the narrowband side: each is checked against Wi-Fi. */
+export type Tech = 'BT' | 'WIFI' | 'THREAD';
 export type Dir = 'TX' | 'RX';
 export type SpecLabel = 'STANDARD' | 'IMPLEMENTATION_VARIES';
 export type ParamValue = number | string | boolean;
@@ -11,7 +12,7 @@ export type BlockStatus = 'PLANNED' | 'GRANTED' | 'DENIED' | 'DELAYED' | 'TOLERA
 export type BlockKind =
   | 'DATA' | 'ACK' | 'MGMT' | 'POLL' | 'SCAN' | 'ADV' | 'VOICE' | 'ISO' | 'TONE' | 'ID' | 'CTRL' | 'BEACON';
 
-export type ChanMode = 'CLASSIC_HOP' | 'BLE_ADV' | 'BLE_DATA' | 'WIFI';
+export type ChanMode = 'CLASSIC_HOP' | 'BLE_ADV' | 'BLE_DATA' | 'WIFI' | 'THREAD';
 
 /**
  * Air-time block (7A.2). The fields after `reason` are engine bookkeeping that stages B to G need
@@ -45,6 +46,8 @@ export interface AirBlock {
   wifiBand?: string;
   wifiChannel?: number;
   wifiWidth?: number;
+  /** Thread (802.15.4) channel 11 to 26 for this block (a channel scan overrides the platform channel). */
+  threadChannel?: number;
   /** Exists only when a retry is triggered (eSCO retransmission window, spare ISO subevents). */
   optional?: boolean;
   /** For buffered streams: when the payload became available to send. */
@@ -82,7 +85,10 @@ export type DirClass = 'TX_TX' | 'TX_RX' | 'RX_TX' | 'RX_RX';
 export type InteractionTest = 'TIME' | 'FREQUENCY' | 'ANTENNA' | 'CORE' | 'SIMULTANEOUS' | 'ISOLATION';
 export type PlatformColumn = 'SHARED' | 'SEP_LOW' | 'SEP_HIGH';
 
-/** One Bluetooth block overlapping one Wi-Fi block in time, classified by stage D (7A.7). */
+/**
+ * One narrowband block overlapping one Wi-Fi block in time, classified by stage D (7A.7).
+ * The fields named bt... hold the non-Wi-Fi block, which is a Bluetooth block or a Thread block.
+ */
 export interface Conflict {
   id: string;
   btBlockId: string;
@@ -168,7 +174,7 @@ export interface AnchorDef {
 }
 
 export type RetryRule =
-  | 'NONE' | 'NEXT_SLOT_PAIR' | 'ESCO_WINDOW' | 'BLE_NEXT_PACKET_OR_EVENT' | 'WIFI_BACKOFF';
+  | 'NONE' | 'NEXT_SLOT_PAIR' | 'ESCO_WINDOW' | 'BLE_NEXT_PACKET_OR_EVENT' | 'WIFI_BACKOFF' | 'THREAD_BACKOFF';
 
 /**
  * A number, a "$param" reference to a task parameter, an "@file.key" reference to a constant in
@@ -183,7 +189,9 @@ export type DurSpec =
   | { mul: DurSpec[] }
   | { bt: string }
   | { ble: { phy: string; payloadBytes: Ref } }
-  | { wifi: { bytes: Ref; frame: 'DATA' | 'AMPDU' | 'MGMT' | 'ACK' | 'BA' | 'BEACON' | 'CTRL'; rate?: 'BASIC' | 'CONTROL' | 'DATA' } };
+  | { wifi: { bytes: Ref; frame: 'DATA' | 'AMPDU' | 'MGMT' | 'ACK' | 'BA' | 'BEACON' | 'CTRL'; rate?: 'BASIC' | 'CONTROL' | 'DATA' } }
+  /** Thread frame: DATA carries application bytes plus the MAC overhead; MGMT carries the given frame bytes; COMMAND and ACK have fixed sizes. */
+  | { thread: { bytes: Ref; frame: 'DATA' | 'MGMT' | 'COMMAND' | 'ACK' } };
 
 export type DirSpec = Dir | { param: string; map: Record<string, Dir> } | { role: Record<string, Dir> };
 
@@ -207,7 +215,8 @@ export type ChannelSpec =
   | { mode: 'CLASSIC_HOP' }
   | { mode: 'BLE_ADV'; interChannelGapUs?: Ref }
   | { mode: 'BLE_DATA'; perPacket?: boolean }
-  | { mode: 'WIFI' };
+  | { mode: 'WIFI' }
+  | { mode: 'THREAD' };
 
 /** Generator-specific pattern. Fields are documented per generator in 7A.3 and in docs of each generator. */
 export interface PatternSpec {
@@ -227,10 +236,10 @@ export interface TaskDef {
   id: string;
   name: string;
   tech: Tech;
-  category: 'CLASSIC' | 'LE' | 'WIFI';
+  category: 'CLASSIC' | 'LE' | 'WIFI' | 'THREAD';
   description: string;
   introducedIn: string;
-  /** Numeric Core version for BT (4.0, 5.2...) or generation rank for Wi-Fi. */
+  /** Numeric Core version for BT (4.0, 5.2...), generation rank for Wi-Fi, or Thread version (1.1, 1.2...). */
   minVersion: number;
   roles: string[];
   generator: GeneratorName;
@@ -270,6 +279,8 @@ export interface PlatformConfig {
   wifiChannel: number;
   wifiBandwidth: number;
   btMaxVersion: number;
+  threadChannel: number;
+  threadVersion: number;
   femArrangement: FemArrangement;
   antennaMode: AntennaMode;
   isolationDb: number;

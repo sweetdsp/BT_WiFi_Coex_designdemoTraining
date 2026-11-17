@@ -9,7 +9,7 @@ export interface RefContext {
 
 export function lookupConstant(path: string, data: DataBundle): number {
   const [file, key] = path.split('.');
-  const table = file === 'constants' ? data.constants : file === 'wifiTiming' ? data.wifiTiming : undefined;
+  const table = file === 'constants' ? data.constants : file === 'wifiTiming' ? data.wifiTiming : file === 'threadTiming' ? data.threadTiming : undefined;
   const v = table?.[key];
   if (typeof v !== 'number') throw new Error(`Unknown constant reference @${path}`);
   return v;

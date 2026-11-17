@@ -3,6 +3,7 @@
 import type { DataBundle } from './data';
 import { effectiveWifi } from './params';
 import { classicPacket, bleDurationUs } from './timing/bt';
+import { averageThreadAccessUs, threadFrameDurationUs } from './timing/thread';
 import { resolveRef, resolveText, type RefContext } from './timing/refs';
 import { averageAccessUs, carriedBytes, streamCount, wifiFrameDurationUs, wifiRateMbps, type WifiFrameKind, type WifiRateKind } from './timing/wifi';
 import type { DurSpec, PacketSpec, ParamMap, PlatformConfig, TaskDef } from './types';
@@ -31,6 +32,7 @@ export function resolveDurationUs(spec: DurSpec, ctx: DurationContext): number {
       const tctx = { data: ctx.data, genId: w.genId, bandwidthMHz: w.bandwidth, streams: streamCount(ctx.data, ctx.platform), rateFactor: ctx.rateFactor };
       return wifiFrameDurationUs(tctx, resolveRef(spec.wifi.bytes, ctx), spec.wifi.frame as WifiFrameKind, spec.wifi.rate as WifiRateKind | undefined);
     }
+    if ('thread' in spec) return threadFrameDurationUs(ctx.data, spec.thread.frame, resolveRef(spec.thread.bytes, ctx));
     if ('sum' in spec) return spec.sum.reduce<number>((a, s) => a + resolveDurationUs(s, ctx), 0);
     if ('mul' in spec) return spec.mul.reduce<number>((a, s) => a * resolveDurationUs(s, ctx), 1);
     if ('div' in spec) return resolveDurationUs(spec.div[0], ctx) / resolveDurationUs(spec.div[1], ctx);
@@ -143,7 +145,7 @@ export function estimateLoad(def: TaskDef, params: ParamMap, data: DataBundle, p
       const rate = num(pat.ratePerSec);
       const bursts = Math.max(1, Math.ceil((rate * windowUs) / 1e6));
       const t = sequenceTotals(pat.burst, ctx);
-      const access = def.tech === 'WIFI' ? averageAccessUs(data, platform.wifiGeneration) : 0;
+      const access = def.tech === 'WIFI' ? averageAccessUs(data, platform.wifiGeneration) : def.tech === 'THREAD' ? averageThreadAccessUs(data) : 0;
       return { blocks: bursts * t.blocks, airtimeUs: bursts * (t.us + access), eventIntervalUs: 1e6 / rate };
     }
     case 'ONE_SHOT_EXCHANGE': {

@@ -366,6 +366,205 @@
         "label": "STANDARD"
       },
       "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "thread-priority",
+      "title": "Why Thread polls delay Wi-Fi video on a shared antenna",
+      "example": 7,
+      "preset": "example-7",
+      "level": 7,
+      "goal": "Thread is a low-power mesh network on the same 2.4 GHz band. Here a sleepy Thread device and a Wi-Fi video stream share one antenna. You will see how a very short Thread frame can still make Wi-Fi wait, and why.",
+      "steps": [
+        {
+          "area": "time-view",
+          "caption": "The magenta lanes with diamonds are Thread, and the orange lane is Wi-Fi video. A Thread poll lasts well under a millisecond, but it still has to be sent on the shared antenna."
+        },
+        {
+          "area": "time-view",
+          "caption": "Select the first conflict. Both radios want the antenna, so only one can use it. Thread is on channel 15, outside the Wi-Fi channel, but frequency does not matter when the antenna is shared.",
+          "action": {
+            "type": "openFirstConflict"
+          }
+        },
+        {
+          "area": "explain",
+          "caption": "Read who won and why. The Thread poll starts at a higher priority than the video, so the video block is delayed until the poll and its acknowledgement are done."
+        },
+        {
+          "area": "platform",
+          "caption": "One core, one switch, one antenna: Thread, like Bluetooth, takes turns with Wi-Fi when they share the path."
+        },
+        {
+          "area": "summary",
+          "caption": "Nothing is lost. The video is delayed a few times by up to about 6 milliseconds and its buffer absorbs it, while Thread is not delayed at all."
+        }
+      ],
+      "verify": [
+        {
+          "path": "metrics.conflicts.bySeverity.HARD",
+          "op": ">",
+          "value": 0
+        },
+        {
+          "path": "metrics.conflicts.bySeverity.DEGRADED",
+          "op": "==",
+          "value": 0
+        },
+        {
+          "path": "metrics.totals.blocksDelayed",
+          "op": ">",
+          "value": 0
+        },
+        {
+          "path": "metrics.totals.blocksLost",
+          "op": "==",
+          "value": 0
+        }
+      ],
+      "check": {
+        "question": "Thread uses channel 15, outside the Wi-Fi channel. Why are there still hard conflicts?",
+        "options": [
+          "Thread transmits at much higher power than Wi-Fi.",
+          "The two radios share one antenna and one core, so they must take turns whatever their frequencies.",
+          "Channel 15 is inside the Wi-Fi channel.",
+          "Thread frames are longer than Wi-Fi frames."
+        ],
+        "answer": 1,
+        "explanation": "With a shared antenna and core, only one radio can use the air at a time, so an overlap in time is a hard conflict even when the frequencies differ. Priority then decides who waits.",
+        "label": "IMPLEMENTATION_VARIES"
+      },
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "thread-channel-overlap",
+      "title": "What happens when Thread sits under a Wi-Fi channel",
+      "example": 8,
+      "preset": "example-8",
+      "level": 8,
+      "goal": "Thread does not hop. It stays on one channel, so if that channel is inside the Wi-Fi channel, every overlap is a frequency overlap. Here the antennas are separate but isolation is only 10 dB.",
+      "steps": [
+        {
+          "area": "freq-view",
+          "caption": "The orange band is Wi-Fi channel 6. The magenta diamonds are Thread frames, all on channel 18, inside the band. Thread cannot move out of the way by itself.",
+          "action": {
+            "type": "freqMode",
+            "value": "HISTOGRAM"
+          }
+        },
+        {
+          "area": "time-view",
+          "caption": "Select the first conflict. Both blocks went out, but their frequencies overlapped and isolation was low, so both were probably corrupted.",
+          "action": {
+            "type": "openFirstConflict"
+          }
+        },
+        {
+          "area": "explain",
+          "caption": "The suggestions include moving Thread to a clear channel. That is the fix that works for a radio that does not hop."
+        },
+        {
+          "area": "summary",
+          "caption": "Both technologies lose data: more than a quarter of the Thread reports and about a fifth of the video are affected."
+        }
+      ],
+      "verify": [
+        {
+          "path": "metrics.conflicts.bySeverity.DEGRADED",
+          "op": ">",
+          "value": 0
+        },
+        {
+          "path": "metrics.conflicts.bySeverity.HARD",
+          "op": "==",
+          "value": 0
+        },
+        {
+          "path": "metrics.totals.blocksDegraded",
+          "op": ">",
+          "value": 0
+        }
+      ],
+      "check": {
+        "question": "Why are Thread frames corrupted here even though the antennas are separate?",
+        "options": [
+          "Separate antennas never help.",
+          "Thread's channel lies inside the Wi-Fi channel and isolation is below the threshold, so overlapping frames interfere.",
+          "Thread frames are too long.",
+          "The Wi-Fi video is acknowledged too slowly."
+        ],
+        "answer": 1,
+        "explanation": "Separate antennas stop one radio blocking the other, but energy at the same frequency still disturbs a receiver when isolation is low. Thread overlaps Wi-Fi in frequency on channel 18, so overlapping frames are degraded.",
+        "label": "IMPLEMENTATION_VARIES"
+      },
+      "label": "IMPLEMENTATION_VARIES"
+    },
+    {
+      "id": "thread-channel-plan",
+      "title": "Choosing a Thread channel away from Wi-Fi",
+      "example": 9,
+      "preset": "example-9",
+      "level": 9,
+      "goal": "The setup is the same as the last lesson, but Thread is on channel 25, outside Wi-Fi channel 6. A 20 MHz Wi-Fi channel covers about four Thread channels, so channels 15, 20, 25 and 26 are the usual choices.",
+      "steps": [
+        {
+          "area": "freq-view",
+          "caption": "Thread is now a column of diamonds on channel 25, well clear of the orange Wi-Fi band.",
+          "action": {
+            "type": "freqMode",
+            "value": "HISTOGRAM"
+          }
+        },
+        {
+          "area": "time-view",
+          "caption": "Select the first conflict. The frames still overlap in time, but not in frequency, so they are tolerated or only flagged as an out-of-band risk.",
+          "action": {
+            "type": "openFirstConflict"
+          }
+        },
+        {
+          "area": "summary",
+          "caption": "No Thread frame and no video packet is affected. The only change from the last lesson is the Thread channel."
+        },
+        {
+          "area": "left",
+          "caption": "Open the Platform tab and try the Thread channel yourself. The Issues tab will tell you when Thread sits under a Wi-Fi channel and suggests the nearest clear one."
+        }
+      ],
+      "verify": [
+        {
+          "path": "metrics.conflicts.bySeverity.DEGRADED",
+          "op": "==",
+          "value": 0
+        },
+        {
+          "path": "metrics.conflicts.bySeverity.HARD",
+          "op": "==",
+          "value": 0
+        },
+        {
+          "path": "metrics.conflicts.bySeverity.WARNING",
+          "op": ">",
+          "value": 0
+        },
+        {
+          "path": "metrics.totals.blocksDegraded",
+          "op": "==",
+          "value": 0
+        }
+      ],
+      "check": {
+        "question": "Wi-Fi channel 6 is in use. Which Thread channel is the best choice?",
+        "options": [
+          "Channel 18, close to the middle of the Wi-Fi channel.",
+          "Channel 17, because it is next to channel 18.",
+          "Channel 25, outside the Wi-Fi channel and its guard margin.",
+          "Any channel, because Thread hops like Bluetooth."
+        ],
+        "answer": 2,
+        "explanation": "Thread stays on one channel, so the choice is made once and should avoid the Wi-Fi channel. Channel 25 is outside it. Thread cannot use adaptive hopping to get out of the way the way Bluetooth can.",
+        "label": "STANDARD"
+      },
+      "label": "STANDARD"
     }
   ]
 }

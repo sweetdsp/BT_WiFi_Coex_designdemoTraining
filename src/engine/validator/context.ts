@@ -20,6 +20,7 @@ export interface Ctx {
   unknown: TaskInstance[];
   bt: RTask[];
   wifi: RTask[];
+  thread: RTask[];
   load(t: RTask): LoadEstimate;
 }
 
@@ -40,6 +41,7 @@ export function buildContext(cfg: ScenarioConfig, data: DataBundle): Ctx {
     cfg, data, platform, tasks, unknown,
     bt: tasks.filter((t) => t.def.tech === 'BT'),
     wifi: tasks.filter((t) => t.def.tech === 'WIFI'),
+    thread: tasks.filter((t) => t.def.tech === 'THREAD'),
     load(t) {
       let v = cache.get(t.inst.instanceId);
       if (!v) {

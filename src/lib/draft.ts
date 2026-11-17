@@ -34,13 +34,14 @@ export function applyPlatformPreset(cfg: ScenarioConfig, id: string, data: DataB
   return p ? { ...cfg, platform: { ...cfg.platform, ...(p.overrides as Partial<PlatformConfig>) } } : cfg;
 }
 
-/** A use case replaces the task list. */
+/** A use case replaces the tasks of its own technology (Bluetooth or Thread) and keeps the others, so it can be combined with Wi-Fi tasks. */
 export function applyUseCase(cfg: ScenarioConfig, id: string, data: DataBundle): ScenarioConfig {
   const u = data.useCases.find((x) => x.id === id);
   if (!u) return cfg;
-  let next = clearTasks(cfg);
+  const tech = u.tech ?? 'BT';
+  let next: ScenarioConfig = { ...cfg, tasks: cfg.tasks.filter((t) => data.taskIndex.get(t.taskId)?.tech !== tech) };
   for (const t of u.tasks) next = addTask(next, t.taskId, data, t.params ?? {});
-  return { ...next, name: u.name };
+  return next.tasks.every((t) => data.taskIndex.get(t.taskId)?.tech === tech) ? { ...next, name: u.name } : next;
 }
 
 export function setOverride(cfg: ScenarioConfig, kind: 'base' | 'bufferThreshold', key: string, value: number | undefined): ScenarioConfig {

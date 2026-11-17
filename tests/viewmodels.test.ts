@@ -8,7 +8,7 @@ import { makeCtx } from '../src/lib/context';
 import { activeAt, readoutAt, readoutText } from '../src/lib/cursor';
 import { conflictList, explainConflict, neighbour } from '../src/lib/explanation';
 import { channelTip, freqModel, HIGH_BAND_CAPTION } from '../src/lib/freq';
-import { bandsFor, buildLanes, densityBars, inView, labelFor, lodMode, lookOf, minimapTicks, partnersOf } from '../src/lib/layout';
+import { bandsFor, buildLanes, densityBars, inView, labelFor, laneGroups, lodMode, lookOf, minimapTicks, partnersOf } from '../src/lib/layout';
 import { activityAt, platformModel, sharedElementFor } from '../src/lib/platform';
 import { advance, eventTimes, nextEvent, prevEvent, replaySteps, revealed, SPEEDS } from '../src/lib/playback';
 import { summaryItems, taskRows } from '../src/lib/summary';
@@ -277,7 +277,7 @@ describe('frequency view (7A.11, 7B.6)', () => {
     expect(m.footprints).toHaveLength(0);
     expect(m.highBands).toHaveLength(1);
     expect(m.highBands[0]).toMatchObject({ band: '5', centre: 5180, widthMHz: 20, caption: HIGH_BAND_CAPTION });
-    expect(HIGH_BAND_CAPTION).toBe('No frequency overlap with Bluetooth. Interaction is only through shared antenna, core, and isolation.');
+    expect(HIGH_BAND_CAPTION).toBe('No frequency overlap with Bluetooth or Thread. Interaction is only through shared antenna, core, and isolation.');
   });
 });
 
@@ -373,5 +373,15 @@ describe('summary strip (7A.11)', () => {
     expect(rows.map((r) => r.name)).toEqual(['A2DP streaming', 'Video streaming']);
     expect(rows[0].tech).toBe('Bluetooth');
     expect(rows[1].impact).toMatch(/%$/);
+  });
+});
+
+describe('lane groups with Thread', () => {
+  const groups = (ids: string[]) => { const r = runEngine(makeConfig(ids, { windowUs: 100_000 })); return laneGroups(buildLanes(r, data)).map((g) => g.tech); };
+  it('Bluetooth, Thread and Wi-Fi in that order, leaving out an empty Bluetooth group when Thread is there', () => {
+    expect(groups(['bt_a2dp', 'thread_report', 'wifi_web'])).toEqual(['BT', 'THREAD', 'WIFI']);
+    expect(groups(['thread_report', 'wifi_web'])).toEqual(['THREAD', 'WIFI']);
+    expect(groups(['bt_a2dp', 'wifi_web'])).toEqual(['BT', 'WIFI']);
+    expect(groups(['wifi_web'])).toEqual(['BT', 'WIFI']);
   });
 });

@@ -294,10 +294,11 @@
     {
       "id": "backoff",
       "term": "Backoff",
-      "definition": "Wi-Fi waits a random short time before sending, so that devices do not all start together.",
+      "definition": "Wi-Fi and Thread wait a random short time before sending, so that devices do not all start together.",
       "label": "STANDARD",
       "match": [
-        "backoff"
+        "backoff",
+        "CSMA/CA"
       ]
     },
     {
@@ -313,6 +314,76 @@
         "spare subevents",
         "subevent",
         "subevents"
+      ]
+    },
+    {
+      "id": "thread",
+      "term": "Thread",
+      "definition": "A low-power mesh network for smart-home devices, built on IEEE 802.15.4. It uses one fixed 2.4 GHz channel and does not hop.",
+      "label": "STANDARD",
+      "match": [
+        "Thread",
+        "802.15.4"
+      ]
+    },
+    {
+      "id": "sleepy",
+      "term": "Sleepy end device",
+      "definition": "A battery-powered Thread device that sleeps most of the time and asks its parent router for waiting data by polling.",
+      "label": "STANDARD",
+      "match": [
+        "sleepy end device",
+        "sleepy device",
+        "sleepy"
+      ]
+    },
+    {
+      "id": "poll",
+      "term": "Data poll",
+      "definition": "A short request a sleepy device sends to its parent to ask whether any data is waiting.",
+      "label": "STANDARD",
+      "match": [
+        "data poll",
+        "poll",
+        "polls",
+        "polling"
+      ]
+    },
+    {
+      "id": "csl",
+      "term": "CSL (scheduled listening)",
+      "definition": "Coordinated sampled listening, added in Thread 1.2: the device listens at a set period and the parent sends then, so the device need not poll.",
+      "label": "STANDARD",
+      "match": [
+        "CSL",
+        "scheduled listening"
+      ]
+    },
+    {
+      "id": "mle",
+      "term": "MLE",
+      "definition": "Mesh link establishment: the short messages routers and joining devices use to find each other and build the mesh.",
+      "label": "STANDARD",
+      "match": [
+        "MLE"
+      ]
+    },
+    {
+      "id": "border-router",
+      "term": "Border router",
+      "definition": "A Thread router that connects the mesh to another network such as Wi-Fi or Ethernet, so it carries traffic between the two.",
+      "label": "STANDARD",
+      "match": [
+        "border router"
+      ]
+    },
+    {
+      "id": "mesh",
+      "term": "Mesh",
+      "definition": "A network where routers pass each other's frames along, so devices can reach each other in several hops.",
+      "label": "STANDARD",
+      "match": [
+        "mesh"
       ]
     }
   ]

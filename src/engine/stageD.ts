@@ -4,6 +4,7 @@
 // triggered (optional) are not on the air and are skipped.
 import type { DataBundle } from './data';
 import { footprint, footprintsOverlap } from './stageB';
+import { TECH_NAME } from './techNames';
 import type { AirBlock, Conflict, DirClass, InteractionTest, PlatformColumn, PlatformConfig, ScenarioConfig } from './types';
 
 export interface PlatformCase {
@@ -26,7 +27,7 @@ export function platformCase(p: PlatformConfig, bt: Pick<AirBlock, 'dir'>, wifi:
 
 export const dirClassOf = (bt: AirBlock, wifi: AirBlock): DirClass => `${bt.dir}_${wifi.dir}` as DirClass;
 
-/** Time-overlapping BT and Wi-Fi block pairs. Efficient for tens of thousands of blocks. */
+/** Time-overlapping narrowband (Bluetooth or Thread) and Wi-Fi block pairs. Efficient for tens of thousands of blocks. */
 export function* overlappingPairs(bt: AirBlock[], wifi: AirBlock[]): Generator<[AirBlock, AirBlock]> {
   const w = [...wifi].sort((a, b) => a.start - b.start);
   const maxEnd: number[] = [];
@@ -61,11 +62,13 @@ export function classifyPair(b: AirBlock, w: AirBlock, p: PlatformConfig, data: 
   const row = data.conflictSeverity.rows.find((r) => r.dirClass === dirClass && r.freqOverlap === freq);
   if (!row) throw new Error(`No severity row for ${dirClass} freq=${freq}`);
   const cell = row[pc.column];
-  const why = pc.shared.length ? pc.shared.map((t) => labels[t]).join(' and ') : freq ? labels.FREQUENCY : labels.ISOLATION;
+  // The data texts are written for Bluetooth; a Thread block names Thread instead.
+  const name = (s: string) => s.replace(/Bluetooth/g, TECH_NAME[b.tech]);
+  const why = name(pc.shared.length ? pc.shared.map((t) => labels[t]).join(' and ') : freq ? labels.FREQUENCY : labels.ISOLATION);
   return {
     btBlockId: b.id, wifiBlockId: w.id, btTaskId: b.taskId, wifiTaskId: w.taskId,
     overlapStart: oStart, overlapEnd: oEnd, overlapUs: oEnd - oStart, freqOverlap: freq, dirClass, tests, column: pc.column,
-    severity: cell.severity, reason: `${cell.text} (Triggered by: ${why}.)`, label: cell.label,
+    severity: cell.severity, reason: `${name(cell.text)} (Triggered by: ${why}.)`, label: cell.label,
   };
 }
 
@@ -78,7 +81,7 @@ export function detectConflicts(blocks: AirBlock[], config: ScenarioConfig, data
   const p = config.platform;
   // Optional blocks are retransmission opportunities that were never triggered; a retry is a new, non-optional block.
   const set = blocks.filter((b) => !b.optional);
-  const bt = set.filter((b) => b.tech === 'BT');
+  const bt = set.filter((b) => b.tech !== 'WIFI');
   const wifi = set.filter((b) => b.tech === 'WIFI');
   const found: Conflict[] = [];
   for (const [b, w] of overlappingPairs(bt, wifi)) {

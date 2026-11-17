@@ -3,6 +3,7 @@
 // draw onto a narrower channel set when adaptive frequency hopping is on.
 import type { DataBundle } from './data';
 import { makeRng } from './util/rng';
+import { threadCenterMHz } from './timing/thread';
 import type { AirBlock, ScenarioConfig } from './types';
 
 export function classicFreq(data: DataBundle, k: number): number {
@@ -58,6 +59,13 @@ export function resolveFrequencies(blocks: AirBlock[], config: ScenarioConfig, d
         b.channelIndex = ch;
         b.freqCenter = wifiCenterMHz(data, band, ch);
         b.freqWidth = width;
+      } else if (b.chanMode === 'THREAD') {
+        // Thread does not hop: one fixed channel for the whole network, unless a channel scan visits others.
+        const ch = b.threadChannel ?? config.platform.threadChannel;
+        b.threadChannel = ch;
+        b.channelIndex = ch;
+        b.freqCenter = threadCenterMHz(data, ch);
+        b.freqWidth = data.threadTiming.channelWidthMHz;
       } else if (b.chanMode === 'BLE_ADV') {
         const ch = (data.constants.bleAdvChannels as { index: number; mhz: number }[]).find((c) => c.index === b.fixedChannel);
         if (!ch) throw new Error(`Block ${b.id} has no advertising channel`);

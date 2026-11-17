@@ -5,6 +5,7 @@ import blePhy from '../data/blePhy.json';
 import wifiGenerations from '../data/wifiGenerations.json';
 import wifiChannels from '../data/wifiChannels.json';
 import wifiTiming from '../data/wifiTiming.json';
+import threadTiming from '../data/threadTiming.json';
 import limits from '../data/limits.json';
 import groupRules from '../data/groupRules.json';
 import priorityTable from '../data/priorityTable.json';
@@ -36,7 +37,7 @@ export interface SeverityRow { dirClass: string; freqOverlap: boolean; SHARED: S
 export interface Preset { id: string; example: number; name: string; summary: string; label: SpecLabel; tasks: { taskId: string; params?: ParamMap }[]; platform: Partial<PlatformConfig> }
 
 export interface PlatformField { field: keyof PlatformConfig; label: string; group: string; type: 'choice' | 'number' | 'boolean'; help: string; effect: string; typical: string; spec: SpecLabel; choices?: (string | number)[]; choiceLabels?: Record<string, string>; min?: number; max?: number; step?: number; unit?: string }
-export interface UseCase { id: string; name: string; description: string; tasks: { taskId: string; params?: ParamMap }[] }
+export interface UseCase { id: string; name: string; description: string; /** Which task tab shows it; Bluetooth when absent. */ tech?: 'BT' | 'THREAD'; tasks: { taskId: string; params?: ParamMap }[] }
 
 export interface DataBundle {
   presets: Preset[];
@@ -50,6 +51,7 @@ export interface DataBundle {
   wifiBands: Record<string, WifiBandDef>;
   mloDefaultChannels: Record<string, number>;
   wifiTiming: Record<string, any>;
+  threadTiming: Record<string, any>;
   limits: Record<string, any>;
   groupRules: { exclusivePairs: ExclusivePair[]; groupLimits: GroupLimitRule[] };
   priorityTable: {
@@ -76,6 +78,7 @@ export function buildDataBundle(): DataBundle {
     wifiBands: copy((wifiChannels as unknown as { bands: Record<string, WifiBandDef> }).bands),
     mloDefaultChannels: copy((wifiChannels as unknown as { mloDefaultChannels: Record<string, number> }).mloDefaultChannels),
     wifiTiming: copy(wifiTiming) as Record<string, any>,
+    threadTiming: copy(threadTiming) as Record<string, any>,
     limits: copy(limits) as Record<string, any>,
     groupRules: copy(groupRules) as unknown as DataBundle['groupRules'],
     priorityTable: copy(priorityTable) as unknown as DataBundle['priorityTable'],

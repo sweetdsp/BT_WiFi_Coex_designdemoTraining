@@ -712,6 +712,94 @@
       "label": "IMPLEMENTATION_VARIES",
       "milestone": "Post-release",
       "area": "Release"
+    },
+    {
+      "id": "A-84",
+      "source": "owner request: add Thread",
+      "text": "Thread (IEEE 802.15.4) is a third technology next to Bluetooth and Wi-Fi. Thread and Bluetooth are the narrowband side of every conflict and Wi-Fi is the other side, so a Thread block is classified against a Wi-Fi block with the same table, platform columns and rules as a Bluetooth block: shared antenna or core, simultaneous-TX/RX setting, isolation threshold and guard margin. There are no separate hardware settings for Thread; its radio shares the Bluetooth arrangement. The fields of a conflict that are named bt... hold the Thread block when Thread is involved, and the policy 'Bluetooth favoured' means the narrowband side is favoured.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "Thread",
+      "area": "Thread"
+    },
+    {
+      "id": "A-85",
+      "source": "IEEE 802.15.4",
+      "text": "Frame timing follows the 2.4 GHz O-QPSK physical layer: 250 kbps, which is 32 microseconds per byte, a 6 byte physical header, an acknowledgement of 5 bytes sent 192 microseconds after the frame, a 320 microsecond backoff period, a 128 microsecond clear-channel check, a 864 microsecond acknowledgement wait, and a longest frame of 127 bytes. They are in threadTiming.json. The 22 bytes of header, security and checksum added to application data, the 16 byte data-request command, and the 960 microsecond wait for a parent's reply are choices, not fixed by the standard.",
+      "label": "STANDARD",
+      "milestone": "Thread",
+      "area": "Thread"
+    },
+    {
+      "id": "A-86",
+      "source": "IEEE 802.15.4",
+      "text": "The Thread network uses one fixed channel, 11 to 26, 5 MHz apart from 2405 to 2480 MHz and 2 MHz wide. It is a platform setting. Thread does not hop, so adaptive frequency hopping does not apply to it. Only the channel scan task visits other channels.",
+      "label": "STANDARD",
+      "milestone": "Thread",
+      "area": "Thread"
+    },
+    {
+      "id": "A-87",
+      "source": "IEEE 802.15.4 CSMA/CA",
+      "text": "A Thread transmit that starts an event waits a random whole number of 320 microsecond backoff periods from 0 to 7, then one clear-channel check, before sending. A frame that starts by receiving does not back off. After a lost frame the wait before the retry is the acknowledgement timeout plus a random backoff whose window doubles with each retry (backoff exponent 3 to 5).",
+      "label": "STANDARD",
+      "milestone": "Thread",
+      "area": "Thread"
+    },
+    {
+      "id": "A-88",
+      "source": "owner request: add Thread",
+      "text": "Thread frames may be delayed to a free time like Wi-Fi frames, because the sender listens before it talks. The exception is the scheduled-listening receive window, which cannot move: if it loses the air the parent sends again. A denied frame is retried until the platform retry limit. A Thread frame that is only corrupted (a degraded conflict) is not retried, the same assumption as for Bluetooth.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "Thread",
+      "area": "Thread"
+    },
+    {
+      "id": "A-89",
+      "source": "owner request: add Thread",
+      "text": "Default priorities: Thread control traffic (polls, scheduled listening, advertisements, joining) 65, above Wi-Fi streaming; Thread data (reports and forwarding) 45, above Wi-Fi bulk and below Wi-Fi interactive data; Thread background and bulk traffic (scans, firmware update) 15. The table is editable. No Thread task is an anchor, because Thread child timeouts are far longer than the simulation window.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "Thread",
+      "area": "Thread"
+    },
+    {
+      "id": "A-90",
+      "source": "owner request: add Thread",
+      "text": "Bluetooth and Thread tasks can be selected together, but their interference with each other is not simulated: each is checked only against Wi-Fi. A warning (P-8) says so. When arbitration moves a block, a narrowband block does keep out of other narrowband blocks' way, because they share one radio path.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "Thread",
+      "area": "Thread"
+    },
+    {
+      "id": "A-91",
+      "source": "Thread specification",
+      "text": "The Thread version setting (1.1 to 1.4) only gates scheduled listening, which needs 1.2. Other Thread tasks need 1.1.",
+      "label": "STANDARD",
+      "milestone": "Thread",
+      "area": "Thread"
+    },
+    {
+      "id": "A-92",
+      "source": "owner request: add Thread",
+      "text": "The Thread use cases replace only the Thread tasks and keep the Bluetooth and Wi-Fi tasks, so they can be combined with Wi-Fi traffic. The Bluetooth use cases now work the same way.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "Thread",
+      "area": "Thread"
+    },
+    {
+      "id": "A-93",
+      "source": "owner request: add Thread",
+      "text": "Three worked examples were added for Thread with Wi-Fi: 7 (a shared antenna, where the sleepy-device polls outrank the video), 8 (Thread on channel 18, under Wi-Fi channel 6, with separate antennas and 10 dB isolation, so frames are degraded) and 9 (the same with Thread on channel 25, so nothing is). Each has exact tests and a lesson whose stated facts are checked against the engine. UX-7 now covers nine lessons.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "Thread",
+      "area": "Thread"
+    },
+    {
+      "id": "A-94",
+      "source": "owner request: add Thread",
+      "text": "Thread is drawn in magenta with a small diamond at the left end of every block and as diamonds in the frequency view, so it is told apart from Bluetooth blue and Wi-Fi orange by shape as well as colour. The legend now has 13 cues.",
+      "label": "IMPLEMENTATION_VARIES",
+      "milestone": "Thread",
+      "area": "Thread"
     }
   ]
 }

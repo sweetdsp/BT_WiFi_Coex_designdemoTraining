@@ -219,6 +219,125 @@
         "windowUs": 1000000,
         "seed": 1
       }
+    },
+    {
+      "id": "example-7",
+      "example": 7,
+      "name": "Example 7: Thread polls and Wi-Fi video on a shared antenna",
+      "summary": "A sleepy Thread device polls its parent and reports a reading while a Wi-Fi video stream runs, all through one antenna. The tiny Thread polls outrank the video, so the video waits for each one.",
+      "label": "IMPLEMENTATION_VARIES",
+      "tasks": [
+        {
+          "taskId": "thread_poll",
+          "params": {
+            "pollPeriodMs": 50,
+            "dataPending": true
+          }
+        },
+        {
+          "taskId": "thread_report",
+          "params": {
+            "reportIntervalMs": 50
+          }
+        },
+        {
+          "taskId": "wifi_video_stream",
+          "params": {
+            "bitrateMbps": 30
+          }
+        }
+      ],
+      "platform": {
+        "wifiGeneration": "11ax",
+        "wifiBand": "2.4",
+        "wifiChannel": 6,
+        "wifiBandwidth": 20,
+        "afhEnabled": false,
+        "windowUs": 1000000,
+        "seed": 1,
+        "femArrangement": "SHARED_SWITCH",
+        "antennaMode": "SHARED",
+        "coreCount": 1,
+        "coreMode": "TIME_DIVISION",
+        "arbitrationPolicy": "PRIORITY",
+        "threadChannel": 15
+      }
+    },
+    {
+      "id": "example-8",
+      "example": 8,
+      "name": "Example 8: Thread channel under a Wi-Fi channel",
+      "summary": "Separate antennas but only 10 dB of isolation. Thread sits on channel 18, inside Wi-Fi channel 6, so overlapping frames corrupt each other. Thread does not hop, so it cannot avoid it.",
+      "label": "IMPLEMENTATION_VARIES",
+      "tasks": [
+        {
+          "taskId": "thread_report",
+          "params": {
+            "reportIntervalMs": 25
+          }
+        },
+        {
+          "taskId": "wifi_video_stream",
+          "params": {
+            "bitrateMbps": 30
+          }
+        }
+      ],
+      "platform": {
+        "wifiGeneration": "11ax",
+        "wifiBand": "2.4",
+        "wifiChannel": 6,
+        "wifiBandwidth": 20,
+        "afhEnabled": false,
+        "windowUs": 1000000,
+        "seed": 1,
+        "femArrangement": "SEPARATE",
+        "antennaMode": "SEPARATE",
+        "coreCount": 2,
+        "coreMode": "CONCURRENT",
+        "simultaneousWifiTxBtRx": true,
+        "isolationDb": 10,
+        "arbitrationPolicy": "PRIORITY",
+        "threadChannel": 18
+      }
+    },
+    {
+      "id": "example-9",
+      "example": 9,
+      "name": "Example 9: moving Thread clear of Wi-Fi",
+      "summary": "The same setup as Example 8 with Thread moved to channel 25, outside Wi-Fi channel 6. The frequency overlap is gone, so nothing is corrupted.",
+      "label": "IMPLEMENTATION_VARIES",
+      "tasks": [
+        {
+          "taskId": "thread_report",
+          "params": {
+            "reportIntervalMs": 25
+          }
+        },
+        {
+          "taskId": "wifi_video_stream",
+          "params": {
+            "bitrateMbps": 30
+          }
+        }
+      ],
+      "platform": {
+        "wifiGeneration": "11ax",
+        "wifiBand": "2.4",
+        "wifiChannel": 6,
+        "wifiBandwidth": 20,
+        "afhEnabled": false,
+        "windowUs": 1000000,
+        "seed": 1,
+        "femArrangement": "SEPARATE",
+        "antennaMode": "SEPARATE",
+        "coreCount": 2,
+        "coreMode": "CONCURRENT",
+        "simultaneousWifiTxBtRx": true,
+        "isolationDb": 10,
+        "arbitrationPolicy": "PRIORITY",
+        "threadChannel": 25
+      }
     }
   ]
 }

@@ -20,7 +20,7 @@ export function periodicEvent(g: GenContext): void {
     const delay = jitter > 0 ? g.rng.int(0, jitter) : 0;
     const eventStart = nominal + delay;
     if (eventStart >= g.windowUs) break;
-    const access = g.task.tech === 'WIFI' && firstIsTx && seq[0]?.kind !== 'BEACON' ? accessDelayUs(g) : 0;
+    const access = (g.task.tech === 'WIFI' || g.task.tech === 'THREAD') && firstIsTx && seq[0]?.kind !== 'BEACON' ? accessDelayUs(g) : 0;
     let t = eventStart + access;
     for (let r = 0; r < repeat; r++) {
       t = emitSequence(g, seq, t, { eventId: `${g.instanceId}.e${k}`, optional: r >= optionalAfter, advGapUs: advGap });

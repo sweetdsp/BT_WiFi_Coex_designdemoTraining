@@ -83,7 +83,7 @@ export default function App() {
   const [selectedBlock, setSelectedBlock] = useState<string | undefined>();
   const [hoverBlock, setHoverBlock] = useState<string | undefined>();
   const [muted, setMuted] = useState<Set<string>>(new Set());
-  const [collapsed, setCollapsed] = useState<Record<Tech, boolean>>({ BT: false, WIFI: false });
+  const [collapsed, setCollapsed] = useState<Record<Tech, boolean>>({ BT: false, WIFI: false, THREAD: false });
   const [freqMode, setFreqMode] = useState<FreqMode>('WATERFALL');
   const [freqLinked, setFreqLinked] = useState(true);
   const [legend, setLegend] = useState(false);
@@ -493,7 +493,7 @@ export default function App() {
                     onAdd={(id) => edit(`Add ${data.taskIndex.get(id)?.name ?? id}`, addTask(draft, id, data))}
                     onRemove={(id) => edit('Remove a task', removeTask(draft, id))} onParam={onParam}
                     onResetTask={(id) => edit('Reset a task', resetTask(draft, id, data))}
-                    onUseCase={(id) => { edit(`Use case: ${data.useCases.find((u) => u.id === id)?.name ?? id}`, applyUseCase(draft, id, data)); say('The task list was replaced by the use case. Undo restores the old list.'); }}
+                    onUseCase={(id) => { edit(`Use case: ${data.useCases.find((u) => u.id === id)?.name ?? id}`, applyUseCase(draft, id, data)); say('The tasks of that technology were replaced by the use case. Your other tasks were kept. Undo restores the old list.'); }}
                     onClear={() => { edit('Clear all tasks', clearTasks(draft)); say('All tasks were cleared. Undo brings them back.'); }}
                     onResetAll={() => { edit('Reset everything', { name: 'New scenario', tasks: [], platform: defaultPlatform(data) }); say('Everything was reset to the defaults. Undo brings your settings back.'); }} />
                 )}
@@ -517,7 +517,7 @@ export default function App() {
           <main className="centre">
             {!result || !ctx ? (
               <section className="empty" data-testid="empty-state">
-                <h2>See how Bluetooth and Wi-Fi share the air</h2>
+                <h2>See how Bluetooth, Thread and Wi-Fi share the air</h2>
                 <p>Pick activities for each radio, set up the hardware, and watch where they collide and who wins. Everything runs in your browser.</p>
                 <button type="button" className="primary" onClick={() => loadPreset('example-1')} data-testid="load-first-example">Load the first example</button>
                 <p className="muted">The first example is an audio stream and a Wi-Fi video stream sharing one antenna. Or build your own from the Tasks tab, then press Generate Coex View.</p>
@@ -528,7 +528,7 @@ export default function App() {
                 <Suspense fallback={<p className="muted">Loading the compare view…</p>}><CompareView a={snapshot} b={result} data={data} theme={theme} viewport={viewport} onViewport={setViewport} cursor={cursor} onCursor={setCursor} collapsed={collapsed} onToggleGroup={(t) => setCollapsed((c) => ({ ...c, [t]: !c[t] }))} onHelp={setHelp} onClose={() => setCompareOn(false)} /></Suspense>
               ) : (<>
                 <section className="guide" data-testid="guide">
-                  <strong>Start here.</strong> The blue lane is Bluetooth and the orange lane is Wi-Fi. Each numbered red band marks a moment when they wanted the air together.
+                  <strong>Start here.</strong> The blue lanes are Bluetooth{result.blocks.some((b) => b.tech === 'THREAD') ? ', the magenta lanes with diamonds are Thread,' : ''} and the orange lanes are Wi-Fi. Each numbered red band marks a moment when they wanted the air together.
                   <button type="button" className="primary" onClick={() => { const first = conflictList(ctx, 'time', false)[0]; if (first) focusConflict(first.conflict.id); }} disabled={result.conflicts.length === 0} data-testid="open-first-conflict">Open the first conflict</button>
                 </section>
                 <Legend theme={theme} open={legend} onClose={() => setLegend(false)} />

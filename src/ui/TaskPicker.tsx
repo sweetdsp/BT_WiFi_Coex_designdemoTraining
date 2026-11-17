@@ -15,7 +15,9 @@ interface Props {
   onUseCase(id: string): void; onClear(): void; onResetAll(): void; onHelp(topic: string): void;
 }
 
-const CATEGORY_ORDER: Record<string, string> = { CLASSIC: 'Bluetooth Classic', LE: 'Bluetooth Low Energy', WIFI: 'Wi-Fi' };
+const CATEGORY_ORDER: Record<string, string> = { CLASSIC: 'Bluetooth Classic', LE: 'Bluetooth Low Energy', THREAD: 'Thread (IEEE 802.15.4)', WIFI: 'Wi-Fi' };
+const TAB_LABEL: Record<Tech, string> = { BT: 'Bluetooth Tasks', THREAD: 'Thread Tasks', WIFI: 'Wi-Fi Tasks' };
+const SHORT: Record<Tech, string> = { BT: 'BT', THREAD: 'Thread', WIFI: 'Wi-Fi' };
 const range = (d: ParamDef) => d.type === 'number' ? `${d.min ?? '–'} to ${d.max ?? '–'}${d.unit ? ' ' + d.unit : ''}` : d.type === 'boolean' ? 'on or off' : (d.choices ?? []).join(', ');
 
 export function IssueBadge({ issues }: { issues: ValidationIssue[] }) {
@@ -56,28 +58,30 @@ export function TaskPicker(p: Props) {
   const [core, setCore] = useState<number>(0);
   const [openId, setOpenId] = useState<string | undefined>();
   useEffect(() => { if (p.reveal) setOpenId(p.reveal.id); }, [p.reveal]);
-  const defs = p.data.tasks.filter((t) => t.tech === tech && (tech === 'WIFI' || core === 0 || t.minVersion <= core));
+  const defs = p.data.tasks.filter((t) => t.tech === tech && (tech !== 'BT' || core === 0 || t.minVersion <= core));
   const cores = [...new Set(p.data.tasks.filter((t) => t.tech === 'BT').map((t) => t.minVersion))].sort((a, b) => a - b);
   const selected = p.cfg.tasks;
-  const counts = { BT: selected.filter((t) => p.data.taskIndex.get(t.taskId)?.tech === 'BT').length, WIFI: selected.filter((t) => p.data.taskIndex.get(t.taskId)?.tech === 'WIFI').length };
+  const counts: Record<Tech, number> = { BT: 0, THREAD: 0, WIFI: 0 };
+  for (const t of selected) { const k = p.data.taskIndex.get(t.taskId)?.tech; if (k) counts[k]++; }
+  const useCases = p.data.useCases.filter((u) => (u.tech ?? 'BT') === tech);
   const groups = [...new Set(defs.map((d) => d.category))];
 
   return (
     <div className="tasks-panel" data-testid="task-picker">
       <div role="tablist" aria-label="Task type" className="tabs">
-        {(['BT', 'WIFI'] as const).map((t) => (
+        {(['BT', 'THREAD', 'WIFI'] as const).map((t) => (
           <button key={t} role="tab" type="button" id={`tab-${t}`} aria-selected={tech === t} aria-controls="task-tabpanel" onClick={() => setTech(t)} data-testid={`tab-${t}`}>
-            {t === 'BT' ? 'Bluetooth Tasks' : 'Wi-Fi Tasks'} <span className="count">{counts[t]}</span>
+            {TAB_LABEL[t]} <span className="count">{counts[t]}</span>
           </button>
         ))}
       </div>
       <div role="tabpanel" id="task-tabpanel" aria-labelledby={`tab-${tech}`}>
-        {tech === 'BT' && (
+        {(tech === 'BT' || tech === 'THREAD') && (
           <div className="row">
-            <label>Use case <select value="" aria-label="Load a Bluetooth use case" data-testid="use-case" onChange={(e) => e.target.value && p.onUseCase(e.target.value)}>
-              <option value="">Choose…</option>{p.data.useCases.map((u) => (<option key={u.id} value={u.id}>{u.name}</option>))}</select></label>
-            <label>Core version <select value={core} aria-label="Show tasks up to this Core version" onChange={(e) => setCore(Number(e.target.value))}>
-              <option value={0}>All</option>{cores.map((c) => (<option key={c} value={c}>up to {c.toFixed(1)}</option>))}</select></label>
+            {useCases.length > 0 && <label>Use case <select value="" aria-label={`Load a ${tech === 'BT' ? 'Bluetooth' : 'Thread'} use case`} data-testid="use-case" onChange={(e) => e.target.value && p.onUseCase(e.target.value)}>
+              <option value="">Choose…</option>{useCases.map((u) => (<option key={u.id} value={u.id}>{u.name}</option>))}</select></label>}
+            {tech === 'BT' && <label>Core version <select value={core} aria-label="Show tasks up to this Core version" onChange={(e) => setCore(Number(e.target.value))}>
+              <option value={0}>All</option>{cores.map((c) => (<option key={c} value={c}>up to {c.toFixed(1)}</option>))}</select></label>}
           </div>
         )}
         <ul className="catalogue">
@@ -110,10 +114,10 @@ export function TaskPicker(p: Props) {
           const open = openId === t.instanceId;
           const changed = JSON.stringify(t.params) !== JSON.stringify(defaultParams(def));
           return (
-            <li key={t.instanceId} className={`sel ${def.tech === 'BT' ? 'sel-bt' : 'sel-wifi'}`} data-instance={t.instanceId}>
+            <li key={t.instanceId} className={`sel sel-${def.tech.toLowerCase()}`} data-instance={t.instanceId}>
               <div className="sel-head">
                 <button type="button" className="link" aria-expanded={open} aria-controls={`pe-${t.instanceId}`} onClick={() => setOpenId(open ? undefined : t.instanceId)}>
-                  <span aria-hidden="true">{open ? '▾' : '▸'}</span> {def.tech === 'BT' ? 'BT' : 'Wi-Fi'}: {def.name}{changed ? ' (edited)' : ''}
+                  <span aria-hidden="true">{open ? '▾' : '▸'}</span> {SHORT[def.tech]}: {def.name}{changed ? ' (edited)' : ''}
                 </button>
                 <IssueBadge issues={mine} />
                 <button type="button" className="icon" onClick={() => p.onRemove(t.instanceId)} aria-label={`Remove ${def.name}`} data-testid={`remove-${t.instanceId}`}>✕</button>

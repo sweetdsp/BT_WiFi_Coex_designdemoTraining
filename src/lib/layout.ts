@@ -5,16 +5,21 @@ import { span, xOf, type Viewport } from './viewport';
 
 export interface Lane { id: string; tech: Tech; name: string; index: number; help: string; taskId: string }
 
-export function buildLanes(result: EngineResult, data: { taskIndex: Map<string, { name: string; help: string }> }): { bt: Lane[]; wifi: Lane[] } {
-  const bt: Lane[] = [], wifi: Lane[] = [];
+export function buildLanes(result: EngineResult, data: { taskIndex: Map<string, { name: string; help: string }> }): { bt: Lane[]; thread: Lane[]; wifi: Lane[] } {
+  const bt: Lane[] = [], thread: Lane[] = [], wifi: Lane[] = [];
   for (const inst of result.config.tasks) {
     const def = data.taskIndex.get(inst.taskId) as unknown as { tech: Tech; name: string; help: string } | undefined;
     if (!def) continue;
     const tech = def.tech;
-    const list = tech === 'BT' ? bt : wifi;
+    const list = tech === 'BT' ? bt : tech === 'THREAD' ? thread : wifi;
     list.push({ id: inst.instanceId, tech, name: result.taskNames[inst.instanceId] ?? def.name, index: list.length, help: def.help, taskId: inst.taskId });
   }
-  return { bt, wifi };
+  return { bt, thread, wifi };
+}
+
+/** The lane groups of the time view in order: Bluetooth, Thread, Wi-Fi. Thread appears only with Thread tasks, and an empty Bluetooth group is left out when Thread is there instead. */
+export function laneGroups(lanes: { bt: Lane[]; thread: Lane[]; wifi: Lane[] }): { tech: Tech; lanes: Lane[] }[] {
+  return [...(lanes.bt.length || !lanes.thread.length ? [{ tech: 'BT' as Tech, lanes: lanes.bt }] : []), ...(lanes.thread.length ? [{ tech: 'THREAD' as Tech, lanes: lanes.thread }] : []), { tech: 'WIFI' as Tech, lanes: lanes.wifi }];
 }
 
 /** Blocks that are drawn: untriggered retransmission slots are not on the air and are left out. */

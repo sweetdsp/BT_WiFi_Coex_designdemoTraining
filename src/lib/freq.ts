@@ -8,8 +8,10 @@ export const BAND_LOW = 2400;
 export const BAND_HIGH = 2483.5;
 
 export interface Footprint { taskId: string; channel: number; low: number; high: number; guardLow: number; guardHigh: number }
-export interface Hop { blockId: string; t: number; freq: number; channelIndex: number; width: number; inOverlap: boolean; tech: 'BT' }
+export interface Hop { blockId: string; t: number; freq: number; channelIndex: number; width: number; inOverlap: boolean; tech: 'BT' | 'THREAD' }
 export interface HistBin { freq: number; count: number; inFootprint: boolean; removed: boolean }
+/** One Thread channel in use: Thread does not hop, so each channel is a column, not a spread of hops. */
+export interface ThreadMark { channel: number; freq: number; widthMHz: number; count: number; inFootprint: boolean }
 export interface AfhCell { channelIndex: number; freq: number; removed: boolean }
 export interface HighBand { band: string; channel: number; centre: number; widthMHz: number; caption: string }
 
@@ -19,13 +21,16 @@ export interface FreqModel {
   /** Hops that landed inside a footprint during a time overlap (circled in red). */
   circled: number;
   histogram: HistBin[];
+  /** Thread channels in use, with how many frames went out on each. */
+  threadMarks: ThreadMark[];
+  hasThread: boolean;
   afhStrip: AfhCell[];
   afh: AfhMap;
   highBands: HighBand[];
   caption: string;
 }
 
-export const HIGH_BAND_CAPTION = 'No frequency overlap with Bluetooth. Interaction is only through shared antenna, core, and isolation.';
+export const HIGH_BAND_CAPTION = 'No frequency overlap with Bluetooth or Thread. Interaction is only through shared antenna, core, and isolation.';
 
 export function freqModel(ctx: ViewCtx, range: [number, number] | null): FreqModel {
   const { result, data } = ctx;
@@ -49,11 +54,13 @@ export function freqModel(ctx: ViewCtx, range: [number, number] | null): FreqMod
 
   const hops: Hop[] = [];
   const counts = new Map<number, number>();
+  const threadCounts = new Map<number, { freq: number; width: number; count: number }>();
   for (const b of result.blocks) {
-    if (b.tech !== 'BT' || b.optional || (b.status !== 'GRANTED' && b.status !== 'DELAYED' && b.status !== 'TOLERATED' && b.status !== 'DEGRADED')) continue;
+    if (b.tech === 'WIFI' || b.optional || (b.status !== 'GRANTED' && b.status !== 'DELAYED' && b.status !== 'TOLERATED' && b.status !== 'DEGRADED')) continue;
     if (range && (b.start < range[0] || b.start > range[1])) continue;
-    hops.push({ blockId: b.id, t: b.start, freq: b.freqCenter, channelIndex: b.channelIndex, width: b.freqWidth, inOverlap: circledBlocks.has(b.id), tech: 'BT' });
-    counts.set(b.freqCenter, (counts.get(b.freqCenter) ?? 0) + 1);
+    hops.push({ blockId: b.id, t: b.start, freq: b.freqCenter, channelIndex: b.channelIndex, width: b.freqWidth, inOverlap: circledBlocks.has(b.id), tech: b.tech });
+    if (b.tech === 'BT') counts.set(b.freqCenter, (counts.get(b.freqCenter) ?? 0) + 1);
+    else threadCounts.set(b.channelIndex, { freq: b.freqCenter, width: b.freqWidth, count: (threadCounts.get(b.channelIndex)?.count ?? 0) + 1 });
   }
   const afh = result.afh;
   const removedFreq = new Set(afh.classicRemoved.map((k) => data.constants.classicBaseMHz + k));
@@ -69,11 +76,14 @@ export function freqModel(ctx: ViewCtx, range: [number, number] | null): FreqMod
     const bin = histogram.find((h) => h.freq === f);
     void bin;
   }
+  const hasThread = result.blocks.some((b) => b.tech === 'THREAD');
+  const threadMarks: ThreadMark[] = [...threadCounts.entries()].sort((a, b) => a[0] - b[0]).map(([channel, v]) => ({ channel, freq: v.freq, widthMHz: v.width, count: v.count, inFootprint: inFp(v.freq) }));
+  const hasBt = result.blocks.some((b) => b.tech === 'BT') || !hasThread;
   const afhStrip: AfhCell[] = Array.from({ length: data.constants.classicHopChannels }, (_, k) => ({ channelIndex: k, freq: data.constants.classicBaseMHz + k, removed: afh.classicRemoved.includes(k) }));
   return {
-    footprints: [...seen.values()], hops, circled: hops.filter((h) => h.inOverlap && inFp(h.freq)).length, histogram, afhStrip, afh,
+    footprints: [...seen.values()], hops, circled: hops.filter((h) => h.inOverlap && inFp(h.freq)).length, histogram, threadMarks, hasThread, afhStrip, afh,
     highBands: [...high.values()],
-    caption: 'Blue marks are Bluetooth hops. The orange band is the Wi-Fi channel, with a lighter margin for the guard. Hops circled in red landed inside the Wi-Fi channel while a Wi-Fi block was on the air.',
+    caption: `${hasBt ? 'Blue marks are Bluetooth hops. ' : ''}${hasThread ? 'Magenta diamonds are Thread frames: Thread does not hop, so they stay on one channel. ' : ''}The orange band is the Wi-Fi channel, with a lighter margin for the guard. ${hasThread && !hasBt ? 'Frames' : 'Hops'} circled in red landed inside the Wi-Fi channel while a Wi-Fi block was on the air.`,
   };
 }
 
